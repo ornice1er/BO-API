@@ -1,0 +1,123 @@
+@font-face {
+    font-family: avenir;
+    src: url("../font/Avenir-Light.ttf");
+
+}
+p{
+    font-family: avenir;
+
+
+}
+/* Pallettes des couleurs primaires */
+.fct-text-bleu-azur{
+    color:rgb(0, 114, 188)
+}
+.fct-bg-bleu-azur{
+   background-color:rgb(0, 114, 188)
+}
+
+.fct-text-jaune{
+    color:rgb(255, 203, 5)
+}
+.fct-bg-jaune{
+   background-color:rgb(255, 203, 5)
+}
+.fct-text-vert-d-eau{
+    color:rgb(57, 187, 157)
+}
+.fct-bg-vert-d-eau{
+   background-color:rgb(57, 187, 157)
+}
+
+
+/* Pallettes des couleurs secondaires */
+
+.fct-text-rouge-rubis{
+    color:rgb(167, 28, 32)
+}
+.fct-bg-rouge-rubis{
+   background-color:rgb(167, 28, 32)
+}
+
+.fct-text-turquois-vif{
+    color:rgb(86, 197, 208)
+}
+.fct-bg-turquois-vif{
+   background-color:rgb(86, 197, 208)
+}
+
+.fct-text-bleu-cobalt{
+    color:rgb(47, 63, 138)
+}
+.fct-bg-bleu-cobalt{
+   background-color:rgb(47, 63, 138)
+}
+
+.fct-text-vert-printemps{
+    color:rgb(130, 165, 35)
+}
+.fct-bg-vert-printemps{
+   background-color:rgb(130, 165, 35)
+}
+
+
+/* Pallettes des couleurs tertiaires */
+
+.fct-text-noir{
+    color:rgb(0, 0, 0)
+}
+.fct-bg-noir{
+   background-color:rgb(130, 165, 35)
+}
+
+.fct-text-blanc{
+    color:rgb(255, 255, 255)
+}
+.fct-bg-blanc{
+   background-color:rgb(255, 255, 255)
+}
+
+
+  @page
+{
+    size: A4;
+margin: 0;
+padding: 100px 150px;
+}
+
+@media print
+{
+html,
+
+    body{
+    width: 210mm;
+    height: 297mm;
+}
+
+}
+header{
+    width: 100%;
+}
+header img{
+    width: 100px;
+
+}
+
+.text-center{
+    text-align: center;
+}
+
+.main
+{
+    min-height:80vh ;
+}
+
+footer a
+{
+   text-decoration: none;
+   font-weight: bold;
+}
+
+.container{
+    padding: 100px 100px;
+}
