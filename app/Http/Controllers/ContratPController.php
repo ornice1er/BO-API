@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Repositories\ContratRepository;
-use App\Http\Requests\Contrat\StoreContratRequest;
-use App\Http\Requests\Contrat\UpdateContratRequest;
+use App\Http\Repositories\ContratPRepository;
+use App\Http\Requests\ContratP\StoreContratPRequest;
+use App\Http\Requests\ContratP\UpdateContratPRequest;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
-class ContratController extends Controller
+class ContratPController extends Controller
 {
     /**
-     * The contrat repository being queried.
+     * The contratP repository being queried.
      *
-     * @var ContratRepository
+     * @var ContratPRepository
      */
-    protected $contratRepository;
+    protected $contratPRepository;
 
     protected $ls;
 
-    public function __construct(ContratRepository $contratRepository, LogService $ls)
+    public function __construct(ContratPRepository $contratPRepository, LogService $ls)
     {
-        $this->contratRepository = $contratRepository;
+        $this->contratPRepository = $contratPRepository;
         $this->ls = $ls;
 
         //$this->middleware('auth:api')->except(['getNotified', 'show']);
@@ -31,12 +31,12 @@ class ContratController extends Controller
     }
 
     /** @OA\Get(
-     *      path="/contrats",
-     *      operationId="Contrat list",
-     *      tags={"Contrat"},
+     *      path="/contratPs",
+     *      operationId="ContratP list",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
-     *      summary="Return contrat data",
-     *      description="Get all contrats",
+     *      summary="Return contratP data",
+     *      description="Get all contratPs",
      *
      *      @OA\Parameter(
      *          name="name",
@@ -62,7 +62,7 @@ class ContratController extends Controller
      * @OA\Parameter(
      *          name="role",
      *          in="query",
-     *          description="Contrat Role ID",
+     *          description="ContratP Role ID",
      *          required=false,
      *
      *          @OA\Schema(
@@ -85,9 +85,9 @@ class ContratController extends Controller
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratP")
      *      ),
      *
      *      @OA\Response(
@@ -110,10 +110,10 @@ class ContratController extends Controller
      */
     public function index(Request $request)
     {
-        $message = 'Récupération de la liste des contrats';
+        $message = 'Récupération de la liste des contratPs';
 
         try {
-            $result = $this->contratRepository->getAll($request);
+            $result = $this->contratPRepository->getAll($request);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::success($message, $result);
@@ -128,9 +128,9 @@ class ContratController extends Controller
 
 
     /** @OA\Get(
-     *      path="/contrats/{id}",
-     *      operationId="Contrat show",
-     *      tags={"Contrat"},
+     *      path="/contratPs/{id}",
+     *      operationId="ContratP show",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
      *
      *  @OA\Parameter(
@@ -146,23 +146,23 @@ class ContratController extends Controller
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="Contrat ID",
+     *          description="ContratP ID",
      *          required=true,
      *
      *          @OA\Schema(
      *              type="string"
      *          )
      *      ),
-     *      summary="Return one Contrat data",
-     *      description="Get Contrat by ID",
+     *      summary="Return one ContratP data",
+     *      description="Get ContratP by ID",
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratP")
      *      ),
      *
      *      @OA\Response(
@@ -185,10 +185,10 @@ class ContratController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $message = 'Récupération d\'un contrat';
+        $message = 'Récupération d\'un contratP';
 
         try {
-            $result = $this->contratRepository->get($id);
+            $result = $this->contratPRepository->get($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
             return Common::success('Utilisateur trouvé', $result);
@@ -201,27 +201,27 @@ class ContratController extends Controller
 
 
     /** @OA\Post(
-     *      path="/contrats",
-     *      operationId="Contrat store",
-     *      tags={"Contrat"},
+     *      path="/contratPs",
+     *      operationId="ContratP store",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
-     *      summary="Store Contrat data",
-     *      description="Create a new Contrat",
+     *      summary="Store ContratP data",
+     *      description="Create a new ContratP",
      *
      *       @OA\RequestBody(
      *          description="body request",
      *          required=true,
      *
-     *          @OA\JsonContent(ref="#/components/schemas/ContratCreate")
+     *          @OA\JsonContent(ref="#/components/schemas/ContratPCreate")
      *      ),
      *
      *      @OA\Response(
      *          response=201,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratP")
      *      ),
      *
      *      @OA\Response(
@@ -242,12 +242,12 @@ class ContratController extends Controller
      *      )
      * )
      */
-    public function store(StoreContratRequest $request)
+    public function store(StoreContratPRequest $request)
     {
-        $message = 'Enregistrement d\'un contrat';
+        $message = 'Enregistrement d\'un contratP';
 
         try {
-            $result = $this->contratRepository->makeStore($request->validated());
+            $result = $this->contratPRepository->makeStore($request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
 
             return Common::successCreate('Utilisateur créé avec succès', $result);
@@ -260,17 +260,17 @@ class ContratController extends Controller
 
 
     /** @OA\Put(
-     *      path="/contrats/{id}",
-     *      operationId="Contrat update",
-     *      tags={"Contrat"},
+     *      path="/contratPs/{id}",
+     *      operationId="ContratP update",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
-     *      summary="Update one Contrat data",
-     *      description="Update Contrat by ID",
+     *      summary="Update one ContratP data",
+     *      description="Update ContratP by ID",
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="Contrat ID",
+     *          description="ContratP ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -282,16 +282,16 @@ class ContratController extends Controller
      *          description="body request",
      *          required=true,
      *
-     *          @OA\JsonContent(ref="#/components/schemas/ContratCreate")
+     *          @OA\JsonContent(ref="#/components/schemas/ContratPCreate")
      *      ),
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratP")
      *      ),
      *
      *      @OA\Response(
@@ -312,15 +312,15 @@ class ContratController extends Controller
      *      )
      * )
      */
-    public function update(UpdateContratRequest $request, $id)
+    public function update(UpdateContratPRequest $request, $id)
     {
-        $message = 'Mise à jour d\'un contrat';
+        $message = 'Mise à jour d\'un contratP';
 
         try {
-            $result = $this->contratRepository->makeUpdate($id, $request->validated());
+            $result = $this->contratPRepository->makeUpdate($id, $request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
 
-            return Common::success('Mise à jour de l\'contrat effectuée avec succès', $result);
+            return Common::success('Mise à jour de l\'contratP effectuée avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
@@ -329,17 +329,17 @@ class ContratController extends Controller
     }
 
     /** @OA\Delete(
-     *      path="/contrats/{id}",
-     *      operationId="Contrat Delete",
-     *      tags={"Contrat"},
+     *      path="/contratPs/{id}",
+     *      operationId="ContratP Delete",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
-     *      summary="Delete Contrat data",
-     *      description="Delete Contrat by ID",
+     *      summary="Delete ContratP data",
+     *      description="Delete ContratP by ID",
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="Contrat ID",
+     *          description="ContratP ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -376,12 +376,12 @@ class ContratController extends Controller
      */
     public function destroy($id)
     {
-        $message = 'Suppression d\'un contrat';
+        $message = 'Suppression d\'un contratP';
 
         try {
-            $recup = $this->contratRepository->get($id);
+            $recup = $this->contratPRepository->get($id);
 
-            $result = $this->contratRepository->makeDestroy($id);
+            $result = $this->contratPRepository->makeDestroy($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($recup)]);
 
             return Common::successDelete('Utilisateur supprimé avec succès', $result);
@@ -393,15 +393,15 @@ class ContratController extends Controller
     }
 
     /** @OA\Get(
-     *      path="/contrats/{id}/state/{state}",
-     *      operationId="Contrat change state",
-     *      tags={"Contrat"},
+     *      path="/contratPs/{id}/state/{state}",
+     *      operationId="ContratP change state",
+     *      tags={"ContratP"},
      *      security={{"JWT":{}}},
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="Contrat ID",
+     *          description="ContratP ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -412,23 +412,23 @@ class ContratController extends Controller
      *      @OA\Parameter(
      *          name="state",
      *          in="path",
-     *          description="Contrat state",
+     *          description="ContratP state",
      *          required=true,
      *
      *          @OA\Schema(
      *              type="string"
      *          )
      *      ),
-     *      summary="Change Contrat state",
-     *      description="Change Contrat state by ID",
+     *      summary="Change ContratP state",
+     *      description="Change ContratP state by ID",
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratP")
      *      ),
      *
      *      @OA\Response(
@@ -451,10 +451,10 @@ class ContratController extends Controller
      */
     public function changeState($id, $state)
     {
-        $message = 'Changement de l\'état d\'un contrat';
+        $message = 'Changement de l\'état d\'un contratP';
 
         try {
-            $result = $this->contratRepository->setStatus($id, $state);
+            $result = $this->contratPRepository->setStatus($id, $state);
             $statusMessage = $state == 1 ? 'activé' : 'désactivé';
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
@@ -467,20 +467,20 @@ class ContratController extends Controller
     }
 
     /** @OA\Post(
-     *      path="/contrats-search",
-     *      operationId="Contrat searching",
-     *      tags={"Contrat"},
+     *      path="/contratPs-search",
+     *      operationId="ContratP searching",
+     *      tags={"ContratP"},
      *       security={{"JWT":{}}},
-     *      summary="Return list of Contrat respecting term",
-     *      description="Get all filtered contrats using term",
+     *      summary="Return list of ContratP respecting term",
+     *      description="Get all filtered contratPs using term",
      *
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *
-     *         @OA\JsonContent(ref="#/components/schemas/Contrat"),
+     *         @OA\JsonContent(ref="#/components/schemas/ContratP"),
      *
-     *         @OA\XmlContent(ref="#/components/schemas/Contrat")
+     *         @OA\XmlContent(ref="#/components/schemas/ContratP")
      *     ),
      *
      *     @OA\RequestBody(
@@ -510,11 +510,11 @@ class ContratController extends Controller
      */
     public function search(Request $request)
     {
-        $message = 'Filtrage des contrats';
+        $message = 'Filtrage des contratPs';
 
         try {
             $term = $request->term;
-            $result = $this->contratRepository->search($term);
+            $result = $this->contratPRepository->search($term);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::success('Filtrage effectué avec succès', $result);

@@ -2,17 +2,17 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\Contrat;
+use App\Models\ContratP;
 use App\Traits\Repository;
 
-class ContratRepository
+class ContratPRepository
 {
     use Repository;
 
     /**
      * The model being queried.
      *
-     * @var Contrat
+     * @var ContratP
      */
     protected $model;
 
@@ -23,11 +23,11 @@ class ContratRepository
     public function __construct()
     {
         // Don't forget to update the model's name
-        $this->model = app(Contrat::class);
+        $this->model = app(ContratP::class);
     }
 
     /**
-     * Check if contrat exists
+     * Check if contratP exists
      */
     public function ifExist($id)
     {
@@ -35,13 +35,13 @@ class ContratRepository
     }
 
     /**
-     * Get all contrats with filtering, pagination, and sorting
+     * Get all contratPs with filtering, pagination, and sorting
      */
     public function getAll($request)
     {
         $per_page = 10;
 
-        $req = Contrat::ignoreRequest(['per_page'])
+        $req = ContratP::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
@@ -59,7 +59,7 @@ class ContratRepository
 
 
     /**
-     * Get a specific contrat by id
+     * Get a specific contratP by id
      */
     public function get($id)
     {
@@ -69,25 +69,25 @@ class ContratRepository
 
 
     /**
-     * Store a new contrat
+     * Store a new contratP
      */
-  public function makeStore(array $data): Contrat
+  public function makeStore(array $data): ContratP
 {
 
 
     // Création de l'utilisateur
-    $contrat = Contrat::create($data);
+    $contratP = ContratP::create($data);
 
-    return $contrat;
+    return $contratP;
 }
 
 
     /**
-     * Update an existing contrat
+     * Update an existing contratP
      */
-  public function makeUpdate($id, array $data): Contrat
+  public function makeUpdate($id, array $data): ContratP
 {
-    $model = Contrat::findOrFail($id);
+    $model = ContratP::findOrFail($id);
 
 
 
@@ -100,7 +100,7 @@ class ContratRepository
 
 
     /**
-     * Delete a contrat
+     * Delete a contratP
      */
     public function makeDestroy($id)
     {
@@ -108,7 +108,7 @@ class ContratRepository
     }
 
     /**
-     * Get the latest contrats
+     * Get the latest contratPs
      */
     public function getLatest()
     {
@@ -121,11 +121,11 @@ class ContratRepository
     }
 
     /**
-     * Search for contrats by name, email, or code
+     * Search for contratPs by name, email, or code
      */
     public function search($term)
     {
-        $query = Contrat::query(); // Start with an empty query
+        $query = ContratP::query(); // Start with an empty query
         $attrs = ['lib_couvert']; // Attributes you want to search in
 
         foreach ($attrs as $value) {

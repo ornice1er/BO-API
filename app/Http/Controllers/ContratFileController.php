@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Repositories\AttestationDeServiceFaitRepository;
-use App\Http\Requests\AttestationDeServiceFait\StoreAttestationDeServiceFaitRequest;
-use App\Http\Requests\AttestationDeServiceFait\UpdateAttestationDeServiceFaitRequest;
+use App\Http\Repositories\ContratFileRepository;
+use App\Http\Requests\ContratFile\StoreContratFileRequest;
+use App\Http\Requests\ContratFile\UpdateContratFileRequest;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
-class AttestationDeServiceFaitController extends Controller
+class ContratFileController extends Controller
 {
     /**
-     * The attestationDeServiceFait repository being queried.
+     * The contratFile repository being queried.
      *
-     * @var AttestationDeServiceFaitRepository
+     * @var ContratFileRepository
      */
-    protected $attestationDeServiceFaitRepository;
+    protected $contratFileRepository;
 
     protected $ls;
 
-    public function __construct(AttestationDeServiceFaitRepository $attestationDeServiceFaitRepository, LogService $ls)
+    public function __construct(ContratFileRepository $contratFileRepository, LogService $ls)
     {
-        $this->attestationDeServiceFaitRepository = $attestationDeServiceFaitRepository;
+        $this->contratFileRepository = $contratFileRepository;
         $this->ls = $ls;
 
         //$this->middleware('auth:api')->except(['getNotified', 'show']);
@@ -31,12 +31,12 @@ class AttestationDeServiceFaitController extends Controller
     }
 
     /** @OA\Get(
-     *      path="/attestationDeServiceFaits",
-     *      operationId="AttestationDeServiceFait list",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles",
+     *      operationId="ContratFile list",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
-     *      summary="Return attestationDeServiceFait data",
-     *      description="Get all attestationDeServiceFaits",
+     *      summary="Return contratFile data",
+     *      description="Get all contratFiles",
      *
      *      @OA\Parameter(
      *          name="name",
@@ -62,7 +62,7 @@ class AttestationDeServiceFaitController extends Controller
      * @OA\Parameter(
      *          name="role",
      *          in="query",
-     *          description="AttestationDeServiceFait Role ID",
+     *          description="ContratFile Role ID",
      *          required=false,
      *
      *          @OA\Schema(
@@ -85,9 +85,9 @@ class AttestationDeServiceFaitController extends Controller
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *      ),
      *
      *      @OA\Response(
@@ -110,10 +110,10 @@ class AttestationDeServiceFaitController extends Controller
      */
     public function index(Request $request)
     {
-        $message = 'Récupération de la liste des attestationDeServiceFaits';
+        $message = 'Récupération de la liste des contratFiles';
 
         try {
-            $result = $this->attestationDeServiceFaitRepository->getAll($request);
+            $result = $this->contratFileRepository->getAll($request);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::success($message, $result);
@@ -128,9 +128,9 @@ class AttestationDeServiceFaitController extends Controller
 
 
     /** @OA\Get(
-     *      path="/attestationDeServiceFaits/{id}",
-     *      operationId="AttestationDeServiceFait show",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles/{id}",
+     *      operationId="ContratFile show",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
      *
      *  @OA\Parameter(
@@ -146,23 +146,23 @@ class AttestationDeServiceFaitController extends Controller
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="AttestationDeServiceFait ID",
+     *          description="ContratFile ID",
      *          required=true,
      *
      *          @OA\Schema(
      *              type="string"
      *          )
      *      ),
-     *      summary="Return one AttestationDeServiceFait data",
-     *      description="Get AttestationDeServiceFait by ID",
+     *      summary="Return one ContratFile data",
+     *      description="Get ContratFile by ID",
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *      ),
      *
      *      @OA\Response(
@@ -185,10 +185,10 @@ class AttestationDeServiceFaitController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $message = 'Récupération d\'un attestationDeServiceFait';
+        $message = 'Récupération d\'un contratFile';
 
         try {
-            $result = $this->attestationDeServiceFaitRepository->get($id);
+            $result = $this->contratFileRepository->get($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
             return Common::success('Utilisateur trouvé', $result);
@@ -201,27 +201,27 @@ class AttestationDeServiceFaitController extends Controller
 
 
     /** @OA\Post(
-     *      path="/attestationDeServiceFaits",
-     *      operationId="AttestationDeServiceFait store",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles",
+     *      operationId="ContratFile store",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
-     *      summary="Store AttestationDeServiceFait data",
-     *      description="Create a new AttestationDeServiceFait",
+     *      summary="Store ContratFile data",
+     *      description="Create a new ContratFile",
      *
      *       @OA\RequestBody(
      *          description="body request",
      *          required=true,
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFaitCreate")
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFileCreate")
      *      ),
      *
      *      @OA\Response(
      *          response=201,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *      ),
      *
      *      @OA\Response(
@@ -242,12 +242,12 @@ class AttestationDeServiceFaitController extends Controller
      *      )
      * )
      */
-    public function store(StoreAttestationDeServiceFaitRequest $request)
+    public function store(StoreContratFileRequest $request)
     {
-        $message = 'Enregistrement d\'un attestationDeServiceFait';
+        $message = 'Enregistrement d\'un contratFile';
 
         try {
-            $result = $this->attestationDeServiceFaitRepository->makeStore($request->validated());
+            $result = $this->contratFileRepository->makeStore($request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
 
             return Common::successCreate('Utilisateur créé avec succès', $result);
@@ -260,17 +260,17 @@ class AttestationDeServiceFaitController extends Controller
 
 
     /** @OA\Put(
-     *      path="/attestationDeServiceFaits/{id}",
-     *      operationId="AttestationDeServiceFait update",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles/{id}",
+     *      operationId="ContratFile update",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
-     *      summary="Update one AttestationDeServiceFait data",
-     *      description="Update AttestationDeServiceFait by ID",
+     *      summary="Update one ContratFile data",
+     *      description="Update ContratFile by ID",
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="AttestationDeServiceFait ID",
+     *          description="ContratFile ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -282,16 +282,16 @@ class AttestationDeServiceFaitController extends Controller
      *          description="body request",
      *          required=true,
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFaitCreate")
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFileCreate")
      *      ),
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *      ),
      *
      *      @OA\Response(
@@ -312,15 +312,15 @@ class AttestationDeServiceFaitController extends Controller
      *      )
      * )
      */
-    public function update(UpdateAttestationDeServiceFaitRequest $request, $id)
+    public function update(UpdateContratFileRequest $request, $id)
     {
-        $message = 'Mise à jour d\'un attestationDeServiceFait';
+        $message = 'Mise à jour d\'un contratFile';
 
         try {
-            $result = $this->attestationDeServiceFaitRepository->makeUpdate($id, $request->validated());
+            $result = $this->contratFileRepository->makeUpdate($id, $request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
 
-            return Common::success('Mise à jour de l\'attestationDeServiceFait effectuée avec succès', $result);
+            return Common::success('Mise à jour de l\'contratFile effectuée avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
@@ -329,17 +329,17 @@ class AttestationDeServiceFaitController extends Controller
     }
 
     /** @OA\Delete(
-     *      path="/attestationDeServiceFaits/{id}",
-     *      operationId="AttestationDeServiceFait Delete",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles/{id}",
+     *      operationId="ContratFile Delete",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
-     *      summary="Delete AttestationDeServiceFait data",
-     *      description="Delete AttestationDeServiceFait by ID",
+     *      summary="Delete ContratFile data",
+     *      description="Delete ContratFile by ID",
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="AttestationDeServiceFait ID",
+     *          description="ContratFile ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -376,12 +376,12 @@ class AttestationDeServiceFaitController extends Controller
      */
     public function destroy($id)
     {
-        $message = 'Suppression d\'un attestationDeServiceFait';
+        $message = 'Suppression d\'un contratFile';
 
         try {
-            $recup = $this->attestationDeServiceFaitRepository->get($id);
+            $recup = $this->contratFileRepository->get($id);
 
-            $result = $this->attestationDeServiceFaitRepository->makeDestroy($id);
+            $result = $this->contratFileRepository->makeDestroy($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($recup)]);
 
             return Common::successDelete('Utilisateur supprimé avec succès', $result);
@@ -393,15 +393,15 @@ class AttestationDeServiceFaitController extends Controller
     }
 
     /** @OA\Get(
-     *      path="/attestationDeServiceFaits/{id}/state/{state}",
-     *      operationId="AttestationDeServiceFait change state",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles/{id}/state/{state}",
+     *      operationId="ContratFile change state",
+     *      tags={"ContratFile"},
      *      security={{"JWT":{}}},
      *
      *      @OA\Parameter(
      *          name="id",
      *          in="path",
-     *          description="AttestationDeServiceFait ID",
+     *          description="ContratFile ID",
      *          required=true,
      *
      *          @OA\Schema(
@@ -412,23 +412,23 @@ class AttestationDeServiceFaitController extends Controller
      *      @OA\Parameter(
      *          name="state",
      *          in="path",
-     *          description="AttestationDeServiceFait state",
+     *          description="ContratFile state",
      *          required=true,
      *
      *          @OA\Schema(
      *              type="string"
      *          )
      *      ),
-     *      summary="Change AttestationDeServiceFait state",
-     *      description="Change AttestationDeServiceFait state by ID",
+     *      summary="Change ContratFile state",
+     *      description="Change ContratFile state by ID",
      *
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
      *
-     *          @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *          @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *          @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *          @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *      ),
      *
      *      @OA\Response(
@@ -451,10 +451,10 @@ class AttestationDeServiceFaitController extends Controller
      */
     public function changeState($id, $state)
     {
-        $message = 'Changement de l\'état d\'un attestationDeServiceFait';
+        $message = 'Changement de l\'état d\'un contratFile';
 
         try {
-            $result = $this->attestationDeServiceFaitRepository->setStatus($id, $state);
+            $result = $this->contratFileRepository->setStatus($id, $state);
             $statusMessage = $state == 1 ? 'activé' : 'désactivé';
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
@@ -467,20 +467,20 @@ class AttestationDeServiceFaitController extends Controller
     }
 
     /** @OA\Post(
-     *      path="/attestationDeServiceFaits-search",
-     *      operationId="AttestationDeServiceFait searching",
-     *      tags={"AttestationDeServiceFait"},
+     *      path="/contratFiles-search",
+     *      operationId="ContratFile searching",
+     *      tags={"ContratFile"},
      *       security={{"JWT":{}}},
-     *      summary="Return list of AttestationDeServiceFait respecting term",
-     *      description="Get all filtered attestationDeServiceFaits using term",
+     *      summary="Return list of ContratFile respecting term",
+     *      description="Get all filtered contratFiles using term",
      *
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *
-     *         @OA\JsonContent(ref="#/components/schemas/AttestationDeServiceFait"),
+     *         @OA\JsonContent(ref="#/components/schemas/ContratFile"),
      *
-     *         @OA\XmlContent(ref="#/components/schemas/AttestationDeServiceFait")
+     *         @OA\XmlContent(ref="#/components/schemas/ContratFile")
      *     ),
      *
      *     @OA\RequestBody(
@@ -510,11 +510,11 @@ class AttestationDeServiceFaitController extends Controller
      */
     public function search(Request $request)
     {
-        $message = 'Filtrage des attestationDeServiceFaits';
+        $message = 'Filtrage des contratFiles';
 
         try {
             $term = $request->term;
-            $result = $this->attestationDeServiceFaitRepository->search($term);
+            $result = $this->contratFileRepository->search($term);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::success('Filtrage effectué avec succès', $result);
