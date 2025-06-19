@@ -122,5 +122,68 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         Route::get('users-rh', 'UserController@indexRH');
         Route::get('users-rh/{id}', 'UserController@showRH');
+
+        Route::post('eservice', 'EServiceController@store');
+Route::get('eservice/zip', 'EServiceController@getZip');
+Route::post('eservice/post-2', 'EServiceController@store2');
+Route::post('eservice/files/deleting', 'EServiceController@removeFile');
+Route::get('eservice/{code}/{slug}/{edition}', 'EServiceController@show');
+Route::get('detab/{id}', 'DetabController@show');
+Route::post('eservice/requete/update', 'EServiceController@update');
+
+Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
+Route::post('eservice/zip-files', 'EServiceController@downloadZip');
+
+
+Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
+  Route::apiResources([
+      "type-entity"=>"TypeEntiteController",
+      "entity"=>"EntiteAdminController",
+      "type-unity-admin"=>"TypeUniteAdminController",
+      "unity-admin"=>"UniteAdminController",
+      "officers"=>"AgentController",
+      "users"=>"UserController",
+      "profile"=>"ProfileController",
+      "prestation"=>"PrestationController",
+      "files"=>"FilesController",
+      "fonction-agent"=>"FonctionAgentController",
+      "requete"=>"RequeteController",
+      "response"=>"ReponseController",
+      "affectation"=>"AffectationController",
+      "dash"=>"DashboardController",
+      "detab"=>"DetabController",
+      "company"=>"CompanyController",
+      "establish-personal"=>"PersonalController",
+      "contrat-p"=>"ContratPController",
+      "agenda"=>"AgendaController",
+  ]);
+
+
+  Route::get('requete/byPrestationPending/{id}', 'RequeteController@getByPrestationPending');
+  Route::get('requete/byPrestation/{slug}', 'RequeteController@getByPrestation');
+  Route::get('requete/byPrestation/{slug}/all', 'RequeteController@getByPrestationAll');
+  Route::get('requete/byPrestation/{slug}/agenda', 'RequeteController@getForAgenda');
+  Route::get('requete/relance/{id}', 'RequeteController@relance');
+
+  Route::get('requete/correction/byPrestation/{slug}', 'RequeteController@getCorrectionByPrestation');
+  Route::get('prestation-details/{id}', 'PrestationController@show');
+
+
+  Route::post('requete/response/store', 'RequeteController@storeResponse');
+  Route::get('requete/get-one/{code}/{slug}', 'RequeteController@getOne');
+  Route::get('requete/treatment/{id}/{slug}', 'RequeteController@show');
+  Route::post('requete/generate/{id}/{slug}', 'RequeteController@createPDF');
+  Route::post('contrat-p/file/upload', 'ContratPController@storeFile');
+
+
+  Route::post('response/decline/store', 'ReponseController@decline');
+
+  Route::post('response/need-correction', 'ReponseController@needCorrection');
+
+
+
+  Route::post('download', 'RequeteController@getDownload');
+
+
     });
 });
