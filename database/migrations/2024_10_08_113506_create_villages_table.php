@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('villages', function (Blueprint $table) {
             $table->id(); // Colonne ID auto-incrémentée
+            $table->string('code')->unique();
             $table->string('name'); // Nom du village
-            $table->string('code')->unique(); // Code unique pour le village
             $table->foreignId('district_id')->constrained()->onDelete('cascade'); // Clé étrangère vers le district
             $table->boolean('is_active')->default(true); // État d'activation
             $table->timestamps(); // Colonnes created_at et updated_at

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('logs', function (Blueprint $table) {
-            $table->foreignId('done_by')->nullable()->change();
+            $table->foreignId('done_by')->change();
 
         });
     }

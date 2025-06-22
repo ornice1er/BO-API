@@ -28,7 +28,7 @@ class District extends Model
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->code = (string) Core::generateIncrementUniqueCode('districts', 3, 'code', null);
+            $model->code = (string) Core::generateIncrementUniqueCode('districts', 6, 'code', "ARR");
         });
     }
 }

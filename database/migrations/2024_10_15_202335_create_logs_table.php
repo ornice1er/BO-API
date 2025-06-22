@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('action_name');
             $table->longText('description');
-            $table->foreignId('done_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('done_by')->nullable()->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -28,7 +28,7 @@ class Municipality extends Model
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->code = (string) Core::generateIncrementUniqueCode('municipalities', 3, 'code', null);
+            $model->code = (string) Core::generateIncrementUniqueCode('municipalities', 3, 'code', "C");
         });
     }
 }

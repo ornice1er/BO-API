@@ -32,7 +32,7 @@ class Village extends Model
 
         // Générer un code unique lors de la création
         self::creating(function ($model) {
-            $model->code = (string) Core::generateIncrementUniqueCode('villages', 3, 'code', null);
+            $model->code = (string) Core::generateIncrementUniqueCode('villages', 5, 'code', "V");
         });
     }
 }

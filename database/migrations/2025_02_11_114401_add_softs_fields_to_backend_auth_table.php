@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('countries', function (Blueprint $table) {
-            $table->softDeletes(); // Ajoute la colonne deleted_at
-        });
+
         Schema::table('departments', function (Blueprint $table) {
             $table->softDeletes(); // Ajoute la colonne deleted_at
         });
@@ -24,12 +22,6 @@ return new class extends Migration
             $table->softDeletes(); // Ajoute la colonne deleted_at
         });
         Schema::table('villages', function (Blueprint $table) {
-            $table->softDeletes(); // Ajoute la colonne deleted_at
-        });
-        Schema::table('projects', function (Blueprint $table) {
-            $table->softDeletes(); // Ajoute la colonne deleted_at
-        });
-        Schema::table('user_projects', function (Blueprint $table) {
             $table->softDeletes(); // Ajoute la colonne deleted_at
         });
         Schema::table('settings', function (Blueprint $table) {

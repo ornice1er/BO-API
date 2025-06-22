@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('municipalities', function (Blueprint $table) {
             $table->id(); // Colonne ID
-            $table->string('name'); // Nom de la municipalité
             $table->string('code')->unique(); // Code unique
+            $table->string('name'); // Nom de la municipalité
             $table->foreignId('department_id')->constrained('departments')->onDelete('cascade'); // Clé étrangère vers le département
             $table->boolean('is_active')->default(true); // État d'activation
             $table->timestamps(); // Colonnes created_at et updated_at

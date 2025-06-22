@@ -11,55 +11,23 @@ use Illuminate\Foundation\Auth\User as Authenticatable; // this sould be importe
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Filterable,HasApiTokens, HasFactory,Notifiable,SoftDeletes;
+    use Filterable,HasApiTokens, HasFactory,HasRoles,Notifiable,SoftDeletes;
 
     // Liste blanche des attributs pouvant être filtrés
     private static $whiteListFilter = ['*'];
 
     // Les attributs qui sont mass-assignable
-    protected $fillable = [
-        'code',
-        'name',
-        'lastname',
-        'firstname',
-        'birthdate',
-        'birthplace',
-        'address',
-        'phone',
-        'photo',
-        'is_active',
-        'is_first_connexion',
-        'email',
-        'password',
-        'token',
-        'email_verified_at',
-        'code_otp',
-        'project_id',
-        'spoken_languages',
-        'understood_languages',
-        'municipality_id',
-        'statut_agent_id',
-        'residence_place',
-        'education_level',
-        'nb_children',
-        'computer_skills',
-        'reference_person',
-        'comment',
-        'cv',
-        'push_token',
-    ];
+    protected $guarded = [];
 
-    protected $casts = [
-        'spoken_languages' => 'array',
-        'understood_languages' => 'array',
-    ];
+    protected $casts = [];
 
-    protected $appends = ['StatutAgent'];
+    protected $appends = [];
 
-    protected $dates = ['deleted_at'];
+    protected $dates = [];
 
     /**
      * Fonction boot pour générer un code unique avant la création
@@ -77,50 +45,7 @@ class User extends Authenticatable implements JWTSubject
         });
     }
 
-    public function setFirstnameAttribute($value)
-    {
-        $this->attributes['firstname'] = $value;
-        $this->updateFullName();
-    }
-
-    public function setLastnameAttribute($value)
-    {
-        $this->attributes['lastname'] = $value;
-        $this->updateFullName();
-    }
-
-    private function updateFullName()
-    {
-        $firstname = $this->attributes['firstname'] ?? '';
-        $lastname = $this->attributes['lastname'] ?? '';
-
-        $this->attributes['name'] = trim("$lastname $firstname");
-    }
-
-    public function projects()
-    {
-        return $this->belongsToMany(Project::class, UserProject::class, 'user_id', 'project_id');
-
-    }
-
-    public function userProjects()
-    {
-        return $this->hasMany(UserProject::class, 'user_id');
-
-    }
-
-    public function municipality()
-    {
-        return $this->belongsTo(Municipality::class, 'municipality_id');
-
-    }
-
-    public function userProject()
-    {
-        return $this->hasOne(UserProject::class, 'user_id')->where('project_id', request()->project_id);
-
-    }
-
+  
     public function settings()
     {
 
@@ -140,16 +65,7 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function getStatutAgentAttribute($model)
-    {
-        $ms = new StatutAgentService;
-        if ($this->statut_agent_id) {
-            return $ms->getStatutAgent($this->statut_agent_id)['data'];
-        } else {
-            return null;
-        }
 
-    }
 
     /**
      * Specifies the user's FCM token

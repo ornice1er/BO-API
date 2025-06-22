@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->boolean('use_2FA')->default(false);
-            $table->boolean('accept_notification')->default(true);
             $table->text('notification_list')->nullable();
-            $table->string('mode_2FA')->default('sms');
+             $table->boolean('accept_notification')->default(false);
+            $table->enum('mode_2FA', ['SMS', 'WHATSAPP', 'EMAIL'])->nullable();
             $table->timestamps();
         });
     }

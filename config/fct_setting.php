@@ -17,15 +17,23 @@ return [
         'APP',
         'EMAIL',
     ],
-    'actions' => [
-        'show_edit',
-        'show_only',
+     'actions' => [
+        'LISTER',
+        'RECUPERER',
+        'RECUPERER LISTE',
+        'CREER',
+        'MODIFIER',
+        'SUPPRIMER',
+        'CHANGER_STATUT',
+        'EXPORTER',
+        'IMPORTER',
+        'IMPRIMER',
+
     ],
     'features' => [
-        [
-            'group' => '',
-            'name' => '',
-            'label' => ''
-        ]
+     "UTILISATEUR",
+     "ROLE",
+     "PERMISSION",
+     "PROFIL"
     ],
 ];

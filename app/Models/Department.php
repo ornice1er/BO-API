@@ -28,7 +28,7 @@ class Department extends Model
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->code = (string) Core::generateIncrementUniqueCode('departments', 3, 'code', null);
+            $model->code = (string) Core::generateIncrementUniqueCode('departments', 3, 'code', "D");
         });
     }
 

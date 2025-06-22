@@ -29,7 +29,6 @@ return new class extends Migration
             $table->integer('delay')->default(0);
             $table->boolean('is_automatic_delivered')->default(false);
             $table->boolean('from_pns')->default(false);
-
             // Relations (optionnel)
             $table->foreign('unite_admin_id')->references('id')->on('unite_admins')->onDelete('set null');
             $table->foreign('entite_admin_id')->references('id')->on('entite_admins')->onDelete('set null');

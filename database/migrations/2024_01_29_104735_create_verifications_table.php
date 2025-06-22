@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->enum('type', ['phone', 'email']);
             $table->datetime('expired_at');
+            $table->boolean('sms')->default(false);
+            $table->boolean('whatsapp')->default(false);
             $table->timestamps();
         });
     }

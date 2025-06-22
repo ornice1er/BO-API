@@ -25,28 +25,11 @@ class SuperAdminSeeder extends Seeder
         $user = User::create([
             'firstname' => 'Admin',
             'lastname' => 'Super',
-            'email' => 'superadmin@fs-promoteur.bj',
+            'email' => 'superadmin@gouv.bj',
             'password' => Hash::make('safsp@2024'),
             'birthdate' => '1980-01-01',
-            'birthplace' => 'Cityville',
-            'address' => '123 Admin Street, Cityville',
-            'education_level' => 0,
-            'nb_children' => 0,
-            'computer_skills' => 1,
-            'comment' => '',
-            'reference_person' => '',
+            'birthplace' => 'Cityville'
         ]);
-
-        $project = Project::create([
-            'name' => 'Fênou Sport Promoteur',
-            'description' => 'Mise en place d\'une plateforme de gestion des compétitions ou tournoi sportifs notemment le football',
-        ]);
-
-        $userProject = UserProject::create([
-            'user_id' => $user->id,
-            'project_id' => $project->id,
-        ]);
-
     
         UserSetting::create([
             'user_id' => $user->id,
@@ -56,7 +39,7 @@ class SuperAdminSeeder extends Seeder
             'mode_2FA' => 'SMS',
         ]);
        
-        $userProject->assignRole($role);
+        $user->assignRole($role);
 
     }
 }
