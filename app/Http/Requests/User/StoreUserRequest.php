@@ -6,15 +6,16 @@ use App\Utilities\Common;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Password;
 
 class StoreUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+public function authorize(): bool
     {
-        return true;
+        return true; // Ajustez selon vos besoins d'autorisation
     }
 
     /**
@@ -25,85 +26,134 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|unique:users,email',
-            'firstname' => 'required|string|max:100',
-            'lastname' => 'required|string|max:100',
-            'birthdate' => 'required|date',
-            'birthplace' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            // 'photo' => 'nullable|file|mimes:jpg,bmp,png,webp,jpeg',
-            'photo' => 'nullable|string',
-            'projects' => 'nullable|array',
-            'municipality_id' => 'required|integer|exists:municipalities,id',
-            'spoken_languages' => 'required',
-            'understood_languages' => 'required',
-            'role' => 'required',
-            'project_id' => 'required',
-            'computer_skills' => 'required',
-            'statut_agent_id' => 'required|integer',
-            'education_level' => 'required|integer',
-            'nb_children' => 'required|integer',
-            'reference_person' => 'required|string',
-            'comment' => 'required|string',
-
+            'code' => 'string|max:255|unique:users,code',
+            'agent_id' => 'nullable|integer|exists:agents,id',
+            'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
+            'username' => 'required|string|max:255|unique:users,username|alpha_dash',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ],
+            'first_signin' => 'boolean',
+            'is_active' => 'boolean',
+            'connected' => 'boolean',
+            'doc_pass' => 'nullable|string|max:255',
+            'is_trade' => 'boolean',
         ];
     }
 
     /**
-     * Informations à afficher au cas où il y aurait des erreurs de validation
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
      */
-    public function failedValidation(Validator $validator)
+    public function messages(): array
     {
-        throw new HttpResponseException(Common::error($validator->errors()->first(), $validator->errors()));
+        return [
+            'code.required' => 'Le code utilisateur est obligatoire.',
+            'code.string' => 'Le code utilisateur doit être une chaîne de caractères.',
+            'code.max' => 'Le code utilisateur ne peut pas dépasser 255 caractères.',
+            'code.unique' => 'Ce code utilisateur existe déjà.',
+
+            'agent_id.integer' => 'L\'identifiant de l\'agent doit être un nombre entier.',
+            'agent_id.exists' => 'L\'agent sélectionné n\'existe pas.',
+
+            'entite_admin_id.integer' => 'L\'identifiant de l\'entité administrative doit être un nombre entier.',
+            'entite_admin_id.exists' => 'L\'entité administrative sélectionnée n\'existe pas.',
+
+            'username.required' => 'Le nom d\'utilisateur est obligatoire.',
+            'username.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères.',
+            'username.max' => 'Le nom d\'utilisateur ne peut pas dépasser 255 caractères.',
+            'username.unique' => 'Ce nom d\'utilisateur existe déjà.',
+            'username.alpha_dash' => 'Le nom d\'utilisateur ne peut contenir que des lettres, des chiffres, des tirets et des underscores.',
+
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email' => 'L\'adresse email doit être valide.',
+            'email.max' => 'L\'adresse email ne peut pas dépasser 255 caractères.',
+            'email.unique' => 'Cette adresse email existe déjà.',
+
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+
+            'first_signin.boolean' => 'Le champ première connexion doit être vrai ou faux.',
+            'is_active.boolean' => 'Le champ actif doit être vrai ou faux.',
+            'connected.boolean' => 'Le champ connecté doit être vrai ou faux.',
+            'is_trade.boolean' => 'Le champ commerce doit être vrai ou faux.',
+
+            'doc_pass.string' => 'Le document de passe doit être une chaîne de caractères.',
+            'doc_pass.max' => 'Le document de passe ne peut pas dépasser 255 caractères.',
+        ];
     }
 
     /**
-     * Mettre les messages d'erreur en Français
+     * Get custom attribute names for validator errors.
      *
-     * @return array
+     * @return array<string, string>
      */
-    public function messages()
+    public function attributes(): array
     {
         return [
-
-            'email.required' => 'L\'email est requis.',
-            'email.email' => 'L\'email doit être une adresse email valide.',
-            'email.unique' => 'L\'email est déjà utilisé.',
-            'firstname.required' => 'Le prénom est requis.',
-            'firstname.string' => 'Le prénom doit être une chaîne de caractères.',
-            'firstname.max' => 'Le prénom ne doit pas dépasser 100 caractères.',
-            'lastname.required' => 'Le nom de famille est requis.',
-            'lastname.string' => 'Le nom de famille doit être une chaîne de caractères.',
-            'lastname.max' => 'Le nom de famille ne doit pas dépasser 100 caractères.',
-            'birthdate.required' => 'La date de naissance est requise.',
-            'birthdate.date' => 'La date de naissance doit être une date valide.',
-            'birthplace.required' => 'Le lieu de naissance est requis.',
-            'birthplace.string' => 'Le lieu de naissance doit être une chaîne de caractères.',
-            'birthplace.max' => 'Le lieu de naissance ne doit pas dépasser 255 caractères.',
-            'address.required' => 'L\'adresse est requise.',
-            'address.string' => 'L\'adresse doit être une chaîne de caractères.',
-            'address.max' => 'L\'adresse ne doit pas dépasser 255 caractères.',
-            'phone.required' => 'Le numéro de téléphone est requis.',
-            'phone.string' => 'Le numéro de téléphone doit être une chaîne de caractères.',
-            'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
-            'projects.array' => 'Il est attendu un tableau d\'id de projet.',
-            'municipality_id.required' => 'La commune est requise.',
-            'municipality_id.exists' => 'La commune  n\'existe pas.',
-            'municipality_id.integer' => 'L\'id de la commune n\'est pas un entier .',
-            'spoken_languages.required' => 'Le tableau d\'id de langues parlées est requis.',
-            'spoken_languages.array' => 'un tableau d\'id de de langues parlées est attendu.',
-            'understood_languages.required' => 'Le tableau d\'id de langues compries est requis.',
-            'understood_languages.array' => 'un tableau d\'id de de langues compries est attendu.',
+            'code' => 'code utilisateur',
+            'agent_id' => 'agent',
+            'entite_admin_id' => 'entité administrative',
+            'username' => 'nom d\'utilisateur',
+            'email' => 'adresse email',
+            'password' => 'mot de passe',
+            'first_signin' => 'première connexion',
+            'is_active' => 'actif',
+            'connected' => 'connecté',
+            'doc_pass' => 'document de passe',
+            'is_trade' => 'commerce',
         ];
     }
 
     /**
      * Prepare the data for validation.
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        //
+        // Générer un code UUID si non fourni
+        if (!$this->has('code') || empty($this->code)) {
+            $this->merge([
+                'code' => \Illuminate\Support\Str::uuid()->toString(),
+            ]);
+        }
 
+        // Nettoyer les données booléennes
+        $this->merge([
+            'first_signin' => $this->boolean('first_signin', false),
+            'is_active' => $this->boolean('is_active', true),
+            'connected' => $this->boolean('connected', false),
+            'is_trade' => $this->boolean('is_trade', false),
+        ]);
+
+        // Nettoyer les IDs
+        if ($this->has('agent_id') && !empty($this->agent_id)) {
+            $this->merge(['agent_id' => (int) $this->agent_id]);
+        }
+
+        if ($this->has('entite_admin_id') && !empty($this->entite_admin_id)) {
+            $this->merge(['entite_admin_id' => (int) $this->entite_admin_id]);
+        }
+    }
+
+
+
+ /**
+     * Informations à afficher au cas où il y aurait des erreurs de validation
+     */
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(Common::error($validator->errors()->first(), $validator->errors()));
     }
 }
+

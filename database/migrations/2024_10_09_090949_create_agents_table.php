@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('code')->unique();
             $table->string('lastname');
             $table->string('firstname');
-            $table->string('numero_matricule')->unique();
+            $table->string('numero_matricule');
             $table->unsignedBigInteger('unite_admin_id');
             $table->unsignedBigInteger('entite_admin_id');
             $table->unsignedBigInteger('fonction_agent_id');

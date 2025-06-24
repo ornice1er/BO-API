@@ -45,7 +45,7 @@ class User extends Authenticatable implements JWTSubject
         });
     }
 
-  
+
     public function settings()
     {
 
@@ -78,4 +78,10 @@ class User extends Authenticatable implements JWTSubject
 
         return $this->push_token;
     }
+
+    public function prestations()
+{
+    return $this->hasMany(UserPrestation::class);
+}
+
 }

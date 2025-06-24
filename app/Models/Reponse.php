@@ -12,4 +12,6 @@ class Reponse extends Model
     {
         return $this->belongsTo(UniteAdmin::class,'unite_admin_id');
     }
+
+
 }

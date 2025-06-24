@@ -13,4 +13,10 @@ class Prestation extends Model
     {
         return $this->belongsTo(UniteAdmin::class,'unite_admin_id');
     }
+
+        public function users()
+{
+    return $this->hasMany(UserPrestation::class);
+}
+
 }
