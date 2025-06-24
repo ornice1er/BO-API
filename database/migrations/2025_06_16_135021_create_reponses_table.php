@@ -18,6 +18,10 @@ class CreateReponsesTable extends Migration
             $table->boolean('hasPermission');
             $table->text('reason');
             $table->text('observation');
+            $table->text('note')->nullable();
+            $table->text('content')->nullable();
+            $table->text('motif')->nullable();
+            $table->text('preview_file')->nullable();
             $table->unsignedBigInteger('requete_id');
             $table->foreign('requete_id')
             ->references('id')
