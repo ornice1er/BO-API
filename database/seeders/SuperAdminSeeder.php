@@ -23,12 +23,9 @@ class SuperAdminSeeder extends Seeder
         $role = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'api']);
 
         $user = User::create([
-            'firstname' => 'Admin',
-            'lastname' => 'Super',
+            'username' => 'Super Admin',
             'email' => 'superadmin@gouv.bj',
-            'password' => Hash::make('safsp@2024'),
-            'birthdate' => '1980-01-01',
-            'birthplace' => 'Cityville'
+            'password' => Hash::make('boes@2025')
         ]);
     
         UserSetting::create([

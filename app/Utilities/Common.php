@@ -9,6 +9,7 @@ final class Common
     public static function success($message, $data, $status = true, $warning = null): JsonResponse
     {
         return response()->json([
+            'isPaginate' => request()->has('per_page')?true:false,
             'status' => $status,
             'message' => $message,
             'data' => $data,

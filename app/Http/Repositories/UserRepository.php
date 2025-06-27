@@ -28,20 +28,12 @@ class UserRepository
     protected $model;
 
     /**
-     * The model being queried.
-     *
-     * @var EquipeService
-     */
-    protected $es;
-
-    /**
      * Constructor
      */
     public function __construct()
     {
         // Don't forget to update the model's name
         $this->model = app(User::class);
-        $this->es = app(EquipeService::class);
     }
 
     /**
@@ -59,43 +51,12 @@ class UserRepository
     {
         $per_page = 10;
 
-        $req = User::ignoreRequest(['per_page', 'categorie', 'project_id', 'ids', 'role'])
+        $req = User::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
-            ->with('projects', 'userProjects.roles')
             ->orderByDesc('created_at');
 
-        if (array_key_exists('categorie', $request->all())) {
-            if ($request->categorie == 'ANIMATRICE') {
-                $roleId = (int) Setting::where('key', 'role_for_animatrice')->first()?->value;
-            } elseif ($request->categorie == 'RP') {
-                $roleId = (int) Setting::where('key', 'role_for_rp')->first()?->value;
-            } else {
-                $roleId = (int) Setting::where('key', 'role_for_responsable')->first()?->value;
-            }
-
-            $req->whereHas('userProjects.roles', function ($q) use ($roleId) {
-                $q->where('id', $roleId);
-            });
-        }
-
-        if (array_key_exists('ids', $request->all())) {
-            $req = $req->whereIn('id', explode(',', $request['ids']));
-        }
-
-        if (array_key_exists('project_id', $request->all())) {
-            $project_id = $request->project_id;
-            $req->whereHas('userProjects', function ($q) use ($project_id) {
-                $q->where('project_id', $project_id);
-                if (request()->has('role')) {
-                    $role = request()->role;
-                    $q->whereHas('roles', function ($qu) use ($role) {
-                        $qu->where('id', $role);
-                    });
-                }
-            });
-        }
 
         if (array_key_exists('per_page', $request->all())) {
             $per_page = $request['per_page'];

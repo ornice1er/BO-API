@@ -5,8 +5,6 @@ namespace App\Http\Repositories;
 use App\Exceptions\JsonResponseException;
 use App\Models\PasswordReset;
 use App\Models\User;
-use App\Models\UserAuth;
-use App\Models\UserProject;
 use App\Notifications\DefaultNotification;
 use App\Notifications\ElectionPrClosedNotification;
 use App\Services\OTPService;
@@ -32,21 +30,14 @@ class UserAuthRepository
 
     protected $otpService;
 
-    /**
-     * The model being queried.
-     *
-     * @var UserAuth
-     */
-    protected $model;
+
 
     /**
      * Constructor
      */
-    public function __construct(OTPService $otpService)
+    public function __construct()
     {
-        $this->otpService = $otpService;
         // Don't forget to update the model's name
-        $this->model = app(UserAuth::class);
     }
 
     /**
@@ -54,8 +45,7 @@ class UserAuthRepository
      */
     public function login($data)
     {
-        $browser = $data['device'] == 'web' ? $this->getBrowser(request()) : "mobile";
-        $ipAddress = trim(request()->ip());
+     
 
         info(request()->ip());
         // Tente l'authentification
@@ -125,9 +115,6 @@ class UserAuthRepository
         //         }
         //     }
         // }
-
-        $user->browser = $browser;
-        $user->ip_address = $ipAddress;
         //  $user->is_first_connexion = false;
         $user->save();
 
@@ -150,8 +137,7 @@ class UserAuthRepository
     public function user()
     {
 
-        $user = User::with(['projects.userProjects.roles.permissions', 'settings',
-            'userProjects', 'userProject', 'userProjects.roles.permissions', 'userProject.roles.permissions'])->whereId(Auth::id())->first();
+        $user = User::with(['roles.permissions', 'settings'])->whereId(Auth::id())->first();
 
         return $user;
 
