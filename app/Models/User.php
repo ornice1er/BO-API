@@ -46,6 +46,11 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
+    function agent() {
+
+        return $this->belongsTo(Agent::class, 'agent_id');
+    }
+
     public function settings()
     {
 

@@ -55,6 +55,7 @@ class UserRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with(['roles.permissions','agent'])
             ->orderByDesc('created_at');
 
 
