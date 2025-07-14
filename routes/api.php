@@ -45,13 +45,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
 
     Route::middleware('basic.auth')->group(function () { });
-    Route::group(function () { 
-
-        Route::apiResources([
+    Route::apiResources([
             "prestation"=>"PrestationController"
             ]);
-
-    });
 
     Route::middleware('auth:api')->group(function () {
         Route::get('/user', 'UserAuthController@user');
