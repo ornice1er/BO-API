@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use eloquentFilter\QueryFilter\ModelFilters\Filterable;
+
 
 class Prestation extends Model
 {
+    use Filterable;
+    
     protected $guarded = [];
 
 
