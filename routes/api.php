@@ -45,6 +45,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
 
     Route::middleware('basic.auth')->group(function () { });
+    Route::group(function () { 
+
+        Route::apiResources([
+            "prestation"=>"PrestationController"
+            ]);
+
+    });
 
     Route::middleware('auth:api')->group(function () {
         Route::get('/user', 'UserAuthController@user');
@@ -79,7 +86,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "officers"=>"AgentController",
             "users"=>"UserController",
             "profile"=>"ProfileController",
-            "prestation"=>"PrestationController",
             "files"=>"FilesController",
             "fonction-agent"=>"FonctionAgentController",
             "requete"=>"RequeteController",
