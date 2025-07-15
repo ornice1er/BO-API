@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Prestation extends Model
 {
+
     use Filterable;
     
     protected $guarded = [];

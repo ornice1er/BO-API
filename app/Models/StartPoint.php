@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 class StartPoint extends Model
 {
+
+    use Filterable,HasFactory;
+    private static $whiteListFilter = ['*'];
     use HasFactory;
 
     /**

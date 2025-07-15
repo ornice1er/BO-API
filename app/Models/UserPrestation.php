@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use eloquentFilter\QueryFilter\ModelFilters\Filterable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class UserPrestation extends Model
 {
-    use HasFactory;
+use Filterable,HasFactory;
+    private static $whiteListFilter = ['*'];
 
     protected $fillable = [
         'user_id',

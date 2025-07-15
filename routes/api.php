@@ -74,6 +74,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             'villages' => 'VillageController',
             'roles' => 'RoleController',
             'permissions' => 'PermissionController',
+            'profiles' => 'ProfilController',
             'notifications' => 'NotificationController',
             "type-entity"=>"TypeEntiteController",
             "entity"=>"EntiteAdminController",
