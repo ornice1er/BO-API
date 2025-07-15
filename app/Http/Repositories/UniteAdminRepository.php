@@ -2,17 +2,17 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\UniteAdminController;
+use App\Models\UniteAdmin;
 use App\Traits\Repository;
 
-class UniteAdminControllerRepository
+class UniteAdminRepository
 {
     use Repository;
 
     /**
      * The model being queried.
      *
-     * @var UniteAdminController
+     * @var UniteAdmin
      */
     protected $model;
 
@@ -23,7 +23,7 @@ class UniteAdminControllerRepository
     public function __construct()
     {
         // Don't forget to update the model's name
-        $this->model = app(UniteAdminController::class);
+        $this->model = app(UniteAdmin::class);
     }
 
     /**
@@ -41,7 +41,7 @@ class UniteAdminControllerRepository
     {
         $per_page = 10;
 
-        $req = UniteAdminController::ignoreRequest(['per_page'])
+        $req = UniteAdmin::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
@@ -71,12 +71,12 @@ class UniteAdminControllerRepository
     /**
      * Store a new uniteadmincontroller
      */
-  public function makeStore(array $data): UniteAdminController
+  public function makeStore(array $data): UniteAdmin
 {
 
 
     // Création de l'utilisateur
-    $uniteadmincontroller = UniteAdminController::create($data);
+    $uniteadmincontroller = UniteAdmin::create($data);
 
     return $uniteadmincontroller;
 }
@@ -85,9 +85,9 @@ class UniteAdminControllerRepository
     /**
      * Update an existing uniteadmincontroller
      */
-  public function makeUpdate($id, array $data): UniteAdminController
+  public function makeUpdate($id, array $data): UniteAdmin
 {
-    $model = UniteAdminController::findOrFail($id);
+    $model = UniteAdmin::findOrFail($id);
 
 
 
@@ -96,6 +96,12 @@ class UniteAdminControllerRepository
 
 
     return $model;
+}
+
+function principal() {
+    
+                $unite_admin = UniteAdmin::where('ua_parent_code', null)->orderBy('libelle', 'asc')->get();
+    return   $unite_admin;
 }
 
 
@@ -125,7 +131,7 @@ class UniteAdminControllerRepository
      */
     public function search($term)
     {
-        $query = UniteAdminController::query(); // Start with an empty query
+        $query = UniteAdmin::query(); // Start with an empty query
         $attrs = ['lib_couvert']; // Attributes you want to search in
 
         foreach ($attrs as $value) {

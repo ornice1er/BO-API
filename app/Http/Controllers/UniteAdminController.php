@@ -328,6 +328,27 @@ class UniteAdminController extends Controller
         }
     }
 
+
+        public function principal()
+    {
+        try {
+
+
+           $result = $this->uniteAdminRepository->principal();
+
+            return Common::success('Utilisateur trouvé', $result);
+
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json($ex->getMessage(),500);
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage(),500);
+
+        }
+
+    }
+
+ 
+
     /** @OA\Delete(
      *      path="/uniteAdmins/{id}",
      *      operationId="UniteAdmin Delete",

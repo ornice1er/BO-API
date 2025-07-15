@@ -26,7 +26,7 @@ class PrestationController extends Controller
         $this->prestationRepository = $prestationRepository;
         $this->ls = $ls;
 
-        //$this->middleware('auth:api')->except(['getNotified', 'show']);
+        $this->middleware('auth:api')->except(['index']);
 
     }
 
