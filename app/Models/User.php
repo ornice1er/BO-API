@@ -84,7 +84,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->push_token;
     }
 
-    public function prestations()
+    public function userPrestations()
 {
     return $this->hasMany(UserPrestation::class);
 }

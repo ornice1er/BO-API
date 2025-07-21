@@ -19,9 +19,14 @@ class Prestation extends Model
         return $this->belongsTo(UniteAdmin::class,'unite_admin_id');
     }
 
-        public function users()
-{
-    return $this->hasMany(UserPrestation::class);
-}
+    public function users()
+    {
+        return $this->hasMany(UserPrestation::class);
+    }
+
+    public function startPoints()
+    {
+        return $this->hasMany(StartPoint::class,'prestation_id');
+    }
 
 }
