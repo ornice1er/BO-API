@@ -136,22 +136,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('users/{id}/state/{state}', 'UserController@changeState');
         Route::post('users-search', 'UserController@search');
 
-        Route::post('eservice', 'EServiceController@store');
-        Route::get('eservice/zip', 'EServiceController@getZip');
-        Route::post('eservice/post-2', 'EServiceController@store2');
-        Route::post('eservice/files/deleting', 'EServiceController@removeFile');
-        Route::get('eservice/{code}/{slug}/{edition}', 'EServiceController@show');
-        Route::get('detab/{id}', 'DetabController@show');
-        Route::post('eservice/requete/update', 'EServiceController@update');
-
-        Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
-        Route::post('eservice/zip-files', 'EServiceController@downloadZip');
-
-
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
 
         Route::get('requete/byPrestationPending/{id}', 'RequeteController@getByPrestationPending');
-        Route::get('requete/byPrestation/{slug}', 'RequeteController@getByPrestation');
+        Route::get('requete/byPrestation/pending/{slug}/{tag}', 'RequeteController@getByPrestation');
         Route::get('requete/byPrestation/{slug}/all', 'RequeteController@getByPrestationAll');
         Route::get('requete/byPrestation/{slug}/agenda', 'RequeteController@getForAgenda');
         Route::get('requete/relance/{id}', 'RequeteController@relance');

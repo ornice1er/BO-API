@@ -2,8 +2,12 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\EService;
+use App\Models\Requete;
 use App\Traits\Repository;
+use App\Models\Parcours;
+use App\Models\Prestation;
+use App\Models\Affectation;
+use App\Models\UniteAdmin;
 
 class EServiceRepository
 {
@@ -12,7 +16,7 @@ class EServiceRepository
     /**
      * The model being queried.
      *
-     * @var EService
+     * @var Requete
      */
     protected $model;
 
@@ -23,7 +27,7 @@ class EServiceRepository
     public function __construct()
     {
         // Don't forget to update the model's name
-        $this->model = app(EService::class);
+        $this->model = app(Requete::class);
     }
 
     /**
@@ -41,7 +45,7 @@ class EServiceRepository
     {
         $per_page = 10;
 
-        $req = EService::ignoreRequest(['per_page'])
+        $req = Requete::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
@@ -71,23 +75,79 @@ class EServiceRepository
     /**
      * Store a new eservice
      */
-  public function makeStore(array $data): EService
-{
+    public function makeStore(array $data)
+    {
+
+        $req=Requete::where("code",$data['meta']['code'])->first();
+        $prestation=Prestation::where("code",$data['meta']['prestation_code'])->first();
+     
+        if (!$req) {
+            $req= new Requete();
+            $req->prestation_id=$prestation->id;
+            $req->code=$data['meta']['code'];
+            $req->email=$data['meta']['info']['email'];
+            $req->phone=$data['meta']['info']['phone'];
+             $req->step_contents=$data['steps'];
+            // $req->lastname=$data['meta']['info']['lastname'];
+            // $req->firstname=$data['meta']['info']['firstname'];
+            $req->header=$this->getHeaders();
+            $req->save();
+        }else{
+        $req->prestation_id=$prestation->id;
+        $req->code=$data['meta']['code'];
+        $req->email=$data['meta']['info']['email'];
+        $req->phone=$data['meta']['info']['phone'];
+        $req->step_contents=$data['steps'];
+        // $req->lastname=$data['meta']['info']['lastname'];
+        // $req->firstname=$data['meta']['info']['firstname'];
+        $req->header=$this->getHeaders();
+        $req->save();
+        }
+
+        Parcours::create(['libelle'=>"Soumission de la demande de délivrance d'attestation de non litige",'requete_id'=>$req->id]);
+        
+        $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
+        
+        Affectation::create([
+            'unite_admin_up'=>$prestation->uniteAdmin->id,
+            'unite_admin_down'=>$unite_admin_down->id,
+            'requete_id'=>$req->id,
+            'sens'=>1,
+        ]);
+        Parcours::create(['libelle'=>"Affectation de la demande  ".$req->code." par le/la ".$prestation->uniteAdmin->libelle." au/à la " .$unite_admin_down->libelle ,'requete_id'=>$req->id]);
+         
+
+        return true;
+
+    }
+
+    private function getHeaders(){
+        $headers=request()->header;
+
+        $h_datas=array();
+
+        if (isset($headers['uxp-service'])) {
+        $h_datas['uxp-service']=$headers['uxp-service'][0];
+        $h_datas['uxp-client']=$headers['uxp-client'][0];
+        $h_datas['application-id']=$headers['application-id'][0];
+        $h_datas['response-token']=$headers['response-token'][0];
+
+         }
+
+      return $h_datas;
+    }
 
 
-    // Création de l'utilisateur
-    $eservice = EService::create($data);
 
-    return $eservice;
-}
+
 
 
     /**
      * Update an existing eservice
      */
-  public function makeUpdate($id, array $data): EService
+  public function makeUpdate($id, array $data): Requete
 {
-    $model = EService::findOrFail($id);
+    $model = Requete::findOrFail($id);
 
 
 
@@ -125,7 +185,7 @@ class EServiceRepository
      */
     public function search($term)
     {
-        $query = EService::query(); // Start with an empty query
+        $query = Requete::query(); // Start with an empty query
         $attrs = ['lib_couvert']; // Attributes you want to search in
 
         foreach ($attrs as $value) {

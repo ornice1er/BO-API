@@ -4,6 +4,8 @@ namespace App\Http\Repositories;
 
 use App\Models\Requete;
 use App\Traits\Repository;
+use App\Models\Prestation;
+use Auth;
 
 class RequeteRepository
 {
@@ -133,5 +135,41 @@ class RequeteRepository
         }
 
         return $query->get(); // Return the search results
+    }
+
+
+       public function getByPrestationAll($data)
+        {
+        $prestation=Prestation::where("code",$data['code'])->first();
+        $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation'])->where('prestation_id',$prestation->id)->get();
+
+        return $requetes;
+
+        }
+
+
+        public function getByPrestation($data)
+        {       
+            $prestation=Prestation::where("code",$data['code'])->first();
+            $idStructure=Auth::user()->agent?->uniteAdmin?->id;
+            $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation'])
+                            ->where('prestation_id',$prestation->id)->where('isTreated',false)
+                            ->where('isDeclined',false)
+                            ->whereHas('affectations', function($q) use($idStructure) {
+                                $q->where('unite_admin_down',"=", $idStructure)->where('isLast',"=", true);
+                                })->get();
+
+            return $requetes;
+            
+        }
+
+
+
+            
+    public function getOne($data)
+    {
+        $requete=Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files'])->where('code',$data['code'])->first();
+       return $requete;
+
     }
 }

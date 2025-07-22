@@ -246,16 +246,16 @@ class EServiceController extends Controller
     {
         $message = 'Enregistrement d\'un eService';
 
-        try {
+      //  try {
             $result = $this->eServiceRepository->makeStore($request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
 
-            return Common::successCreate('Utilisateur créé avec succès', $result);
-        } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::successCreate('Demande créé avec succès', $result);
+        // } catch (\Throwable $th) {
+        //     $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
-            return Common::error($th->getMessage(), []);
-        }
+        //     return Common::error($th->getMessage(), []);
+        // }
     }
 
 

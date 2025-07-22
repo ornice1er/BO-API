@@ -185,7 +185,7 @@ class ReponseController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $message = 'Récupération d\'un reponse';
+        $message = 'Récupération d\'une reponse';
 
         try {
             $result = $this->reponseRepository->get($id);
@@ -242,13 +242,13 @@ class ReponseController extends Controller
      *      )
      * )
      */
-    public function store(StoreReponseRequest $request)
+    public function store(Request $request)
     {
-        $message = 'Enregistrement d\'un reponse';
+        $message = 'Enregistrement d\'une reponse';
 
         try {
-            $result = $this->reponseRepository->makeStore($request->validated());
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
+            $result = $this->reponseRepository->store($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::successCreate('Utilisateur créé avec succès', $result);
         } catch (\Throwable $th) {
@@ -314,7 +314,7 @@ class ReponseController extends Controller
      */
     public function update(UpdateReponseRequest $request, $id)
     {
-        $message = 'Mise à jour d\'un reponse';
+        $message = 'Mise à jour d\'une reponse';
 
         try {
             $result = $this->reponseRepository->makeUpdate($id, $request->validated());
@@ -376,7 +376,7 @@ class ReponseController extends Controller
      */
     public function destroy($id)
     {
-        $message = 'Suppression d\'un reponse';
+        $message = 'Suppression d\'une reponse';
 
         try {
             $recup = $this->reponseRepository->get($id);
@@ -451,7 +451,7 @@ class ReponseController extends Controller
      */
     public function changeState($id, $state)
     {
-        $message = 'Changement de l\'état d\'un reponse';
+        $message = 'Changement de l\'état d\'une reponse';
 
         try {
             $result = $this->reponseRepository->setStatus($id, $state);
@@ -518,6 +518,72 @@ class ReponseController extends Controller
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::success('Filtrage effectué avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+
+
+    public function needCorrection(Request $request)
+    {
+        $message = 'Enregistrement d\'une reponse';
+
+        try {
+            $result = $this->reponseRepository->needCorrection($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Réponse maj avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+     public function reachedAgreement(Request $request)
+    {
+        $message = 'Enregistrement d\'une reponse';
+
+        try {
+            $result = $this->reponseRepository->reachedAgreement($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Réponse maj avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+      public function decline(Request $request)
+    {
+        $message = 'Enregistrement d\'une reponse';
+
+        try {
+            $result = $this->reponseRepository->decline($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Réponse maj avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+       public function storeContent(Request $request)
+    {
+        $message = 'Enregistrement d\'une reponse';
+
+        try {
+            $result = $this->reponseRepository->storeContent($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Réponse maj avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 

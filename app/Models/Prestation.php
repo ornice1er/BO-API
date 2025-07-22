@@ -28,5 +28,9 @@ class Prestation extends Model
     {
         return $this->hasMany(StartPoint::class,'prestation_id');
     }
+    public function startPoint2()
+    {
+        return $this->belongsTo(UniteAdmin::class,'start_point');
+    }
 
 }

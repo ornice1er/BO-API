@@ -12,6 +12,11 @@ class Requete extends Model
     private static $whiteListFilter = ['*'];
     protected $guarded = [];
 
+  public $casts = [
+            'step_contents' => 'array',
+            'header' => 'array',
+        ];
+
     public function prestation()
     {
         return $this->belongsTo(Prestation::class,'prestation_id');
@@ -22,62 +27,14 @@ class Requete extends Model
         return $this->hasMany(Parcours::class,'requete_id');
     }
 
-    public function atn()
-    {
-        return $this->hasOne(AttestationNonLitige::class,'requete_id');
-    }
-
-
-    public function detab()
-    {
-        return $this->hasOne(DeclarationEtablissement::class,'requete_id');
-    }
-
-    public function asf()
-    {
-        return $this->hasOne(AttestationDeServiceFait::class,'requete_id');
-    }
-
-    public function ads()
-    {
-        return $this->hasOne(AutorisationDeStage::class,'requete_id');
-    }
-
-
-    public function as()
-    {
-        return $this->hasOne(AttestationDeStage::class,'requete_id');
-    }
-
-    public function ri()
-    {
-        return $this->hasOne(VisaRIE::class,'requete_id');
-    }
-    public function ca()
-    {
-        return $this->hasOne(VisaCA::class,'requete_id');
-    }
-    public function al()
-    {
-        return $this->hasOne(AutorisationLicenciement::class,'requete_id');
-    }
-    public function am()
-    {
-        return $this->hasOne(AgrementMedecin::class,'requete_id');
-    }
-    public function adpap()
-    {
-        return $this->hasOne(AttestationDePresenceAuPoste::class,'requete_id');
-    }
-
-    public function ae()
-    {
-        return $this->hasOne(AttestationExistence::class,'requete_id');
-    }
-
+   
     public function reponses()
     {
         return $this->hasMany(Reponse::class,'requete_id');
+    }
+    public function files()
+    {
+        return $this->hasMany(RequeteFile::class,'requete_id');
     }
 
     public function affectations()

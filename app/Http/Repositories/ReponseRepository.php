@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use App\Models\Reponse;
 use App\Traits\Repository;
+use App\Services\PNSService;
 
 class ReponseRepository
 {
@@ -133,5 +134,128 @@ class ReponseRepository
         }
 
         return $query->get(); // Return the search results
+    }
+
+
+
+
+
+
+
+        public function needCorrection(Request $request)
+    {
+        $req=Requete::whereId($request->requete_id)->first();
+        $header=(array)json_decode($req->header);
+        $ps= new PNSService($header,['officialComment' => $request->commentaire,'decision' => "updaterequest"]);
+        $response=$ps->reply();
+ 
+
+        if ($response->status()>=200 && $response->status()<300) {
+            $req->update(["needCorrection"=>true,"comment"=>$request->commentaire]);
+            return true;
+        }else {
+            return false;
+
+        }
+    }
+    public function reachedAgreement(Request $request)
+    {
+        $req=Requete::whereId($request->requete_id)->first();
+        $header=(array)json_decode($req->header);
+        $ps= new PNSService($header,['decision' => "agreement_reached"]);
+        $response=$ps->reply();
+
+        if ($response->status()>=200 && $response->status()<300) {
+            $req->update(["hasReachedAgreement"=>true]);
+            return true;
+        }else {
+            return false;
+
+        }
+    }
+
+    public function decline(Request $request){
+
+        $req=Requete::whereId($request->requete_id)->first();
+        $header=(array)json_decode($req->header);
+         $ps= new PNSService($header,['officialComment' =>  $request->commentaire,'decision' => "rejected"]);
+        $response=$ps->reply();
+
+
+        if ($response->status()>=200 && $response->status()<300) {
+            $req->update(["isDeclined"=>true,"comment"=>$request->commentaire]);
+            return true;
+
+        }else {
+            return false;
+        }
+
+    }
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        
+        $req=Requete::whereId($request->requete_id)->first();
+        $header=(array)json_decode($req->header);
+        $content=$req->content;
+
+        $ps= new PNSService($header,['content' =>  $content,'decision' => "accepted"]);
+        $response=$ps->reply();
+
+
+        if ($response->status()>="200" &&  $response->status()<"300") {
+            $req->update([
+                'isFinished' => true,
+                'isTreated'=>true
+            ]);
+            return true;
+
+        }else {
+            return false;
+
+        }
+    }
+
+        public function storeContent(Request $request)
+    {
+
+            $id=$request->currentDescId;
+           switch ($id) {
+               case '0':
+                $req=Requete::find($request->id)->update(['content'=>$request->content]);
+                break;
+               case '1':
+                $req=Requete::find($request->id)->update(['content2'=>$request->content]);
+                break;
+               case '2':
+                $req=Requete::find($request->id)->update(['content3'=>$request->content]);
+                break;
+               
+               default:
+               $req=Requete::find($request->id)->update(['content'=>$request->content]);
+               break;
+           }
+        $req=Requete::whereId($request->id)->first();
+     
+            $header=(array)json_decode($req->header);
+            $content=$request->content;
+
+        $ps= new PNSService($header,['content' =>  $content,'created_at' =>  $req?->created_at,'decision' => "preview"]);
+        $response=$ps->reply();
+
+            if ($response->status()>="200" &&  $response->status()<"300") {
+                  return true;
+      
+              }else {
+                  return false;
+      
+              }
+        return true;
+
     }
 }

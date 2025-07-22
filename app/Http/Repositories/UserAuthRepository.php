@@ -137,7 +137,7 @@ class UserAuthRepository
     public function user()
     {
 
-        $user = User::with(['roles.permissions','userPrestations.prestation.uniteAdmin','userPrestations.prestation.startPoints', 'settings','agent.uniteAdmin'])->whereId(Auth::id())->first();
+        $user = User::with(['roles.permissions','userPrestations.prestation.uniteAdmin','userPrestations.prestation.startPoints','userPrestations.prestation.startPoint2', 'settings','agent.uniteAdmin'])->whereId(Auth::id())->first();
 
         return $user;
 

@@ -259,6 +259,53 @@ class RequeteController extends Controller
     }
 
 
+    public function getByPrestation(Request $request,$slug,$tag)
+    {
+        $message = 'Enregistrement d\'un requete';
+
+        try {
+            $result = $this->requeteRepository->getByPrestation(array_merge($request->all(),['code'=>$slug,'tag'=>$tag]));
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Utilisateur créé avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+    public function getOne(Request $request,$code)
+    {
+        $message = 'Enregistrement d\'un requete';
+
+        try {
+            $result = $this->requeteRepository->getOne(array_merge($request->all(),['code'=>$code]));
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Utilisateur créé avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+    public function getByPrestationAll(Request $request,$slug)
+    {
+        $message = 'Enregistrement d\'un requete';
+
+        try {
+            $result = $this->requeteRepository->getByPrestationAll(array_merge($request->all(),['code'=>$slug]));
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Utilisateur créé avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+
     /** @OA\Put(
      *      path="/requetes/{id}",
      *      operationId="Requete update",
