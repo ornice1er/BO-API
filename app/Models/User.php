@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use Str;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -39,9 +40,10 @@ class User extends Authenticatable implements JWTSubject
         // Cette méthode est exécutée avant la création de chaque enregistrement
         self::creating(function ($model) {
             // Génération du code unique pour chaque utilisateur
-            $model->code = (string) Core::generateIncrementUniqueCode('users', 3, 'code', null);
-
-            $model->name = $model->lastname.' '.$model->firstname;
+           // $model->code = (string) Core::generateIncrementUniqueCode('users', 3, 'code', null);
+            $model->code = Str::uuid();
+            $model->username = $model->agent?->lastname.' '.$model->agent?->firstname;
+            $model->name = $model->agent?->lastname.' '.$model->agent?->firstname;
         });
     }
 

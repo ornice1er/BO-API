@@ -45,6 +45,7 @@ class PrestationRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with(['signer2','startPoints','startPoint2'])
             ->orderByDesc('created_at');
 
 

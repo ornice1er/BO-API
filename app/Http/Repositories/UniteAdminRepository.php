@@ -45,6 +45,7 @@ class UniteAdminRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with('parent')
             ->orderByDesc('created_at');
 
 

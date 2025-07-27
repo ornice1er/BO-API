@@ -8,6 +8,12 @@ use App\Models\Parcours;
 use App\Models\Prestation;
 use App\Models\Affectation;
 use App\Models\UniteAdmin;
+use ZipArchive;
+use App\Models\RequeteFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use DB;
+
 
 class EServiceRepository
 {
@@ -78,7 +84,11 @@ class EServiceRepository
     public function makeStore(array $data)
     {
 
-        $req=Requete::where("code",$data['meta']['code'])->first();
+        try {
+
+                        DB::beginTransaction();
+
+                    $req=Requete::where("code",$data['meta']['code'])->first();
         $prestation=Prestation::where("code",$data['meta']['prestation_code'])->first();
      
         if (!$req) {
@@ -87,9 +97,10 @@ class EServiceRepository
             $req->code=$data['meta']['code'];
             $req->email=$data['meta']['info']['email'];
             $req->phone=$data['meta']['info']['phone'];
-             $req->step_contents=$data['steps'];
+            $req->step_contents=$data['steps'];
             // $req->lastname=$data['meta']['info']['lastname'];
             // $req->firstname=$data['meta']['info']['firstname'];
+            $req->status=0;
             $req->header=$this->getHeaders();
             $req->save();
         }else{
@@ -104,6 +115,39 @@ class EServiceRepository
         $req->save();
         }
 
+        $code = $req->code;
+        $zipUrl = $data['files']; 
+        $tempZipPath = storage_path("app/tmp_{$code}.zip");
+        file_put_contents($tempZipPath, file_get_contents($zipUrl));
+        $extractPath = storage_path("app/public/{$code}");
+        Storage::disk('public')->makeDirectory($code);
+        $zip = new ZipArchive;
+        if ($zip->open($tempZipPath) === TRUE) {
+            $zip->extractTo($extractPath);
+            $zip->close();
+
+            // 3. Parcours des fichiers extraits et enregistrement
+            $files = Storage::disk('public')->files($code);
+            foreach ($files as $filePath) {
+                $fullPath = storage_path("app/public/{$filePath}");
+                $extension = pathinfo($fullPath, PATHINFO_EXTENSION);
+
+                RequeteFile::create([
+                    'file_path' => $filePath,
+                    'file_type' => $extension,
+                    'name' => pathinfo($fullPath, PATHINFO_BASENAME),
+                    'url' => Storage::url($filePath),
+                    'is_valid' => true,
+                    'requete_id' => $req->id,
+                ]);
+            }
+                // Supprimer le zip temporaire
+            unlink($tempZipPath);
+
+        } else {
+            throw new \Exception("Impossible d'ouvrir le fichier zip");
+        }
+
         Parcours::create(['libelle'=>"Soumission de la demande de délivrance d'attestation de non litige",'requete_id'=>$req->id]);
         
         $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
@@ -116,8 +160,15 @@ class EServiceRepository
         ]);
         Parcours::create(['libelle'=>"Affectation de la demande  ".$req->code." par le/la ".$prestation->uniteAdmin->libelle." au/à la " .$unite_admin_down->libelle ,'requete_id'=>$req->id]);
          
+            DB::commit();
 
         return true;
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
+
+
 
     }
 

@@ -17,4 +17,10 @@ class EntiteAdmin extends Model
         
         return $this->hasMany(Prestation::class,'entite_admin_id');
     }
+
+     public function uas()
+    {
+        
+        return $this->hasMany(UniteAdmin::class,'entite_admin_id');
+    }
 }

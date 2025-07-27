@@ -18,6 +18,10 @@ class Prestation extends Model
     {
         return $this->belongsTo(UniteAdmin::class,'unite_admin_id');
     }
+    public function signer2()
+    {
+        return $this->belongsTo(UniteAdmin::class,'signer');
+    }
 
     public function users()
     {

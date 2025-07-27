@@ -22,14 +22,9 @@ class UpdateEntiteAdminRequest extends FormRequest
      */
     public function rules(): array
     {
-        $entiteAdminId = $this->route('entite_admin'); // ou $this->route('id') selon votre route
+        $entiteAdminId = $this->route('entity'); // ou $this->route('id') selon votre route
 
         return [
-            'code' => [
-                'nullable',
-                'uuid',
-                Rule::unique('entite_admins', 'code')->ignore($entiteAdminId)
-            ],
             'libelle' => [
                 'required',
                 'string',

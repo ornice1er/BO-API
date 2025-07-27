@@ -26,50 +26,15 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-         $userId = $this->route('user') ? $this->route('user')->id : $this->route('user');
+         $userId = $this->route('user');
 
         return [
-            'code' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('users', 'code')->ignore($userId),
-            ],
-            'agent_id' => 'sometimes|nullable|integer|exists:agents,id',
-            'entite_admin_id' => 'sometimes|nullable|integer|exists:entite_admins,id',
-            'username' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                'alpha_dash',
-                Rule::unique('users', 'username')->ignore($userId),
-            ],
-            'email' => [
-                'sometimes',
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($userId),
-            ],
-            'password' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-            ],
-            'email_verified_at' => 'sometimes|nullable|date',
-            'first_signin' => 'sometimes|boolean',
-            'is_active' => 'sometimes|boolean',
-            'connected' => 'sometimes|boolean',
-            'doc_pass' => 'sometimes|nullable|string|max:255',
-            'is_trade' => 'sometimes|boolean',
+             'roles' => 'array',
+            'agent_id' => 'nullable|integer|exists:agents,id',
+            'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
+            'email' => 'required|email|max:255|unique:users,email,'. $userId ,
+            'choices' => 'required|array'
+
         ];
     }
 
@@ -151,6 +116,7 @@ class UpdateUserRequest extends FormRequest
         if ($this->has('first_signin')) {
             $this->merge(['first_signin' => $this->boolean('first_signin')]);
         }
+        
 
         if ($this->has('is_active')) {
             $this->merge(['is_active' => $this->boolean('is_active')]);
@@ -173,11 +139,8 @@ class UpdateUserRequest extends FormRequest
             $this->merge(['entite_admin_id' => (int) $this->entite_admin_id]);
         }
 
-        // Supprimer le mot de passe s'il est vide (pour ne pas le mettre à jour)
-        if ($this->has('password') && empty($this->password)) {
-            $this->request->remove('password');
-            $this->request->remove('password_confirmation');
-        }
+
+   
     }
 
     /**

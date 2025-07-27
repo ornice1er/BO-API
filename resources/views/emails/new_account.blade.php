@@ -12,7 +12,7 @@
 <p>Pour des raisons de sécurité, nous vous demanderons de modifier votre mot de passe lors de votre première connexion.</p>
 
 <p class="text-center">Cordialement,</p>
-<p class="text-center">L'équipe FCT </p>
+<p class="text-center">L'équipe MEMP </p>
 
 {{-- <p class="text-center"> {{ SettingData('name') }}, vous remercie.</p> --}}
 @endsection

@@ -19,7 +19,6 @@ class UpdateAgentRequest extends FormRequest
         $agentId = $this->route('agent');
 
         return [
-            'code' => "required|uuid|unique:agents,code,{$agentId}",
             'lastname' => 'required|string|max:255',
             'firstname' => 'required|string|max:255',
             'numero_matricule' => "required|string|unique:agents,numero_matricule,{$agentId}",

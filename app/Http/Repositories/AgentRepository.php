@@ -45,6 +45,7 @@ class AgentRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with(['FonctionAgent','uniteAdmin'])
             ->orderByDesc('created_at');
 
 

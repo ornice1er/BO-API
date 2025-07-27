@@ -26,11 +26,6 @@ class StoreUniteAdminRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => [
-                'required',
-                'uuid',
-                'unique:unite_admins,code'
-            ],
             'libelle' => [
                 'required',
                 'string',
@@ -60,8 +55,7 @@ class StoreUniteAdminRequest extends FormRequest
             ],
             'ua_parent_code' => [
                 'nullable',
-                'uuid',
-                'exists:unite_admins,code'
+                'exists:unite_admins,id'
             ],
             'department_id' => [
                 'nullable',

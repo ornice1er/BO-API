@@ -26,6 +26,7 @@ class StoreEserviceRequest extends FormRequest
     {
          return [
             'steps' => ['required', 'array'],
+            'files' => ['sometimes', 'string'],
             'meta' => ['required', 'array'],
             'meta.code' => ['required', 'string'],
             'meta.prestation_code' => ['required', 'string'],

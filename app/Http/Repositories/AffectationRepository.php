@@ -54,7 +54,7 @@ class AffectationRepository
     {
         $per_page = 10;
 
-        $req = Affectation::ignoreRequest(['per_page', 'categorie', 'project_id', 'ids', 'role'])
+        $req = Affectation::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))

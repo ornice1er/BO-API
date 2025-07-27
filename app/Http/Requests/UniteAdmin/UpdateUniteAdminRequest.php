@@ -26,15 +26,9 @@ class UpdateUniteAdminRequest extends FormRequest
      */
     public function rules()
     {
-        $uniteAdminId = $this->route('unite_admin') ?? $this->route('id');
+        $uniteAdminId = $this->route('unity_admin') ?? $this->route('id');
 
         return [
-            'code' => [
-                'sometimes',
-                'required',
-                'uuid',
-                Rule::unique('unite_admins', 'code')->ignore($uniteAdminId)
-            ],
             'libelle' => [
                 'sometimes',
                 'required',
@@ -70,8 +64,7 @@ class UpdateUniteAdminRequest extends FormRequest
             'ua_parent_code' => [
                 'sometimes',
                 'nullable',
-                'uuid',
-                'exists:unite_admins,code'
+                'exists:unite_admins,id'
             ],
             'department_id' => [
                 'sometimes',

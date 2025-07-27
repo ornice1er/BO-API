@@ -17,7 +17,6 @@ class StoreAgentRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => 'required|uuid|unique:agents,code',
             'lastname' => 'required|string|max:255',
             'firstname' => 'required|string|max:255',
             'numero_matricule' => 'required|string|unique:agents,numero_matricule',

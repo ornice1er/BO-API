@@ -19,7 +19,7 @@ class UpdatePrestationRequest extends FormRequest
         return [
             'code' => 'required|string|unique:prestations,code,' . $this->route('prestation'),
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|unique:prestations,slug,' . $this->route('prestation'),
+            //'slug' => 'required|string|unique:prestations,slug,' . $this->route('prestation'),
             'needOut' => 'required|boolean',
             'unite_admin_id' => 'nullable|integer|exists:unite_admins,id',
             'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
@@ -27,7 +27,7 @@ class UpdatePrestationRequest extends FormRequest
             'content_type' => 'required|integer',
             'need_meeting' => 'required|boolean',
             'need_validation' => 'required|boolean',
-            'signer' => 'required|boolean',
+            'signer' => 'required',
             'start_point' => 'required|integer|min:0',
             'delay' => 'required|integer|min:0',
             'is_automatic_delivered' => 'required|boolean',

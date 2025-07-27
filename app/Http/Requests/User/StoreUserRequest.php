@@ -26,26 +26,11 @@ public function authorize(): bool
     public function rules(): array
     {
         return [
-            'code' => 'string|max:255|unique:users,code',
+            'roles' => 'array',
             'agent_id' => 'nullable|integer|exists:agents,id',
             'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
-            'username' => 'required|string|max:255|unique:users,username|alpha_dash',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => [
-                'required',
-                'string',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-            ],
-            'first_signin' => 'boolean',
-            'is_active' => 'boolean',
-            'connected' => 'boolean',
-            'doc_pass' => 'nullable|string|max:255',
-            'is_trade' => 'boolean',
+            'choices' => 'required|array'
         ];
     }
 
