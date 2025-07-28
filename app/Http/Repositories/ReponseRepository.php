@@ -3,8 +3,11 @@
 namespace App\Http\Repositories;
 
 use App\Models\Reponse;
+use App\Models\Requete;
+use App\Models\Parcours;
 use App\Traits\Repository;
 use App\Services\PNSService;
+use Auth,Hash;
 
 class ReponseRepository
 {
@@ -221,41 +224,98 @@ class ReponseRepository
         }
     }
 
-        public function storeContent(Request $request)
-    {
+     public function storeContent(array $data)
+{
+    $req = Requete::find($data['id']);
 
-            $id=$request->currentDescId;
-           switch ($id) {
-               case '0':
-                $req=Requete::find($request->id)->update(['content'=>$request->content]);
-                break;
-               case '1':
-                $req=Requete::find($request->id)->update(['content2'=>$request->content]);
-                break;
-               case '2':
-                $req=Requete::find($request->id)->update(['content3'=>$request->content]);
-                break;
-               
-               default:
-               $req=Requete::find($request->id)->update(['content'=>$request->content]);
-               break;
-           }
-        $req=Requete::whereId($request->id)->first();
-     
-            $header=(array)json_decode($req->header);
-            $content=$request->content;
-
-        $ps= new PNSService($header,['content' =>  $content,'created_at' =>  $req?->created_at,'decision' => "preview"]);
-        $response=$ps->reply();
-
-            if ($response->status()>="200" &&  $response->status()<"300") {
-                  return true;
-      
-              }else {
-                  return false;
-      
-              }
-        return true;
-
+    if (!$req) {
+        return false;
     }
+
+    $header = $req->header;
+    $content = $data['content'];
+
+    if ($req->prestation->content_type == 1) {
+
+           $req->update([
+                'content' => $content,
+                'isFinished' => true,
+                'isTreated' => true,
+                'status' => 7
+            ]);
+        // Envoi direct via PNSService
+        // $ps = new PNSService($header, [
+        //     'content' => $content,
+        //     'decision' => "accepted",
+        // ]);
+
+        // $response = $ps->reply();
+
+        // if ($response->successful()) {
+        //     $req->update([
+        //         'content' => $content,
+        //         'isFinished' => true,
+        //         'isTreated' => true,
+        //         'status' => 7
+        //     ]);
+
+        //     return true;
+        // } else {
+        //               return false;
+
+        // }
+
+    } else {
+        // Selon currentDescId, maj content, content2, content3
+        switch ($data['currentDescId'] ?? '0') {
+            case '1':
+                $req->update(['content2' => $content]);
+                break;
+            case '2':
+                $req->update(['content3' => $content]);
+                break;
+            default:
+                $req->update(['content' => $content]);
+                break;
+        }
+
+        Parcours::create([
+            'libelle' => "Enregistrement de contenu du livrable",
+            'requete_id' => $req->id,
+            'user_id' => Auth::id()
+        ]);
+
+        // Envoi en preview via PNSService
+        // $ps = new PNSService($header, [
+        //     'content' => $content,
+        //     'created_at' => $req->created_at,
+        //     'decision' => "preview",
+        // ]);
+
+        // $response = $ps->reply();
+
+        // if ($response->successful()) {
+        //     return true;
+        // } else {
+        //     return false;
+        // }
+    }
+}
+
+function authorized($data) {
+    if (Hash::check($data['password'], Auth::user()->doc_pass)) {
+    $req = Requete::find($data['requete_id']);
+    $req?->update([
+        'isAutorized' => true,
+        'status' => 6,
+    ]);
+
+       return true;
+
+} else {
+    return false;
+}
+
+}
+
 }

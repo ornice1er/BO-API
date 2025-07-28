@@ -125,6 +125,39 @@ class RequeteController extends Controller
     }
 
 
+     public function storeResponse(Request $request)
+    {
+        $message = 'Récupération de la liste des requetes';
+
+        try {
+            $result = $this->requeteRepository->storeResponse($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+     public function getByPrestationTreated(Request $request)
+    {
+        $message = 'Récupération de la liste des requetes';
+
+      //  try {
+            $result = $this->requeteRepository->getByPrestationTreated($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success($message, $result);
+        // } catch (\Throwable $th) {
+        //     $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+        //     return Common::error($th->getMessage(), []);
+        // }
+    }
+
+
 
 
     /** @OA\Get(
@@ -259,12 +292,12 @@ class RequeteController extends Controller
     }
 
 
-    public function getByPrestation(Request $request,$slug,$tag)
+    public function getByPrestation(Request $request,$slug)
     {
         $message = 'Enregistrement d\'un requete';
 
         try {
-            $result = $this->requeteRepository->getByPrestation(array_merge($request->all(),['code'=>$slug,'tag'=>$tag]));
+            $result = $this->requeteRepository->getByPrestation(array_merge($request->all(),['code'=>$slug]));
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::successCreate('Utilisateur créé avec succès', $result);

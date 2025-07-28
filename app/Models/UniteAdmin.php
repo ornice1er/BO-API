@@ -20,6 +20,10 @@ class UniteAdmin extends Model
     {
         return $this->belongsTo(UniteAdmin::class,'ua_parent_code');
     }
+    public function department()
+    {
+        return $this->belongsTo(Department::class,'department_id');
+    }
     public function agent()
     {
         return $this->hasOne(Agent::class,'unite_admin_id');

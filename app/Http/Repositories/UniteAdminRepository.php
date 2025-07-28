@@ -4,6 +4,7 @@ namespace App\Http\Repositories;
 
 use App\Models\UniteAdmin;
 use App\Traits\Repository;
+use Auth;
 
 class UniteAdminRepository
 {
@@ -102,6 +103,11 @@ class UniteAdminRepository
 function principal() {
     
                 $unite_admin = UniteAdmin::where('ua_parent_code', null)->orderBy('libelle', 'asc')->get();
+    return   $unite_admin;
+}
+function collabs() {
+    
+$unite_admin = UniteAdmin::with("department")->where('ua_parent_code', Auth::user()->agent->uniteAdmin->id)->orderBy('libelle', 'asc')->get();
     return   $unite_admin;
 }
 

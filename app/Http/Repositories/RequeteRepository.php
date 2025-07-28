@@ -5,6 +5,8 @@ namespace App\Http\Repositories;
 use App\Models\Requete;
 use App\Traits\Repository;
 use App\Models\Prestation;
+use App\Models\UniteAdmin;
+use App\Models\Reponse;
 use Auth;
 
 class RequeteRepository
@@ -172,4 +174,66 @@ class RequeteRepository
        return $requete;
 
     }
+    public function getByPrestationTreated($data)
+    {
+        $code = $data['code'];
+
+        $prestation = Prestation::where("code", $code)->first();
+
+        $idStructure = Auth::user()->agent->uniteAdmin->id;
+        $idSigner = UniteAdmin::find($prestation->signer)?->id;
+
+       $requetes = Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files'])
+                    ->where('prestation_id', $prestation->id)
+                    ->where('status', 1)
+                    ->whereHas('affectations', function ($q) use ($idStructure) {
+                        $q->where('unite_admin_down', $idStructure)
+                        ->where('isLast', true);
+                    })->get();
+
+                    return  $requetes;
+
+    }
+
+  public function storeResponse($data)
+{
+    $res = json_decode($data['responseUA']);
+
+    if (!$res || !isset($res->requete_id, $res->unite_admin_id)) {
+        return response()->json(['message' => 'Données invalides.'], 400);
+    }
+
+    // Recherche d'une réponse existante
+    $reponse = Reponse::firstOrNew([
+        'requete_id' => $res->requete_id,
+        'unite_admin_id' => $res->unite_admin_id,
+    ]);
+
+    // Upload du fichier s'il existe
+    if (isset($data['file']) && $data['file'] instanceof \Illuminate\Http\UploadedFile) {
+        $filename = FileStorage::setFile('doc_response', $data['file'], '', time());
+        $reponse->note = $filename;
+    }
+
+    // Mise à jour des autres champs
+    $reponse->reason         = $res->reason ?? null;
+    $reponse->hasPermission  = $res->hasPermission ?? null;
+    $reponse->observation    = $res->observation ?? null;
+    $reponse->motif          = $res->motif ?? null;
+
+    $reponse->save();
+
+    // Mise à jour du statut de la requête
+    $requete = Requete::find($res->requete_id);
+    if ($requete) {
+        $requete->status = 1;
+        $requete->save();
+    }
+
+    // Retour de la réponse enregistrée
+    return Reponse::where('requete_id', $res->requete_id)
+                  ->where('unite_admin_id', $res->unite_admin_id)
+                  ->first();
+}
+
 }

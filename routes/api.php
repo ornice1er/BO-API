@@ -36,7 +36,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::get('eservice/zip', 'EServiceController@getZip');
     Route::post('eservice/post-2', 'EServiceController@store2');
     Route::post('eservice/files/deleting', 'EServiceController@removeFile');
-    Route::get('eservice/{code}/{slug}/{edition}', 'EServiceController@show');
+    Route::get('eservice/{slug}/{code}/{edition}', 'EServiceController@show');
     Route::get('detab/{id}', 'DetabController@show');
     Route::post('eservice/requete/update', 'EServiceController@update');
 
@@ -66,6 +66,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         Route::get('auth/change-password', 'AuthController@changePassword');
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
+        Route::get('unity-admin/collabs/all', 'UniteAdminController@collabs');
 
         Route::apiResources([
             'countries' => 'CountryController',
@@ -138,24 +139,47 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
 
-        Route::get('requete/byPrestationPending/{id}', 'RequeteController@getByPrestationPending');
-        Route::get('requete/byPrestation/pending/{slug}/{tag}', 'RequeteController@getByPrestation');
-        Route::get('requete/byPrestation/{slug}/all', 'RequeteController@getByPrestationAll');
-        Route::get('requete/byPrestation/{slug}/agenda', 'RequeteController@getForAgenda');
-        Route::get('requete/relance/{id}', 'RequeteController@relance');
+Route::get('requete/byPrestation/pending/{code}/new', 'RequeteController@getByPrestation');
+Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestationNew');
+  Route::get('requete/byPrestation/{code}/treated', 'RequeteController@getByPrestationTreated');
+ // Route::get('requete/byPrestation/{code}/signed', 'RequeteController@getByPrestationSigned');
+  Route::get('requete/byPrestation/{code}/pending', 'RequeteController@getByPrestationPending');
+  Route::get('requete/byPrestation/{code}/finished', 'RequeteController@getByPrestationFinished');
+  Route::get('requete/byPrestation/{code}/visa', 'RequeteController@getByPrestationVisa');
+  Route::get('requete/byPrestation/{code}/correct', 'RequeteController@getByPrestationCorrect');
+  Route::get('requete/byPrestation/{code}/all', 'RequeteController@getByPrestationAll');
+  Route::get('requete/byPrestation/{code}/agenda', 'RequeteController@getForAgenda');
 
-        Route::get('requete/correction/byPrestation/{slug}', 'RequeteController@getCorrectionByPrestation');
+  Route::get('requete/byPrestation/{code}/to-sign', 'RequeteController@getByPrestationToSign');
+  Route::get('requete/byPrestation/{code}/signed', 'RequeteController@getByPrestationSigned');
+  Route::get('requete/byPrestation/{code}/to-reject', 'RequeteController@getByPrestationToReject');
+  Route::get('requete/byPrestation/{code}/rejected', 'RequeteController@getByPrestationRejected');
+
+  Route::post('requete/confirm/byPrestation/{code}', 'RequeteController@confirm');
+
+
+
+
+
+
+        Route::get('requete/correction/byPrestation/{code}', 'RequeteController@getCorrectionByPrestation');
         Route::get('prestation-details/{id}', 'PrestationController@show');
 
         Route::post('requete/response/store', 'RequeteController@storeResponse');
-        Route::get('requete/get-one/{code}/{slug}', 'RequeteController@getOne');
-        Route::get('requete/treatment/{id}/{slug}', 'RequeteController@show');
-        Route::post('requete/generate/{id}/{slug}', 'RequeteController@createPDF');
+        Route::get('requete/get-one/{slug}/{code}', 'RequeteController@getOne');
+        Route::get('requete/treatment/{id}/{code}', 'RequeteController@show');
+        Route::post('requete/generate/{id}/{code}', 'RequeteController@createPDF');
         Route::post('contrat-p/file/upload', 'ContratPController@storeFile');
 
         Route::post('response/decline/store', 'ReponseController@decline');
 
         Route::post('response/need-correction', 'ReponseController@needCorrection');
+        Route::post('response/decline/store', 'ReponseController@decline');
+        Route::post('response/validated/store', 'ReponseController@validated');
+        Route::post('response/need-correction', 'ReponseController@needCorrection');
+        Route::post('response/reached-agreement', 'ReponseController@reachedAgreement');
+        Route::post('response/store/content', 'ReponseController@storeContent');
+        Route::post('response/sign-authorized', 'ReponseController@authorized');
 
         Route::post('download', 'RequeteController@getDownload');
     });

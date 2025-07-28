@@ -574,6 +574,21 @@ class ReponseController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+      public function authorized(Request $request)
+    {
+        $message = 'Enregistrement d\'une reponse';
+
+        try {
+            $result = $this->reponseRepository->authorized($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::successCreate('Réponse maj avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
 
        public function storeContent(Request $request)
     {

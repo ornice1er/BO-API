@@ -123,6 +123,21 @@ class UniteAdminController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+    public function collabs(Request $request)
+    {
+        $message = 'Récupération de la liste des uniteAdmins';
+
+        try {
+            $result = $this->uniteAdminRepository->collabs($request);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
 
 
 

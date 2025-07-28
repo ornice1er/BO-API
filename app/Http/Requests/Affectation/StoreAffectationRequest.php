@@ -17,13 +17,13 @@ class StoreAffectationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'isLast' => 'required|boolean',
-            'unite_admin_up' => 'required|integer|exists:unite_admins,id',
-            'unite_admin_down' => 'required|integer|exists:unite_admins,id',
-            'sens' => 'required|in:1,2',
+            //'isLast' => 'required|boolean',
+            'unite_admin_id' => 'nullable|integer|exists:unite_admins,id',
+            'unite_admin_down_id' => 'nullable|integer|exists:unite_admins,id',
+            'sens' => 'required|numeric',
             'requete_id' => 'nullable|exists:requetes,id',
             'instruction' => 'nullable|string',
-            'delay' => 'nullable|integer|min:0',
+            'delay' => 'nullable|date',
         ];
     }
 

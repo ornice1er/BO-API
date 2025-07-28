@@ -5,11 +5,15 @@ namespace App\Http\Repositories;
 use App\Events\ChangeStatutAgentEvent;
 use App\Models\Setting;
 use App\Models\Affectation;
+use App\Models\UniteAdmin;
+use App\Models\Requete;
+use App\Models\Parcours;
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
 use App\Utilities\Mailer;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Auth;
 
 
 class AffectationRepository
@@ -101,35 +105,7 @@ class AffectationRepository
         }
     }
 
-    /**
-     * Get all Affectations with filtering, pagination, and sorting
-     */
-    public function getAllRH($request)
-    {
-        $per_page = 10;
-        $roleIds = [];
-
-        $req = Affectation::orderByDesc('created_at');
-        $roleIds[] = (int) Setting::where('key', 'role_for_animatrice')->first()?->value;
-        $roleIds[] = (int) Setting::where('key', 'role_for_responsable')->first()?->value;
-        $req->whereHas('AffectationProjects.roles', function ($q) use ($roleIds) {
-            $q->whereIn('id', $roleIds);
-        });
-        if (array_key_exists('project_id', $request->all())) {
-            $project_id = $request->project_id;
-            $req->whereHas('AffectationProjects', function ($q) use ($project_id) {
-                $q->where('project_id', $project_id);
-            });
-        }
-
-        if (array_key_exists('per_page', $request->all())) {
-            $per_page = $request['per_page'];
-
-            return $req->paginate($per_page);
-        } else {
-            return $req->get();
-        }
-    }
+  
 
     /**
      * Get a specific Affectation by id
@@ -177,78 +153,78 @@ class AffectationRepository
         // }
     }
 
-    /**
-     * Get a specific Affectation by id
-     */
-    public function getRH($id)
-    {
-
-        $equipe = $this->es->getEquipe($id);
-
-        if (request()->has('project_id')) {
-            $result = $this->findOrFail($id)->load(['AffectationProjects.roles', 'municipality.department']);
-        } else {
-            $result = $this->findOrFail($id)->load(['AffectationProjects.roles', 'municipality.department']);
-
-        }
-
-        // foreach ($equipe['data'] as $key => $value) {
-        //     $equipe['data'][$key]['municipality'] = Municipality::find($value['municipality_id'])?->load('department');
-        // }
-
-        $result->setAttribute('equipe', $equipe['data']);
-
-        return $result;
-    }
-
 
     /**
      * Store a new Affectation
      */
-    public function makeStore($data): Affectation
+    public function makeStore($data)
     {
 
-        $model = new Affectation($data);
-        $model->save();
+      if ($data['sens'] == 1) {
+    $ua_up = UniteAdmin::with('typeUniteAdmin')->find($data['unite_admin_id']);
 
-        return $model;
+    if (isset($data['unite_admin_down_id'])) {
+        $ua_down = UniteAdmin::find($data['unite_admin_down_id']);
+    } else {
+        $ua_down = UniteAdmin::where('ua_parent_code', $data['unite_admin_id'])->first();
     }
 
-    public function makeStorePR($data): Affectation
-    {
+    $check = Affectation::where('requete_id', $data['requete_id'])
+        ->where('isLast', true)
+        ->first();
 
-        $role = (int) Setting::where('key', 'role_for_pr')->first()?->value;
-        $statutAgentId = (int) Setting::where('key', 'statut_agent_for_pr')->first()?->value;
-        $projectId = $data['project_id'];
-        $data['statut_agent_id'] = $statutAgentId;
-        unset($data['role']);
-        unset($data['project_id']);
+    if ($check) {
+        $check->update(['isLast' => false]);
+    }
 
-        $check_Affectation = Affectation::where('email', $data['email'])->first();
+    $newReq = Requete::find($data['requete_id']);
 
-        if ($check_Affectation == null) {
-            $password = Str::random(8);
-            $data['password'] = Hash::make($password);
-            $model = new Affectation($data);
-            $model->save();
+    Affectation::create([
+        'unite_admin_up'   => $data['unite_admin_id'],
+        'unite_admin_down' => $ua_down?->id,
+        'requete_id'       => $data['requete_id'],
+        'sens'             => $data['sens'],
+        'instruction'      => $data['instruction'] ?? null,
+        'delay'            => isset($data['delay']) ? date_create($data['delay']) : null,
+    ]);
 
-            $role = Role::find($role);
-            $AffectationProject = AffectationProject::create([
-                'Affectation_id' => $model->id,
-                'project_id' => $projectId,
-            ]);
-            $AffectationProject->assignRole($role);
+    Parcours::create([
+        'libelle'     => "Affectation de la demande " . $newReq->code . " par le/la " . $ua_up->libelle . " au/à la " . $ua_down->libelle,
+        'requete_id'  => $newReq->id,
+        'user_id'     => Auth::id(),
+    ]);
 
-            Mailer::sendSimple('emails.new_account', ['Affectation' => $model, 'password' => $password], 'Identifiant de connexion', $model->name, $model->email);
+    if (in_array($ua_up->typeUniteAdmin->libelle, ['Structure', 'Direction'])) {
+        $newReq->update(['isTreated' => false]);
+    }
+} else {
+    $ua_up = UniteAdmin::find($data['unite_admin_id']);
+    $ua_down = UniteAdmin::with('typeUniteAdmin')->find($ua_up->ua_parent_code);
 
-            // SendEmailJob::dispatch($model, $password);
-        } else {
-            unset($data['password']);
-            $model = $check_Affectation;
-            $model->update($data);
-        }
+    $check = Affectation::where('requete_id', $data['requete_id'])
+        ->where('isLast', true)
+        ->first();
 
-        return $model;
+    if ($check) {
+        $check->update(['isLast' => false]);
+    }
+
+    $newReq = Requete::find($data['requete_id']);
+
+    Affectation::create([
+        'unite_admin_up'   => $data['unite_admin_id'],
+        'unite_admin_down' => $ua_down?->id,
+        'requete_id'       => $data['requete_id'],
+        'sens'             => $data['sens'],
+    ]);
+
+    Parcours::create([
+        'libelle'     => "Transmission du projet de réponse par le/la " . $ua_up->libelle . " au/à la " . $ua_down->libelle,
+        'requete_id'  => $newReq->id,
+        'user_id'     => Auth::id(),
+    ]);
+}
+return true;
     }
 
     /**

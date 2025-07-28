@@ -136,7 +136,7 @@ class EServiceRepository
                     'file_path' => $filePath,
                     'file_type' => $extension,
                     'name' => pathinfo($fullPath, PATHINFO_BASENAME),
-                    'url' => Storage::url($filePath),
+                    'url' => Storage::disk('public')->url($filePath),
                     'is_valid' => true,
                     'requete_id' => $req->id,
                 ]);
@@ -148,14 +148,16 @@ class EServiceRepository
             throw new \Exception("Impossible d'ouvrir le fichier zip");
         }
 
-        Parcours::create(['libelle'=>"Soumission de la demande de délivrance d'attestation de non litige",'requete_id'=>$req->id]);
+        Parcours::create(['libelle'=>"Soumission de la demande :".$prestation->name,'requete_id'=>$req->id]);
         
-        $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
+      //  $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
+        $unite_admin_down=UniteAdmin::find($prestation->startPoint2?->id);
         
         Affectation::create([
             'unite_admin_up'=>$prestation->uniteAdmin->id,
             'unite_admin_down'=>$unite_admin_down->id,
             'requete_id'=>$req->id,
+            'isLast'=>1,
             'sens'=>1,
         ]);
         Parcours::create(['libelle'=>"Affectation de la demande  ".$req->code." par le/la ".$prestation->uniteAdmin->libelle." au/à la " .$unite_admin_down->libelle ,'requete_id'=>$req->id]);
