@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Repositories;
-
+use App\Exceptions\JsonResponseException;
 use App\Models\Requete;
 use App\Traits\Repository;
 use App\Models\Parcours;
@@ -88,7 +88,7 @@ class EServiceRepository
 
                         DB::beginTransaction();
 
-                    $req=Requete::where("code",$data['meta']['code'])->first();
+        $req=Requete::where("code",$data['meta']['code'])->first();
         $prestation=Prestation::where("code",$data['meta']['prestation_code'])->first();
      
         if (!$req) {
@@ -145,11 +145,17 @@ class EServiceRepository
             unlink($tempZipPath);
 
         } else {
-            throw new \Exception("Impossible d'ouvrir le fichier zip");
+
+             throw new JsonResponseException([
+                'message' => "Impossible d'ouvrir le fichier zip",
+                'success' => false,
+                'data' => null,
+                'warning' => null,
+            ], 500);
         }
+       
 
         Parcours::create(['libelle'=>"Soumission de la demande :".$prestation->name,'requete_id'=>$req->id]);
-        
       //  $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
         $unite_admin_down=UniteAdmin::find($prestation->startPoint2?->id);
         

@@ -193,7 +193,10 @@ class AffectationRepository
         'requete_id'  => $newReq->id,
         'user_id'     => Auth::id(),
     ]);
-
+    if($newReq->status==0){
+        $newReq->status=1;
+        $newReq->save();
+    }
     if (in_array($ua_up->typeUniteAdmin->libelle, ['Structure', 'Direction'])) {
         $newReq->update(['isTreated' => false]);
     }

@@ -42,6 +42,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
     Route::post('eservice/zip-files', 'EServiceController@downloadZip'); 
+        Route::get('dash/stats/{download?}/{userId?}', 'DashboardController@index'); 
 
 
     Route::middleware('basic.auth')->group(function () { });
@@ -158,6 +159,8 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
   Route::post('requete/confirm/byPrestation/{code}', 'RequeteController@confirm');
 
 
+
+  Route::get('stats-for-menu', 'DashboardController@statsForMenu'); 
 
 
 

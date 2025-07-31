@@ -79,6 +79,7 @@ class ReponseRepository
 {
 
 
+    $data['preview_file']="https://mataccueil-api.mtfp-ctd.bj/storage/preview_file.pdf";
     // Création de l'utilisateur
     $reponse = Reponse::create($data);
 

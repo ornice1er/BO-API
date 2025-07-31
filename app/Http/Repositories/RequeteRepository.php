@@ -220,6 +220,7 @@ class RequeteRepository
     $reponse->hasPermission  = $res->hasPermission ?? null;
     $reponse->observation    = $res->observation ?? null;
     $reponse->motif          = $res->motif ?? null;
+    $reponse->preview_file   = "https://mataccueil-api.mtfp-ctd.bj/storage/preview_file.pdf"; 
 
     $reponse->save();
 
@@ -227,6 +228,7 @@ class RequeteRepository
     $requete = Requete::find($res->requete_id);
     if ($requete) {
         $requete->status = 1;
+        $requete->filename = "https://mataccueil-api.mtfp-ctd.bj/storage/preview_file.pdf";
         $requete->save();
     }
 
