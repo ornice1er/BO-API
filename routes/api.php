@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\EtudeDossierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
+
+
     Route::post('/login', 'UserAuthController@login');
     Route::post('/forgot-password', 'UserAuthController@sendResetPasswordLink');
     Route::post('/recovery-password', 'UserAuthController@recoveryPassword');
@@ -27,7 +32,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::post('settings', 'SettingController@update');
 
 
-    Route::post('auth/signin', 'AuthController@signin');
+    Route::post('', 'AuthController@signin');
     Route::post('auth/signin2', 'AuthController@signin2');
     Route::get('auth', 'AuthController@certifier');
     Route::get('files/by-prestation/{name}', 'FilesController@getFromPrestationName');
@@ -185,5 +190,56 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
         Route::post('response/sign-authorized', 'ReponseController@authorized');
 
         Route::post('download', 'RequeteController@getDownload');
+
+
+
+
+
+
+
+          
+Route::prefix('members')->group(function () {
+    Route::get('/', [MemberController::class, 'index']);
+    Route::get('/active', [MemberController::class, 'getActive']);
+    Route::get('/{memberId}', [MemberController::class, 'show']);
+    Route::get('/{memberId}/commissions', [MemberController::class, 'getCommissions']);
+    Route::post('/store', [MemberController::class, 'store']);
+    Route::patch('/update/{memberId}', [MemberController::class, 'update']);
+    Route::delete('/delete/{memberId}', [MemberController::class, 'destroy']);
+});
+
+Route::prefix('commissions')->group(function () {
+    Route::get('/', [CommissionController::class, 'index']);
+    Route::get('/active', [CommissionController::class, 'getActive']);
+    Route::get('/closed', [CommissionController::class, 'getClosed']);
+    Route::get('/{commissionId}', [CommissionController::class, 'show']);
+    Route::get('/{commissionId}/get/members', [CommissionController::class, 'getMembers']);
+    Route::get('/{commissionId}/get/requetes', [CommissionController::class, 'getRequetes']);
+    Route::post('/store', [CommissionController::class, 'store']);
+    Route::post('/{commissionId}/add/members', [CommissionController::class, 'addMembers']);
+    Route::delete('/{commissionId}/delete/members', [CommissionController::class, 'removeMembers']);
+    Route::post('/{commissionId}/add/requetes', [CommissionController::class, 'addRequetes']);
+    Route::post('/{commissionId}/close', [CommissionController::class, 'closeCommission']);
+    Route::patch('/update/{commissionId}', [CommissionController::class, 'update']);
+    Route::delete('/delete/{commissionId}', [CommissionController::class, 'destroy']);
+});
+
+Route::prefix('etude_dossiers')->group(function () {
+    Route::get('/', [EtudeDossierController::class, 'index']);
+    Route::get('/pending', [EtudeDossierController::class, 'getPending']);
+    Route::get('/completed', [EtudeDossierController::class, 'getCompleted']);
+    Route::get('/statistics', [EtudeDossierController::class, 'getStatistics']);
+    Route::get('/commission/{commissionId}', [EtudeDossierController::class, 'getByCommission']);
+    Route::get('/member/{memberId}', [EtudeDossierController::class, 'getByMember']);
+    Route::get('/requete/{requeteId}', [EtudeDossierController::class, 'getByRequete']);
+    Route::get('/{id}', [EtudeDossierController::class, 'show']);
+    Route::post('/store', [EtudeDossierController::class, 'store']);
+    Route::patch('/update/{id}', [EtudeDossierController::class, 'update']);
+    Route::delete('/delete/{id}', [EtudeDossierController::class, 'destroy']);
+});
     });
+
+
+
+ 
 });
