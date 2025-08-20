@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('current_officer_posts', function (Blueprint $table) {
             $table->id();
-            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
-            $table->foreign('unite_admin_id')->references('id')->on('unite_admins')->onDelete('cascade');
-            $table->foreign('fonction_id')->references('id')->on('fonction_agents')->onDelete('cascade');
+            $table->foreignId('agent_id')->references('id')->on('agents')->onDelete('cascade');
+            $table->foreignId('unite_admin_id')->references('id')->on('unite_admins')->onDelete('cascade');
+            $table->foreignId('fonction_id')->references('id')->on('fonction_agents')->onDelete('cascade');
             $table->string('statut');
             $table->timestamps();
         });
