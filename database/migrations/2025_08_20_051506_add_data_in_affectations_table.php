@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('affectations', function (Blueprint $table) {
-            $table->string('cop_up');
-            $table->string('cop_down');
+            $table->string('cop_up')->nullable();
+            $table->string('cop_down')->nullable();
         });
+            
     }
 
     /**
