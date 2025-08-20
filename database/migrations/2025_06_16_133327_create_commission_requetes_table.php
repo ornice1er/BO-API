@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('commission_requetes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('commission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('requete_id')->constrained()->onDelete('cascade');
+            $table->foreignId('commission_id')->constrained('commissions')->onDelete('cascade');
+            $table->foreignId('requete_id')->constrained('requetes')->onDelete('cascade');
             $table->decimal('global_mark', 5, 2)->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
