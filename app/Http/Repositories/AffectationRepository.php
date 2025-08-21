@@ -179,6 +179,18 @@ class AffectationRepository
 
     $newReq = Requete::find($data['requete_id']);
 
+    // Resolve current officer posts for up/down units (optional)
+    $copUp = null;
+    $copDown = null;
+    if ($data['unite_admin_id'] ?? null) {
+        $copUp = \App\Models\CurrentOfficerPost::where('unite_admin_id', $data['unite_admin_id'])
+            ->whereRaw('LOWER(statut) = ?', ['active'])->first();
+    }
+    if ($ua_down?->id) {
+        $copDown = \App\Models\CurrentOfficerPost::where('unite_admin_id', $ua_down->id)
+            ->whereRaw('LOWER(statut) = ?', ['active'])->first();
+    }
+
     Affectation::create([
         'unite_admin_up'   => $data['unite_admin_id'],
         'unite_admin_down' => $ua_down?->id,
@@ -186,6 +198,8 @@ class AffectationRepository
         'sens'             => $data['sens'],
         'instruction'      => $data['instruction'] ?? null,
         'delay'            => isset($data['delay']) ? date_create($data['delay']) : null,
+        'cop_up'           => $copUp?->id,
+        'cop_down'         => $copDown?->id,
     ]);
 
     Parcours::create([
@@ -214,11 +228,25 @@ class AffectationRepository
 
     $newReq = Requete::find($data['requete_id']);
 
+    // Resolve current officer posts for up/down units (optional)
+    $copUp = null;
+    $copDown = null;
+    if ($data['unite_admin_id'] ?? null) {
+        $copUp = \App\Models\CurrentOfficerPost::where('unite_admin_id', $data['unite_admin_id'])
+            ->whereRaw('LOWER(statut) = ?', ['active'])->first();
+    }
+    if ($ua_down?->id) {
+        $copDown = \App\Models\CurrentOfficerPost::where('unite_admin_id', $ua_down->id)
+            ->whereRaw('LOWER(statut) = ?', ['active'])->first();
+    }
+
     Affectation::create([
         'unite_admin_up'   => $data['unite_admin_id'],
         'unite_admin_down' => $ua_down?->id,
         'requete_id'       => $data['requete_id'],
         'sens'             => $data['sens'],
+        'cop_up'           => $copUp?->id,
+        'cop_down'         => $copDown?->id,
     ]);
 
     Parcours::create([

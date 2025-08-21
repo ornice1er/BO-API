@@ -13,6 +13,28 @@ class Affectation extends Model
 
     protected $guarded = [];
 
+    public function requete()
+    {
+        return $this->belongsTo(Requete::class, 'requete_id');
+    }
 
-    
+    public function uniteAdminUp()
+    {
+        return $this->belongsTo(UniteAdmin::class, 'unite_admin_up');
+    }
+
+    public function uniteAdminDown()
+    {
+        return $this->belongsTo(UniteAdmin::class, 'unite_admin_down');
+    }
+
+    public function copUp()
+    {
+        return $this->belongsTo(CurrentOfficerPost::class, 'cop_up');
+    }
+
+    public function copDown()
+    {
+        return $this->belongsTo(CurrentOfficerPost::class, 'cop_down');
+    }
 }

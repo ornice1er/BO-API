@@ -95,6 +95,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "requete"=>"RequeteController",
             "response"=>"ReponseController",
             "affectation"=>"AffectationController",
+            "current-officer-posts"=>"CurrentOfficerPostController",
             "dash"=>"DashboardController",
             "detab"=>"DetabController",
             "company"=>"CompanyController",
@@ -102,6 +103,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "contrat-p"=>"ContratPController",
             "agenda"=>"AgendaController",
         ]);
+        Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
         Route::get('/logs', 'LogController@index');
 

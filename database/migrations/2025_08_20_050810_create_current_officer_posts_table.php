@@ -18,6 +18,9 @@ return new class extends Migration
             $table->foreignId('fonction_id')->references('id')->on('fonction_agents')->onDelete('cascade');
             $table->string('statut');
             $table->timestamps();
+            // Indexes for performant lookups; business constraints enforced at application level
+            $table->index(['agent_id', 'statut']);
+            $table->index(['unite_admin_id', 'fonction_id', 'statut']);
         });
     }
 

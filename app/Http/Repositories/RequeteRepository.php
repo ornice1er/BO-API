@@ -49,6 +49,7 @@ class RequeteRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with(['affectations.copUp.agent', 'affectations.copDown.agent', 'affectation.copUp.agent', 'affectation.copDown.agent'])
             ->orderByDesc('created_at');
 
 
@@ -67,7 +68,7 @@ class RequeteRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id);
+        return $this->findOrFail($id)->load(['affectations.copUp.agent', 'affectations.copDown.agent', 'affectation.copUp.agent', 'affectation.copDown.agent']);
     }
 
 
