@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::table('requete_files', function (Blueprint $table) {
-        //         $table->string('file_path');
-        //         $table->string('file_type')->nullable();
-        //         $table->string('source_table')->nullable();
-        // });
+        Schema::table('requete_files', function (Blueprint $table) {
+                $table->string('file_path');
+                $table->string('file_type')->nullable();
+                $table->string('source_table')->nullable();
+        });
     }
 
     /**
