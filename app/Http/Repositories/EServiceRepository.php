@@ -253,4 +253,17 @@ class EServiceRepository
 
         return $query->get(); // Return the search results
     }
+
+    public function setRDV($data) {
+        return $data;
+    }
+
+    public function closeRequest($data) {
+        return $data;
+    }
+
+    function getData($dat) {
+                return $data;
+
+    }
 }

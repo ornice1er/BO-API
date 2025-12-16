@@ -524,4 +524,59 @@ class EServiceController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+
+
+     public function setRDV(Request $request)
+    {
+        $message = 'Création d\'un rdv pour une demande';
+
+        try {
+            $result = $this->eServiceRepository->setRDV($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success('Rdv créé avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+      public function closeRequest(Request $request)
+    {
+        $message = 'Cloture d\'une demande';
+
+        try {
+            $result = $this->eServiceRepository->closeRequest($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success('Demande clôturée avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+
+      public function getData(Request $request)
+    {
+        $message = 'Chargement de données';
+
+        try {
+            $result = $this->eServiceRepository->closeRequest($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success('Chargement de données effectuées avec succès', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    
+    
+
+    
 }

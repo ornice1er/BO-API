@@ -37,13 +37,23 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::get('auth', 'AuthController@certifier');
     Route::get('files/by-prestation/{name}', 'FilesController@getFromPrestationName');
 
-    Route::post('eservice', 'EServiceController@store');
+    //enregistrement d'une requete
+    Route::post('eservices', 'EServiceController@store');
+    //enregistrement d'un rdv
+    Route::post('eservices-set-rdv', 'EServiceController@setRDV');
+    //cloture d'une requete
+    Route::post('eservices-close-request', 'EServiceController@closeRequest');
+    //Charegement de données connexe
+    Route::get('eservices-get-data', 'EServiceController@getData');
+
     Route::get('eservice/zip', 'EServiceController@getZip');
     Route::post('eservice/post-2', 'EServiceController@store2');
     Route::post('eservice/files/deleting', 'EServiceController@removeFile');
     Route::get('eservice/{slug}/{code}/{edition}', 'EServiceController@show');
     Route::get('detab/{id}', 'DetabController@show');
     Route::post('eservice/requete/update', 'EServiceController@update');
+
+
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
     Route::post('eservice/zip-files', 'EServiceController@downloadZip'); 
@@ -73,6 +83,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('auth/change-password', 'AuthController@changePassword');
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
         Route::get('unity-admin/collabs/all', 'UniteAdminController@collabs');
+
+
+
 
         Route::apiResources([
             'countries' => 'CountryController',
