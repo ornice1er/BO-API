@@ -53,9 +53,6 @@ class UserRepository
         $per_page = 10;
 
         $req = User::ignoreRequest(['per_page'])
-            ->filter(array_filter($request->all(), function ($k) {
-                return $k != 'page';
-            }, ARRAY_FILTER_USE_KEY))
             ->with(['roles.permissions','agent.uniteAdmin','userPrestations'])
             ->orderByDesc('created_at');
 
