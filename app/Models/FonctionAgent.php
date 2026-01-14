@@ -20,7 +20,7 @@ class FonctionAgent extends Model
         // Cette méthode est exécutée avant la création de chaque enregistrement
         self::creating(function ($model) {
             $model->code = Str::uuid();
-        })
+        });
 
     }
 }
