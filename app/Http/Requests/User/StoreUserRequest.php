@@ -30,7 +30,7 @@ public function authorize(): bool
             'agent_id' => 'nullable|integer|exists:agents,id',
             'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
             'email' => 'required|email|max:255|unique:users,email',
-            'choices' => 'required|nullable'
+            'choices' => 'nullable|array'
         ];
     }
 
