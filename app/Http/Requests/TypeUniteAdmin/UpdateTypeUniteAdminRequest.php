@@ -29,12 +29,12 @@ class UpdateTypeUniteAdminRequest extends FormRequest
         $typeUniteAdminId = $this->route('type_unite_admin') ?? $this->route('id');
 
         return [
-            'code' => [
-                'sometimes',
-                'required',
-                'uuid',
-                Rule::unique('type_unite_admins', 'code')->ignore($typeUniteAdminId)
-            ],
+            // 'code' => [
+            //     'sometimes',
+            //     'required',
+            //     'uuid',
+            //     Rule::unique('type_unite_admins', 'code')->ignore($typeUniteAdminId)
+            // ],
             'libelle' => [
                 'sometimes',
                 'required',

@@ -26,11 +26,11 @@ class StoreTypeUniteAdminRequest extends FormRequest
     public function rules()
     {
         return [
-            'code' => [
-                'required',
-                'uuid',
-                'unique:type_unite_admins,code'
-            ],
+            // 'code' => [
+            //     'required',
+            //     'uuid',
+            //     'unique:type_unite_admins,code'
+            // ],
             'libelle' => [
                 'required',
                 'string',
