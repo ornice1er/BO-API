@@ -114,7 +114,7 @@ class UserRepository
 
 
         foreach ($choices as $value) {
-            UserPrestation::create([ 'user_id'=>$user->id, 'prestation_id'=>$value]);
+            UserPrestation::create([ 'user_id'=>$model->id, 'prestation_id'=>$value]);
         }
 
         Mailer::sendSimple('emails.new_account', ['user' => $model, 'password' => $password], 'Identifiant de connexion', $model->name, $model->email);
