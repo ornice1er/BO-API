@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Str;
 class Prestation extends Model
 {
 
@@ -37,4 +37,14 @@ class Prestation extends Model
         return $this->belongsTo(UniteAdmin::class,'start_point');
     }
 
+
+      public static function boot()
+    {
+        parent::boot();
+
+        // Cette méthode est exécutée avant la création de chaque enregistrement
+        self::creating(function ($model) {
+            $model->slug = Str::slug($model->name);
+        });
+    }
 }
