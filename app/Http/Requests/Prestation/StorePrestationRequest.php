@@ -56,4 +56,13 @@ class StorePrestationRequest extends FormRequest
             'from_pns.required' => 'Veuillez indiquer si cela provient du PNS.',
         ];
     }
+
+    protected function prepareForValidation()
+{
+    $this->merge([
+        'from_pns' => $this->has('from_pns')
+            ? filter_var($this->input('from_pns'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : false,
+    ]);
+}
 }
