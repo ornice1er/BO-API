@@ -25,7 +25,7 @@ class UpdateFonctionAgentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|string|max:255',
+            'libelle' => 'sometimes|string|max:255',
 
         ];
     }
