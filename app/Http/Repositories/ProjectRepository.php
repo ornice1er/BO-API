@@ -114,11 +114,39 @@ class ProjectRepository
     public function search($term)
     {
         $query = Project::query(); // Commencer avec une requête vide
-        $attrs = ['name'];
+        $attrs = ['title', 'description'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
 
         return $query->get(); // Retourner les résultats
+    }
+
+    /**
+     * Get project with requests
+     */
+    public function getWithRequests($id)
+    {
+        return Project::with('requests')->findOrFail($id);
+    }
+
+    /**
+     * Add request IDs to project
+     */
+    public function addRequests($projectId, $requestIds)
+    {
+        $project = Project::findOrFail($projectId);
+        $project->requests()->syncWithoutDetaching($requestIds);
+        return $project->load('requests');
+    }
+
+    /**
+     * Close project
+     */
+    public function close($id)
+    {
+        $project = Project::findOrFail($id);
+        $project->update(['status' => 'closed']);
+        return $project;
     }
 }

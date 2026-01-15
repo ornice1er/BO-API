@@ -153,6 +153,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::put('user-settings', 'UserSettingController@update');
 
         Route::get('user-projects/{id}/state/{state}', 'UserProjectController@changeState');
+        
+        // Project routes
+        Route::get('projects/{id}/state/{state}', 'ProjectController@changeState');
+        Route::post('projects-search', 'ProjectController@search');
+        Route::post('projects/{id}/add-requests', 'ProjectController@addRequests');
+        Route::post('projects/{id}/close', 'ProjectController@closeProject');
+        Route::apiResources([
+            'projects' => 'ProjectController',
+        ]);
 
 
         Route::get('users/{id}/state/{state}', 'UserController@changeState');

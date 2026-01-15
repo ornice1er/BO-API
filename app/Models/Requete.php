@@ -100,4 +100,12 @@ class Requete extends Model
     {
         return $this->hasManyThrough(EtudeDossier::class, CommissionRequete::class);
     }
+
+    /**
+     * The projects that this request belongs to
+     */
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_requete', 'requete_id', 'project_id')->withTimestamps();
+    }
 }
