@@ -26,14 +26,17 @@ class EServiceRepository
      */
     protected $model;
 
+    public $departmentRepository;
+
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(DepartmentRepository $departmentRepository)
     {
         // Don't forget to update the model's name
         $this->model = app(Requete::class);
+        $this->departmentRepository = $departmentRepository;
     }
 
     /**
@@ -72,7 +75,7 @@ class EServiceRepository
     {
        switch ($request->get('type')) {
         case 'departement':
-            return DepartmentRepository::getAll($request);
+            return $this->departmentRepository->getAll($request);
              break;
             break;
         
