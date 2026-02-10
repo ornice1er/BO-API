@@ -41,7 +41,7 @@ class DepartmentRepository
 
         $per_page = 10;
 
-        $req = Department::ignoreRequest(['per_page'])
+        $req = Department::ignoreRequest(['per_page','type'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
