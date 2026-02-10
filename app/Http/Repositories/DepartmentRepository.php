@@ -42,9 +42,6 @@ class DepartmentRepository
         $per_page = 10;
 
         $req = Department::ignoreRequest(['per_page','type'])
-            ->filter(array_filter($request->all(), function ($k) {
-                return $k != 'page';
-            }, ARRAY_FILTER_USE_KEY))
             ->orderByDesc('created_at');
 
         if (array_key_exists('per_page', $request->all())) {
