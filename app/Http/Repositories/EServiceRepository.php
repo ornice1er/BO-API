@@ -68,6 +68,23 @@ class EServiceRepository
     }
 
 
+     public function getData($request)
+    {
+       switch ($request->get('type')) {
+        case 'departement':
+            return DepartementRepository::getAll($request);
+             break;
+            break;
+        
+        default:
+            # code...
+            break;
+       }
+    }
+
+
+
+    
     /**
      * Get a specific eservice by id
      */

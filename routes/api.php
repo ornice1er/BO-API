@@ -39,6 +39,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::get('eservice/{slug}/{code}/{edition}', 'EServiceController@show');
     Route::get('detab/{id}', 'DetabController@show');
     Route::post('eservice/requete/update', 'EServiceController@update');
+    Route::get('eservices-get-data', 'EServiceController@getData');
+
+
+    
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
     Route::post('eservice/zip-files', 'EServiceController@downloadZip'); 
