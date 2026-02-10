@@ -72,7 +72,7 @@ class EServiceRepository
     {
        switch ($request->get('type')) {
         case 'departement':
-            return DepartementRepository::getAll($request);
+            return DepartmentRepository::getAll($request);
              break;
             break;
         
