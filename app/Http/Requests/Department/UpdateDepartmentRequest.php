@@ -26,7 +26,7 @@ class UpdateDepartmentRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'country_id' => 'required|integer|exists:countries,id',
+           // 'country_id' => 'required|integer|exists:countries,id',
 
         ];
     }
