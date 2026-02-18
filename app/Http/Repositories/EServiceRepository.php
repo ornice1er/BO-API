@@ -26,14 +26,17 @@ class EServiceRepository
      */
     protected $model;
 
+    public $departmentRepository;
+
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(DepartmentRepository $departmentRepository)
     {
         // Don't forget to update the model's name
         $this->model = app(Requete::class);
+        $this->departmentRepository = $departmentRepository;
     }
 
     /**
@@ -68,6 +71,23 @@ class EServiceRepository
     }
 
 
+     public function getData($request)
+    {
+       switch ($request->get('type')) {
+        case 'departement':
+            return $this->departmentRepository->getAll($request);
+             break;
+            break;
+        
+        default:
+            # code...
+            break;
+       }
+    }
+
+
+
+    
     /**
      * Get a specific eservice by id
      */
