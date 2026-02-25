@@ -233,6 +233,25 @@ class RequeteController extends Controller
     }
 
 
+     public function prendreEnCharge(Request $request, $id)
+    {
+        $message = 'Récupération d\'un requete';
+
+        try {
+            $result = $this->requeteRepository->prendreEnCharge($id);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
+
+            return Common::success('Utilisateur trouvé', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+
+    
+
     /** @OA\Post(
      *      path="/requetes",
      *      operationId="Requete store",

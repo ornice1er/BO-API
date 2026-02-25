@@ -68,7 +68,14 @@ class RequeteRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id)->load(['affectations.copUp.agent', 'affectations.copDown.agent', 'affectation.copUp.agent', 'affectation.copDown.agent']);
+        return $this->findOrFail($id)->load(['affectations.copUp.agent', 'affectations.copDown.agent', 'affectation.copUp.agent', 'affectation.copDown.agent','project']);
+    }
+
+    function prendreEnCharge($id){
+        $req= $this->findOrFail($id);
+        $req->pris_en_charge=true;
+        $req->save();
+        return $req;
     }
 
 
@@ -144,7 +151,7 @@ class RequeteRepository
        public function getByPrestationAll($data)
         {
         $prestation=Prestation::where("code",$data['code'])->first();
-        $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation'])->where('prestation_id',$prestation->id)->get();
+        $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation' ,'project','lastReponse'])->where('prestation_id',$prestation->id)->get();
 
         return $requetes;
 
@@ -155,7 +162,7 @@ class RequeteRepository
         {       
             $prestation=Prestation::where("code",$data['code'])->first();
             $idStructure=Auth::user()->agent?->uniteAdmin?->id;
-            $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation'])
+            $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation','project','lastReponse'])
                             ->where('prestation_id',$prestation->id)->where('isTreated',false)
                             ->where('isDeclined',false)
                             ->whereHas('affectations', function($q) use($idStructure) {
@@ -171,7 +178,7 @@ class RequeteRepository
             
     public function getOne($data)
     {
-        $requete=Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files'])->where('code',$data['code'])->first();
+        $requete=Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files','project'])->where('code',$data['code'])->first();
        return $requete;
 
     }
@@ -184,7 +191,7 @@ class RequeteRepository
         $idStructure = Auth::user()->agent->uniteAdmin->id;
         $idSigner = UniteAdmin::find($prestation->signer)?->id;
 
-       $requetes = Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files'])
+       $requetes = Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files','project','lastReponse'])
                     ->where('prestation_id', $prestation->id)
                     ->where('status', 1)
                     ->whereHas('affectations', function ($q) use ($idStructure) {

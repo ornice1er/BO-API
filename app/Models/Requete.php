@@ -22,6 +22,12 @@ class Requete extends Model
         return $this->belongsTo(Prestation::class,'prestation_id');
     }
 
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class,'project_id');
+    }
+
     public function parcours()
     {
         return $this->hasMany(Parcours::class,'requete_id');
@@ -32,6 +38,12 @@ class Requete extends Model
     {
         return $this->hasMany(Reponse::class,'requete_id');
     }
+    public function lastReponse()
+        {
+            return $this->hasOne(Reponse::class, 'requete_id')
+                        ->latestOfMany(); // basé sur created_at
+        }
+
     public function files()
     {
         return $this->hasMany(RequeteFile::class,'requete_id');
@@ -99,5 +111,13 @@ class Requete extends Model
     public function etudeDossiers()
     {
         return $this->hasManyThrough(EtudeDossier::class, CommissionRequete::class);
+    }
+
+    /**
+     * The projects that this request belongs to
+     */
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_requete', 'requete_id', 'project_id')->withTimestamps();
     }
 }

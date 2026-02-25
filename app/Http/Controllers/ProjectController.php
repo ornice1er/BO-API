@@ -5,15 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Repositories\ProjectRepository;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Requests\Project\AddRequestsToProjectRequest;
+use App\Jobs\CloseProjectRequests;
 use App\Models\Project;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
-class ProjectController
+class ProjectController extends Controller
 {
-    /**     * The project being queried.
+    /**
+     * The project being queried.
      *
      * @var Project
      */
@@ -105,8 +108,8 @@ class ProjectController
      *           type="string"
      *      )
      *   ),
-     *      summary="Return one Project data ",
-     *      description="Get  project by ID",
+     *      summary="Return one Project data with requests ",
+     *      description="Get project by ID with associated requests",
      *
      *     @OA\Response(
      *         response=200,
@@ -137,10 +140,10 @@ class ProjectController
      */
     public function show($id)
     {
-        $message = 'Récupération d\'un projet';
+        $message = 'Récupération d\'un projet avec ses requêtes';
 
         try {
-            $result = $this->projectRepository->get($id);
+            $result = $this->projectRepository->getWithRequests($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
             return Common::success('Projet trouvé', $result);
@@ -469,6 +472,136 @@ class ProjectController
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
 
             return Common::success("Projet $statusMessage avec succès", $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Add requests to a project
+     * 
+     * @OA\Post(
+     *      path="/projects/{id}/add-requests",
+     *      operationId="addRequestsToProject",
+     *      tags={"Project"},
+     *      security={{"JWT":{}}},
+     *      summary="Add requests to a project",
+     *      description="Add multiple request IDs to a specific project",
+     *
+     *   @OA\Parameter(
+     *      name="id",
+     *      in="path",
+     *      description="Project ID",
+     *      required=true,
+     *      @OA\Schema(type="integer")
+     *   ),
+     *
+     *     @OA\RequestBody(
+     *         description="Request IDs array",
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"request_ids"},
+     *             @OA\Property(
+     *                 property="request_ids",
+     *                 type="array",
+     *                 items=@OA\Items(type="integer"),
+     *                 example={1, 2, 3, 4}
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Requests added successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
+     */
+    public function addRequests(AddRequestsToProjectRequest $request, $id)
+    {
+        $message = 'Ajout des requêtes à un projet';
+
+        try {
+            $project = $this->projectRepository->addRequests($id, $request->request_ids);
+            $this->ls->trace(['action_name' => $message, 'description' => 'Requêtes ajoutées au projet ' . $id]);
+
+            return Common::success('Requêtes ajoutées au projet avec succès', $project);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Close a project and dispatch job to close all requests
+     * 
+     * @OA\Post(
+     *      path="/projects/{id}/close",
+     *      operationId="closeProject",
+     *      tags={"Project"},
+     *      security={{"JWT":{}}},
+     *      summary="Close a project",
+     *      description="Close a project and dispatch a job to close all associated requests in background",
+     *
+     *   @OA\Parameter(
+     *      name="id",
+     *      in="path",
+     *      description="Project ID",
+     *      required=true,
+     *      @OA\Schema(type="integer")
+     *   ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project closure initiated"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request (project already closed)"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Project not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
+     */
+    public function closeProject($id)
+    {
+        $message = 'Clôture d\'un projet';
+
+        try {
+            $project = $this->projectRepository->get($id);
+
+            if ($project->isClosed()) {
+                return Common::error('Le projet est déjà clôturé', []);
+            }
+
+            CloseProjectRequests::dispatch($id);
+
+            $this->ls->trace(['action_name' => $message, 'description' => 'Clôture du projet ' . $id . ' initiée']);
+
+            return Common::success(
+                'Clôture du projet initiée. Les requêtes seront clôturées aussi',
+                ['project_id' => $id, 'status' => 'closing']
+            );
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 

@@ -4,6 +4,8 @@ namespace App\Http\Repositories;
 
 use App\Models\Project;
 use App\Traits\Repository;
+use App\Utilities\FileStorage;
+use Str;
 
 class ProjectRepository
 {
@@ -45,6 +47,7 @@ class ProjectRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with(['requetes'])
             ->orderByDesc('created_at');
 
         if (array_key_exists('per_page', $request->all())) {
@@ -62,7 +65,7 @@ class ProjectRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id);
+        return $this->findOrFail($id)->load("requetes");
     }
 
     /**
@@ -70,6 +73,13 @@ class ProjectRepository
      */
     public function makeStore($data): Project
     {
+
+        if (request()->hasFile('file')) {
+            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
+            $data['filename'] = 'projects/'.$filename;
+        }
+        unset( $data['file']);
+
         $model = new Project($data);
         $model->save();
 
@@ -81,7 +91,15 @@ class ProjectRepository
      */
     public function makeUpdate($id, $data): Project
     {
+
         $model = Project::findOrFail($id);
+
+        if (request()->hasFile('file')) {
+            FileStorage::deleteFile('public', $model->filename, 'projects');
+            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
+            $data['filename'] = 'projects/'.$filename;
+        }
+        unset( $data['file']);
         $model->update($data);
 
         return $model;
@@ -114,11 +132,39 @@ class ProjectRepository
     public function search($term)
     {
         $query = Project::query(); // Commencer avec une requête vide
-        $attrs = ['name'];
+        $attrs = ['title', 'description'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
 
         return $query->get(); // Retourner les résultats
+    }
+
+    /**
+     * Get project with requests
+     */
+    public function getWithRequests($id)
+    {
+        return Project::with(['requetes.prestation','requetes.lastReponse','requetes.project'])->findOrFail($id);
+    }
+
+    /**
+     * Add request IDs to project
+     */
+    public function addRequests($projectId, $requestIds)
+    {
+        $project = Project::findOrFail($projectId);
+        $project->requests()->syncWithoutDetaching($requestIds);
+        return $project->load('requests');
+    }
+
+    /**
+     * Close project
+     */
+    public function close($id)
+    {
+        $project = Project::findOrFail($id);
+        $project->update(['status' => 'closed']);
+        return $project;
     }
 }

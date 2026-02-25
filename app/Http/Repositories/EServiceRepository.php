@@ -9,6 +9,9 @@ use App\Models\Prestation;
 use App\Models\Affectation;
 use App\Models\UniteAdmin;
 use ZipArchive;
+use Carbon\Carbon;
+use App\Models\Project;
+
 use App\Models\RequeteFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -120,6 +123,14 @@ class EServiceRepository
             $req->step_contents=$data['steps'];
             // $req->lastname=$data['meta']['info']['lastname'];
             // $req->firstname=$data['meta']['info']['firstname'];
+            if (in_array($data['meta']['prestation_code'],['PS00709','PS00710'])) {
+              $today = Carbon::today();
+            $project = Project::whereDate('date_start', '<=', $today)
+            ->whereDate('date_end', '>=', $today)
+            ->first();
+
+            $req->project_id = $project?->id;
+            }
             $req->status=0;
             $req->header=$this->getHeaders();
             $req->save();
@@ -273,4 +284,13 @@ class EServiceRepository
 
         return $query->get(); // Return the search results
     }
+
+    public function setRDV($data) {
+        return $data;
+    }
+
+    public function closeRequest($data) {
+        return $data;
+    }
+
 }

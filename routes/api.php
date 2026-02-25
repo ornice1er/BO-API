@@ -37,17 +37,26 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::get('auth', 'AuthController@certifier');
     Route::get('files/by-prestation/{name}', 'FilesController@getFromPrestationName');
 
-    Route::post('eservice', 'EServiceController@store');
+    //enregistrement d'une requete
+    Route::post('eservices', 'EServiceController@store');
+    //enregistrement d'un rdv
+    Route::post('eservices-set-rdv', 'EServiceController@setRDV');
+    //cloture d'une requete
+    Route::post('eservices-close-request', 'EServiceController@closeRequest');
+    //Charegement de données connexe
+    Route::get('eservices-get-data', 'EServiceController@getData');
+
     Route::get('eservice/zip', 'EServiceController@getZip');
     Route::post('eservice/post-2', 'EServiceController@store2');
     Route::post('eservice/files/deleting', 'EServiceController@removeFile');
     Route::get('eservice/{slug}/{code}/{edition}', 'EServiceController@show');
     Route::get('detab/{id}', 'DetabController@show');
     Route::post('eservice/requete/update', 'EServiceController@update');
-    Route::get('eservices-get-data', 'EServiceController@getData');
 
 
     
+
+
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
     Route::post('eservice/zip-files', 'EServiceController@downloadZip'); 
@@ -77,6 +86,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('auth/change-password', 'AuthController@changePassword');
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
         Route::get('unity-admin/collabs/all', 'UniteAdminController@collabs');
+
+
+
 
         Route::apiResources([
             'countries' => 'CountryController',
@@ -144,6 +156,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::put('user-settings', 'UserSettingController@update');
 
         Route::get('user-projects/{id}/state/{state}', 'UserProjectController@changeState');
+        
+        // Project routes
+        Route::get('projects/{id}/state/{state}', 'ProjectController@changeState');
+        Route::post('projects-search', 'ProjectController@search');
+        Route::post('projects/{id}/add-requests', 'ProjectController@addRequests');
+        Route::post('projects/{id}/close', 'ProjectController@closeProject');
+        Route::apiResources([
+            'projects' => 'ProjectController',
+        ]);
 
 
         Route::get('users/{id}/state/{state}', 'UserController@changeState');
@@ -183,6 +204,9 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
         Route::get('requete/get-one/{slug}/{code}', 'RequeteController@getOne');
         Route::get('requete/treatment/{id}/{code}', 'RequeteController@show');
         Route::post('requete/generate/{id}/{code}', 'RequeteController@createPDF');
+        Route::get('requete-prise-en-charge/{id}', 'RequeteController@prendreEnCharge');
+
+
         Route::post('contrat-p/file/upload', 'ContratPController@storeFile');
 
         Route::post('response/decline/store', 'ReponseController@decline');
