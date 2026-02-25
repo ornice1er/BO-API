@@ -74,4 +74,30 @@ class Requete extends Model
     {
         return $this->hasOne(AttestationDeSoin::class,'requete_id');
     }
+
+    /**
+     * Les commissions auxquelles cette requête est associée
+     */
+    public function commissions()
+    {
+        return $this->belongsToMany(Commission::class, 'commission_requetes')
+                    ->withPivot('global_mark', 'status')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Les relations commission-requête
+     */
+    public function commissionRequetes()
+    {
+        return $this->hasMany(CommissionRequete::class);
+    }
+
+    /**
+     * Les études de dossiers pour cette requête
+     */
+    public function etudeDossiers()
+    {
+        return $this->hasManyThrough(EtudeDossier::class, CommissionRequete::class);
+    }
 }

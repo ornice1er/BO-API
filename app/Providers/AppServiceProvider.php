@@ -31,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         //     'event' => 'TypeActivityDeleteEvent',
         //     'activity_id' => 123, // Remplace par la vraie donnée
         // ]));
+        if (config('app.env') === 'production') {
+                URL::forceScheme('https');
+         }
 
     }
 }
