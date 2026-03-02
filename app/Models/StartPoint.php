@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
+
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StartPoint extends Model
 {
 

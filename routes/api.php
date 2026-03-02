@@ -118,6 +118,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "establish-personal"=>"PersonalController",
             "contrat-p"=>"ContratPController",
             "agenda"=>"AgendaController",
+
+            "status"=>"StatusController",
+            "etapes"=>"EtapeController",
+            "prestation-status"=>"PrestationStatusController",
+            "etape-prestation-status"=>"PrestationStatusController",
         ]);
         Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
