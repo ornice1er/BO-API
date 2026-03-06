@@ -11,5 +11,6 @@ class Etape extends Model
 {
       use Filterable,HasFactory;
     private static $whiteListFilter = ['*'];
-    use HasFactory;
-}
+ protected $guarded = [];
+ 
+ }

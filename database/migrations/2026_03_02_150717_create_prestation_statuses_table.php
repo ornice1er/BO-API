@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('prestation_statuses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('status_id');
+            $table->foreignId('prestation_id');
             $table->timestamps();
         });
     }

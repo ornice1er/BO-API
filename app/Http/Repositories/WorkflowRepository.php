@@ -2,19 +2,19 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\EtapePrestationStatus;
+use App\Models\Workflow;
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
 use Str;
 
-class EtapePrestationStatusRepository
+class WorkflowRepository
 {
     use Repository;
 
     /**
      * The model being queried.
      *
-     * @var EtapePrestationStatus
+     * @var Workflow
      */
     protected $model;
 
@@ -24,7 +24,7 @@ class EtapePrestationStatusRepository
     public function __construct()
     {
         // Don't forget to update the model's name
-        $this->model = app(EtapePrestationStatus::class);
+        $this->model = app(Workflow::class);
     }
 
     /**
@@ -43,11 +43,11 @@ class EtapePrestationStatusRepository
 
         $per_page = 10;
 
-        $req = EtapePrestationStatus::ignoreRequest(['per_page'])
+        $req = Workflow::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
-             ->with('ps.prestation','ps.status','etape')
+            ->with(['prestation','etape'])
             ;
 
         if (array_key_exists('per_page', $request->all())) {
@@ -71,7 +71,7 @@ class EtapePrestationStatusRepository
     /**
      * To store model
      */
-    public function makeStore($data): EtapePrestationStatus
+    public function makeStore($data): Workflow
     {
 
         if (request()->hasFile('file')) {
@@ -80,7 +80,7 @@ class EtapePrestationStatusRepository
         }
         unset( $data['file']);
 
-        $model = new EtapePrestationStatus($data);
+        $model = new Workflow($data);
         $model->save();
 
         return $model;
@@ -89,10 +89,10 @@ class EtapePrestationStatusRepository
     /**
      * To update model
      */
-    public function makeUpdate($id, $data): EtapePrestationStatus
+    public function makeUpdate($id, $data): Workflow
     {
 
-        $model = EtapePrestationStatus::findOrFail($id);
+        $model = Workflow::findOrFail($id);
 
         if (request()->hasFile('file')) {
             FileStorage::deleteFile('public', $model->filename, 'projects');
@@ -124,14 +124,14 @@ class EtapePrestationStatusRepository
     /**
      * Get an element
      */
-    public function setEtapePrestationStatus($id, $status)
+    public function setWorkflow($id, $status)
     {
         return $this->findOrFail($id)->update(['is_active' => $status]);
     }
 
     public function search($term)
     {
-        $query = EtapePrestationStatus::query(); // Commencer avec une requête vide
+        $query = Workflow::query(); // Commencer avec une requête vide
         $attrs = ['title', 'description'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
@@ -145,7 +145,7 @@ class EtapePrestationStatusRepository
      */
     public function getWithRequests($id)
     {
-        return EtapePrestationStatus::with(['requetes.prestation','requetes.lastReponse','requetes.project'])->findOrFail($id);
+        return Workflow::with(['requetes.prestation','requetes.lastReponse','requetes.project'])->findOrFail($id);
     }
 
     /**
@@ -153,7 +153,7 @@ class EtapePrestationStatusRepository
      */
     public function addRequests($projectId, $requestIds)
     {
-        $project = EtapePrestationStatus::findOrFail($projectId);
+        $project = Workflow::findOrFail($projectId);
         $project->requests()->syncWithoutDetaching($requestIds);
         return $project->load('requests');
     }
@@ -163,7 +163,7 @@ class EtapePrestationStatusRepository
      */
     public function close($id)
     {
-        $project = EtapePrestationStatus::findOrFail($id);
+        $project = Workflow::findOrFail($id);
         $project->update(['status' => 'closed']);
         return $project;
     }

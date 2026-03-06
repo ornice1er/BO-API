@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('etape_prestation_statuses', function (Blueprint $table) {
+        Schema::create('workflows', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('prestation_id');
             $table->foreignId('etape_id');
-            $table->foreignId('ps_id');
+            $table->string('next_eps')->nullable();
+            $table->string('preview_eps')->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('etape_prestation_statuses');
+        Schema::dropIfExists('workflows');
     }
 };

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Status;
+namespace App\Http\Requests\Workflow;
 
 use App\Utilities\Common;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateStatusRequest extends FormRequest
+class UpdateWorkflowRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,8 +25,12 @@ class UpdateStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-              'name' => 'required|string|max:255',
-            'short_name' => 'required|string|max:255'
+             'prestation_id' => 'required|integer|exists:prestations,id',
+            'etape_id' => 'required|integer|exists:etapes,id',
+            'next_eps' => 'nullable|array',
+            'next_eps.*' => 'integer|exists:etape_prestation_statuses,id',
+            'preview_eps' => 'nullable|array',
+            'preview_eps.*' => 'integer|exists:etape_prestation_statuses,id'
         ];
     }
 

@@ -11,5 +11,18 @@ class EtapePrestationStatus extends Model
 {
       use Filterable,HasFactory;
     private static $whiteListFilter = ['*'];
-    use HasFactory;
-}
+ protected $guarded = [];
+ 
+ 
+
+     function ps() {
+      
+    return $this->belongsTo(PrestationStatus::class, 'ps_id');
+    }
+
+     function etape() {
+      
+    return $this->belongsTo(Etape::class, 'etape_id');
+    }
+ 
+ }

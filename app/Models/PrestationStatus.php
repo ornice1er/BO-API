@@ -9,7 +9,18 @@ use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 
 class PrestationStatus extends Model
 {
-      use Filterable,HasFactory;
+    use Filterable,HasFactory;
     private static $whiteListFilter = ['*'];
-    use HasFactory;
-}
+    protected $guarded = [];
+
+    function prestation() {
+      
+    return $this->belongsTo(Prestation::class, 'prestation_id');
+    }
+
+     function status() {
+      
+    return $this->belongsTo(Status::class, 'status_id');
+    }
+ 
+ }

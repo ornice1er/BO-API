@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('etape_prestation_statuses', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('etape_id');
-            $table->foreignId('ps_id');
-            $table->timestamps();
+        Schema::table('prestations', function (Blueprint $table) {
+            $table->foreignId('eps_id')->nullable();
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('etape_prestation_statuses');
+        Schema::table('prestations', function (Blueprint $table) {
+            //
+        });
     }
 };

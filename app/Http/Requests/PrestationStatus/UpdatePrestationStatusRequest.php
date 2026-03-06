@@ -25,8 +25,8 @@ class UpdatePrestationStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-              'status_id' => 'required|integer|exists:status,id',
-            'prestations_id' => 'required|integer|exists:prestations,id',
+            'status_id' => 'required|integer|exists:statuses,id',
+            'prestation_id' => 'required|integer|exists:prestations,id'
         ];
     }
 
