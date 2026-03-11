@@ -169,6 +169,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::post('projects-search', 'ProjectController@search');
         Route::post('projects/{id}/add-requests', 'ProjectController@addRequests');
         Route::post('projects/{id}/close', 'ProjectController@closeProject');
+
+        Route::post('projects-export', 'ProjectController@exportList');
+
+        
         Route::apiResources([
             'projects' => 'ProjectController',
         ]);

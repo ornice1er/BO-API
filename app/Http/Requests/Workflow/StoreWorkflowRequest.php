@@ -27,10 +27,10 @@ class StoreWorkflowRequest extends FormRequest
         return [
             'prestation_id' => 'required|integer|exists:prestations,id',
             'etape_id' => 'required|integer|exists:etapes,id',
-            'next_eps' => 'nullable|array',
-            'next_eps.*' => 'integer|exists:etape_prestation_statuses,id',
-            'preview_eps' => 'nullable|array',
-            'preview_eps.*' => 'integer|exists:etape_prestation_statuses,id'
+            'next_etapes' => 'nullable|array',
+            'next_etapes.*' => 'integer|exists:etapes,id',
+            'preview_etapes' => 'nullable|array',
+            'preview_etapes.*' => 'integer|exists:etapes,id'
 
         ];
     }

@@ -247,7 +247,7 @@ class ReponseController extends Controller
         $message = 'Enregistrement d\'une reponse';
 
         try {
-            $result = $this->reponseRepository->store($request->all());
+            $result = $this->reponseRepository->makeStore($request->all());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 
             return Common::successCreate('Utilisateur créé avec succès', $result);

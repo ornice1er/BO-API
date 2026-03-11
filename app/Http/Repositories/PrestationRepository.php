@@ -64,7 +64,7 @@ class PrestationRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id);
+        return $this->whereCode($id)->first();
     }
 
 

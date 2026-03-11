@@ -8,10 +8,22 @@ use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Requests\Project\AddRequestsToProjectRequest;
 use App\Jobs\CloseProjectRequests;
 use App\Models\Project;
+use App\Models\Requete;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Reader\Exception;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use Storage;
+
 
 class ProjectController extends Controller
 {
@@ -607,5 +619,47 @@ class ProjectController extends Controller
 
             return Common::error($th->getMessage(), []);
         }
+    }
+
+    function exportList(Request $request) {
+           try {
+
+             // Récupérer les données
+        $requetes = Requete::with('prestation') // si prestation est une relation
+            ->whereIn('id', $request->ids)
+            ->get(['id', 'code', 'email', 'phone', 'prestation_id']); // récupère juste les champs nécessaires
+
+
+                $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Liste des demandes validées');
+
+                   // En-têtes
+                    $headers = ['Code Prestation', 'Code Demande', 'Email', 'Phone'];
+                    $sheet->fromArray($headers, null, 'A1');
+
+                    // Remplir les données
+                    $rowIndex = 2; // commence après l'en-tête
+                    foreach ($requetes as $req) {
+                        $sheet->setCellValue("A{$rowIndex}", $req->prestation?->code ?? ''); // Code Prestation
+                        $sheet->setCellValue("B{$rowIndex}", $req->code);                     // Code Demande
+                        $sheet->setCellValue("C{$rowIndex}", $req->email);                    // Email
+                        $sheet->setCellValue("D{$rowIndex}", $req->phone);                    // Phone
+                        $rowIndex++;
+                    }
+
+            $filename=uniqid().".xlsx";
+            $path=Storage::disk('public')->path($filename);
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($path);
+            return Common::success("Fichier excel",Storage::disk('public')->url($filename));
+
+               } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => "Erreur", 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+
     }
 }

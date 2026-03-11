@@ -151,7 +151,7 @@ class RequeteRepository
        public function getByPrestationAll($data)
         {
         $prestation=Prestation::where("code",$data['code'])->first();
-        $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation' ,'project','lastReponse'])->where('prestation_id',$prestation->id)->get();
+        $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation.uniteAdminDown.agent' ,'project','lastReponse','eps.ps.status','eps.etape'])->where('prestation_id',$prestation->id)->get();
 
         return $requetes;
 
@@ -162,8 +162,9 @@ class RequeteRepository
         {       
             $prestation=Prestation::where("code",$data['code'])->first();
             $idStructure=Auth::user()->agent?->uniteAdmin?->id;
-            $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation','project','lastReponse'])
-                            ->where('prestation_id',$prestation->id)->where('isTreated',false)
+            $requetes=Requete::with(['reponses.uniteAdmin','parcours','affectation','project','lastReponse','eps.ps.status','eps.etape'])
+                            ->where('prestation_id',$prestation->id)
+                            ->where('isTreated',false)
                             ->where('isDeclined',false)
                             ->whereHas('affectations', function($q) use($idStructure) {
                                 $q->where('unite_admin_down',"=", $idStructure)->where('isLast',"=", true);
@@ -178,7 +179,12 @@ class RequeteRepository
             
     public function getOne($data)
     {
-        $requete=Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files','project'])->where('code',$data['code'])->first();
+        $uniteId = Auth::user()->agent->uniteAdmin->id;
+
+        $requete=Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','lastReponse', 
+        'userReponse' => function ($q) use ($uniteId) {
+        $q->where('unite_admin_id', $uniteId);
+        },'files','project','prestation','reponses.eps.ps.status','reponses.eps.etape','eps.ps.status','eps.etape'])->where('code',$data['code'])->first();
        return $requete;
 
     }
@@ -190,10 +196,8 @@ class RequeteRepository
 
         $idStructure = Auth::user()->agent->uniteAdmin->id;
         $idSigner = UniteAdmin::find($prestation->signer)?->id;
-
-       $requetes = Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files','project','lastReponse'])
+       $requetes = Requete::with(['reponses.uniteAdmin','parcours','affectation','reponses','files','project','lastReponse','eps.ps.status','eps.etape'])
                     ->where('prestation_id', $prestation->id)
-                    ->where('status', 1)
                     ->whereHas('affectations', function ($q) use ($idStructure) {
                         $q->where('unite_admin_down', $idStructure)
                         ->where('isLast', true);

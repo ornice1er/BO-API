@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('prestation_id');
             $table->foreignId('etape_id');
-            $table->string('next_eps')->nullable();
-            $table->string('preview_eps')->nullable();
+            $table->string('next_etapes')->nullable();
+            $table->string('preview_etapes')->nullable();
             $table->timestamps();
         });
     }

@@ -65,7 +65,9 @@ class ProjectRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id)->load("requetes");
+         return $this->with([
+        'requetes.eps.ps.status'
+    ])->findOrFail($id);
     }
 
     /**
@@ -161,7 +163,7 @@ class ProjectRepository
      */
     public function getWithRequests($id)
     {
-        return Project::with(['requetes.prestation','requetes.lastReponse','requetes.project'])->findOrFail($id);
+        return Project::with(['requetes.prestation','requetes.lastReponse','requetes.project','requetes.eps.ps.status'])->findOrFail($id);
     }
 
     /**

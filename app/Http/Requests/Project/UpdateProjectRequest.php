@@ -30,7 +30,7 @@ class UpdateProjectRequest extends FormRequest
             'file' => 'nullable|file',
              'date_start' => 'date|required',
             'date_end' => 'date|required',
-             'closing_file' => 'nullable|file',
+             'closing_filename' => 'nullable|file',
         ];
     }
 

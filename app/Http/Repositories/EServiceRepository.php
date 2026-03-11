@@ -133,6 +133,8 @@ class EServiceRepository
             }
             $req->status=0;
             $req->header=$this->getHeaders();
+                    $req->eps_id=$prestation?->eps_id;
+
             $req->save();
         }else{
         $req->prestation_id=$prestation->id;
@@ -143,7 +145,10 @@ class EServiceRepository
         // $req->lastname=$data['meta']['info']['lastname'];
         // $req->firstname=$data['meta']['info']['firstname'];
         $req->header=$this->getHeaders();
+        $req->eps_id=$prestation?->eps_id;
         $req->save();
+
+
         }
 
         $code = $req->code;

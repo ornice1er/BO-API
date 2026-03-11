@@ -15,8 +15,8 @@ class Workflow extends Model
     protected $appends = ["next",'preview'];
 
        public $casts = [
-            'next_eps' => 'array',
-            'preview_eps' => 'array',
+            'next_etapes' => 'array',
+            'preview_etapes' => 'array',
         ];
 
 
@@ -29,20 +29,22 @@ class Workflow extends Model
         }
  public function getNextAttribute()
     {
-        if (empty($this->next_eps)) {
+        if (empty($this->next_etapes)) {
             return collect();
         }
 
-        return EtapePrestationStatus::with(['etape','ps.status'])->whereIn('id', $this->next_eps)->get();
+        $prestationId=$this->prestation_id;
+        return EtapePrestationStatus::with(['etape','ps.status'])->whereIn('etape_id', $this->next_etapes)->whereHas('ps',function($q)use($prestationId){$q->where('prestation_id',$prestationId);})->get();
     }
 
     public function getPreviewAttribute()
     {
-        if (empty($this->preview_eps)) {
+        if (empty($this->preview_etapes)) {
             return collect();
         }
 
-        return EtapePrestationStatus::with(['etape','ps.status'])->whereIn('id', $this->preview_eps)->get();
+         $prestationId=$this->prestation_id;
+        return EtapePrestationStatus::with(['etape','ps.status'])->whereIn('etape_id', $this->preview_etapes)->whereHas('ps',function($q)use($prestationId){$q->where('prestation_id',$prestationId);})->get();
     }
 
 }

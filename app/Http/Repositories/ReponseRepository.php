@@ -7,6 +7,7 @@ use App\Models\Requete;
 use App\Models\Parcours;
 use App\Traits\Repository;
 use App\Services\PNSService;
+use App\Utilities\FileStorage;
 use Auth,Hash;
 
 class ReponseRepository
@@ -75,15 +76,40 @@ class ReponseRepository
     /**
      * Store a new reponse
      */
-  public function makeStore(array $data): Reponse
+  public function makeStore($data)
 {
 
+    // Recherche d'une réponse existante
+    $reponse = Reponse::firstOrNew([
+        'requete_id' => $data['requete_id'],
+        'unite_admin_id' => Auth::user()?->agent?->uniteAdmin?->id,
+    ]);
 
-    $data['preview_file']="https://mataccueil-api.mtfp-ctd.bj/storage/preview_file.pdf";
-    // Création de l'utilisateur
-    $reponse = Reponse::create($data);
+    // Upload du fichier s'il existe
+    if (isset($data['file']) && $data['file'] instanceof \Illuminate\Http\UploadedFile) {
+        $filename = FileStorage::setFile('doc_response', $data['file'], '', time());
+        $reponse->note = $filename;
+    }
 
-    return $reponse;
+    // Mise à jour des autres champs
+    $reponse->eps_id         = $data['eps_id'];
+    $reponse->observation    = $data['observation']?? null;
+    $reponse->preview_file   = null; 
+
+    $reponse->save();
+
+    // Mise à jour du statut de la requête
+    $requete = Requete::find($data['requete_id']);
+    if ($requete) {
+        $requete->eps_id = $data['eps_id'];
+        $requete->filename = null;
+        $requete->save();
+    }
+
+    // Retour de la réponse enregistrée
+    return Reponse::where('requete_id',$data['requete_id'])
+                  ->where('unite_admin_id', Auth::user()?->agent?->uniteAdmin?->id)
+                  ->first();
 }
 
 
@@ -92,15 +118,37 @@ class ReponseRepository
      */
   public function makeUpdate($id, array $data): Reponse
 {
-    $model = Reponse::findOrFail($id);
+
+  // Recherche d'une réponse existante
+        $reponse = Reponse::findOrFail($id);
 
 
+    // Upload du fichier s'il existe
+    if (isset($data['file']) && $data['file'] instanceof \Illuminate\Http\UploadedFile) {
+        $filename = FileStorage::setFile('doc_response', $data['file'], '', time());
+        $reponse->note = $filename;
+    }
 
-    // Mise à jour des données utilisateur
-    $model->update($data);
+    // Mise à jour des autres champs
+    $reponse->eps_id         = $data['eps_id'];
+    $reponse->observation    = $data['observation']?? null;
+    $reponse->preview_file   = null; 
 
+    $reponse->save();
 
-    return $model;
+    // Mise à jour du statut de la requête
+    $requete = Requete::find($data['requete_id']);
+    if ($requete) {
+        $requete->eps_id = $data['eps_id'];
+        $requete->filename = null;
+        $requete->save();
+    }
+
+    // Retour de la réponse enregistrée
+    return Reponse::where('requete_id',$data['requete_id'])
+                  ->where('unite_admin_id', Auth::user()?->agent?->uniteAdmin?->id)
+                  ->first();
+
 }
 
 
