@@ -86,7 +86,6 @@ class ProjectRepository
          if (request()->hasFile('closing_filename')) {
             $filename = FileStorage::setFile('public', request()->file('closing_filename'), 'projects', Str::slug($data['title'].'.'.time()));
             $data['closing_filename'] = 'projects/'.$filename;
-                    unset( $data['closing_filename']);
 
         }
 
@@ -113,9 +112,9 @@ class ProjectRepository
         }
           if (request()->hasFile('closing_filename')) {
             FileStorage::deleteFile('public', $model->filename, 'projects');
-            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
+            $filename = FileStorage::setFile('public', request()->file('closing_filename'), 'projects', Str::slug($data['title'].'.'.time()));
             $data['closing_filename'] = 'projects/'.$filename;
-                    unset( $data['closing_filename']);
+                    
 
         }
         $model->update($data);

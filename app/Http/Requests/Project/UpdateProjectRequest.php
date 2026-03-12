@@ -28,9 +28,11 @@ class UpdateProjectRequest extends FormRequest
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'file' => 'nullable|file',
-             'date_start' => 'date|required',
+            'date_start' => 'date|required',
             'date_end' => 'date|required',
-             'closing_filename' => 'nullable|file',
+            'closing_filename' => 'nullable|file',
+            'status' => 'nullable|in:open,closed',
+
         ];
     }
 
