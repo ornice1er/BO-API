@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('reponses', function (Blueprint $table) {
-                    $table->string('observation')->nullable()->change();
+                    $table->string('hasPermission')->nullable()->change();
+                    $table->string('reason')->nullable()->change();
+                    $table->string('note')->nullable()->change();
+                    $table->string('content')->nullable()->change();
+                    $table->string('motif')->nullable()->change();
+                    $table->string('preview_file')->nullable()->change();
+
 
         });
     }
