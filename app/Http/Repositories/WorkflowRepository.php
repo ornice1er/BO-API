@@ -43,12 +43,7 @@ class WorkflowRepository
 
         $per_page = 10;
 
-        $req = Workflow::ignoreRequest(['per_page'])
-            ->filter(array_filter($request->all(), function ($k) {
-                return $k != 'page';
-            }, ARRAY_FILTER_USE_KEY))
-            ->with(['prestation','etape'])
-            ;
+        $req = Workflow::with(['prestation','etape']) ;
 
         if (array_key_exists('per_page', $request->all())) {
             $per_page = $request['per_page'];
