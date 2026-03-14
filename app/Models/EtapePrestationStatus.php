@@ -13,6 +13,12 @@ class EtapePrestationStatus extends Model
     private static $whiteListFilter = ['*'];
  protected $guarded = [];
  
+ protected $casts = [
+   "adding_fields"=>"array",
+   "events"=>"array",
+   "banettes"=>"array"
+ ];
+ 
  
 
      function ps() {

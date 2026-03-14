@@ -27,7 +27,9 @@ class StoreEtapePrestationStatusRequest extends FormRequest
         return [
             'etape_id' => 'required|integer|exists:etapes,id',
             'ps_id' => 'required|integer|exists:prestation_statuses,id',
-
+            'adding_fields' => 'nullable|array',
+            'events' => 'nullable|array',
+            'banettes' => 'nullable|array'
         ];
     }
 
