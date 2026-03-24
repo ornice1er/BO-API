@@ -152,7 +152,7 @@ class EServiceRepository
         }
 
         $code = $req->code;
-        $zipUrl = $data['files']; 
+        $zipUrl = env('APP_ENV')=="local"? env('APP_ZIP_URL'):$data['files']; 
         $tempZipPath = storage_path("app/tmp_{$code}.zip");
         file_put_contents($tempZipPath, file_get_contents($zipUrl));
         $extractPath = storage_path("app/public/{$code}");
