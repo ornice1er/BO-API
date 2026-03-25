@@ -11,6 +11,8 @@ use App\Models\UniteAdmin;
 use ZipArchive;
 use Carbon\Carbon;
 use App\Models\Project;
+use App\Models\Agenda;
+
 
 use App\Models\RequeteFile;
 use Illuminate\Support\Facades\Storage;
@@ -291,7 +293,18 @@ class EServiceRepository
     }
 
     public function setRDV($data) {
-        return $data;
+
+            $agenda= new Agenda();
+            $agenda->date_start=$data['date_start'];
+            $agenda->date_end=$data['date_end'];
+            $agenda->title=$data['title'];
+            $agenda->status=$data['status'];
+            $agenda->description=$data['description'];
+            $agenda->priority=$data['priority'];
+            $agenda->requete_id=Prestation::whereCode($data['code'])->first()?->id;
+            $agenda->save();
+
+        return $agenda;
     }
 
     public function closeRequest($data) {
