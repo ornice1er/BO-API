@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('from',['Usager','Métier'])->nullable();
             $table->enum('status',['Ouvert','Clos'])->change();
             $table->enum('priority',['Faible','Moyenne','Haute'])->change();
-            $table->foreignId('requete_id')->nullable();
+           // $table->foreignId('requete_id')->nullable();
         });
     }
 
