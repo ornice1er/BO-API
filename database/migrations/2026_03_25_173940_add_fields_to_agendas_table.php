@@ -13,12 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         // Normaliser les valeurs existantes avant de passer aux enums NOT NULL
+        // whereNotIn ne capture pas les NULL — on ajoute orWhereNull explicitement
         DB::table('agendas')
-            ->whereNotIn('status', ['Ouvert', 'Clos'])
+            ->where(fn ($q) => $q->whereNotIn('status', ['Ouvert', 'Clos'])->orWhereNull('status'))
             ->update(['status' => 'Ouvert']);
 
         DB::table('agendas')
-            ->whereNotIn('priority', ['Faible', 'Moyenne', 'Haute'])
+            ->where(fn ($q) => $q->whereNotIn('priority', ['Faible', 'Moyenne', 'Haute'])->orWhereNull('priority'))
             ->update(['priority' => 'Faible']);
 
         Schema::table('agendas', function (Blueprint $table) {
