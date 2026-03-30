@@ -30,6 +30,13 @@ class WorkflowAgrementSeeder extends Seeder
         //    (les statuts génériques existent déjà via WorkflowHabilitationSeeder)
         // ----------------------------------------------------------------
         $nouveauxStatuts = [
+            // Statuts génériques (insertOrIgnore si déjà présents)
+            ['short_name' => 'en_attente',          'name' => 'En attente'],
+            ['short_name' => 'en_verification',     'name' => 'En vérification'],
+            ['short_name' => 'rejete',              'name' => 'Rejeté'],
+            ['short_name' => 'rejete_clos',         'name' => 'Rejeté — Clôturé'],
+            ['short_name' => 'valide',              'name' => 'Validé'],
+            // Statuts spécifiques agrément
             ['short_name' => 'envoye',              'name' => 'Envoyé — en attente DGT'],
             ['short_name' => 'en_attente_signature', 'name' => 'En attente de signature'],
             ['short_name' => 'paraphe',             'name' => 'Paraphé'],
