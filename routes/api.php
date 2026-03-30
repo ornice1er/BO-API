@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\EtudeDossierController;
+use App\Http\Controllers\WorkflowStateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -211,6 +212,11 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
         Route::get('requete/treatment/{id}/{code}', 'RequeteController@show');
         Route::post('requete/generate/{id}/{code}', 'RequeteController@createPDF');
         Route::get('requete-prise-en-charge/{id}', 'RequeteController@prendreEnCharge');
+
+        // ── Workflow state (étape courante + transitions disponibles) ──────────────
+        Route::get('requete/{id}/workflow-state',   [WorkflowStateController::class, 'getState']);
+        Route::post('requete/{id}/apply-transition',[WorkflowStateController::class, 'applyTransition']);
+        Route::get('requete/{id}/etape-logs',       [WorkflowStateController::class, 'getLogs']);
 
 
         Route::post('contrat-p/file/upload', 'ContratPController@storeFile');
