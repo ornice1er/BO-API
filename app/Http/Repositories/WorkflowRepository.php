@@ -60,7 +60,7 @@ class WorkflowRepository
      */
     public function get($id)
     {
-        return $this->findOrFail($id)->load("requetes");
+        return $this->findOrFail($id);
     }
 
     /**
