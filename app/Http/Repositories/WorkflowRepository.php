@@ -2,7 +2,7 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\Workflow;
+use App\Models\WorkflowTransition;
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
 use Str;
@@ -18,13 +18,9 @@ class WorkflowRepository
      */
     protected $model;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
-        // Don't forget to update the model's name
-        $this->model = app(Workflow::class);
+        $this->model = app(WorkflowTransition::class);
     }
 
     /**
@@ -43,7 +39,7 @@ class WorkflowRepository
 
         $per_page = 10;
 
-        $req = Workflow::with(['prestation','etape']) ;
+        $req = WorkflowTransition::with(['prestation', 'etapeFrom', 'etapeTo', 'statusResult'])->orderBy('order');
 
         if (array_key_exists('per_page', $request->all())) {
             $per_page = $request['per_page'];
@@ -66,38 +62,20 @@ class WorkflowRepository
     /**
      * To store model
      */
-    public function makeStore($data): Workflow
+    public function makeStore($data): WorkflowTransition
     {
-
-        if (request()->hasFile('file')) {
-            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
-            $data['filename'] = 'projects/'.$filename;
-        }
-        unset( $data['file']);
-
-        $model = new Workflow($data);
+        $model = new WorkflowTransition($data);
         $model->save();
 
-        return $model;
+        return $model->load(['prestation', 'etapeFrom', 'etapeTo', 'statusResult']);
     }
 
-    /**
-     * To update model
-     */
-    public function makeUpdate($id, $data): Workflow
+    public function makeUpdate($id, $data): WorkflowTransition
     {
-
-        $model = Workflow::findOrFail($id);
-
-        if (request()->hasFile('file')) {
-            FileStorage::deleteFile('public', $model->filename, 'projects');
-            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
-            $data['filename'] = 'projects/'.$filename;
-        }
-        unset( $data['file']);
+        $model = WorkflowTransition::findOrFail($id);
         $model->update($data);
 
-        return $model;
+        return $model->load(['prestation', 'etapeFrom', 'etapeTo', 'statusResult']);
     }
 
     /**
@@ -105,7 +83,7 @@ class WorkflowRepository
      */
     public function makeDestroy($id)
     {
-        return $this->findOrFail($id)->delete();
+        return WorkflowTransition::findOrFail($id)->delete();
     }
 
     /**

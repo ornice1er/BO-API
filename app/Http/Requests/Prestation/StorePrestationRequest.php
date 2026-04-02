@@ -32,7 +32,6 @@ class StorePrestationRequest extends FormRequest
             'delay'                 => 'required|integer|min:0',
             'is_automatic_delivered'=> 'nullable|boolean',
             'from_pns'              => 'nullable|boolean',
-            'eps_id'                => 'nullable|integer|exists:etape_prestation_statuses,id',
         ];
     }
 

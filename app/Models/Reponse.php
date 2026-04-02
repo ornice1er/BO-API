@@ -15,9 +15,5 @@ class Reponse extends Model
     {
         return $this->belongsTo(UniteAdmin::class,'unite_admin_id');
     }
-     public function eps()
-    {
-        return $this->belongsTo(EtapePrestationStatus::class,'eps_id');
-    }
 
 }

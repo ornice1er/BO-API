@@ -118,7 +118,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "status"=>"StatusController",
             "etapes"=>"EtapeController",
             "prestation-status"=>"PrestationStatusController",
-            "etape-prestation-status"=>"EtapePrestationStatusController",
             "workflows"=>"WorkflowController",
             "etape-documents-produits"=>"EtapeDocumentProduitController",
 

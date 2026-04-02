@@ -25,13 +25,15 @@ class StoreWorkflowRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'prestation_id' => 'required|integer|exists:prestations,id',
-            'etape_id' => 'required|integer|exists:etapes,id',
-            'next_etapes' => 'nullable|array',
-            'next_etapes.*' => 'integer|exists:etapes,id',
-            'preview_etapes' => 'nullable|array',
-            'preview_etapes.*' => 'integer|exists:etapes,id'
-
+            'prestation_id'      => 'required|integer|exists:prestations,id',
+            'etape_from_id'      => 'required|integer|exists:etapes,id',
+            'etape_to_id'        => 'nullable|integer|exists:etapes,id',
+            'condition_type'     => 'required|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie',
+            'status_result_id'   => 'required|integer|exists:statuses,id',
+            'order'              => 'nullable|integer|min:0',
+            'notify_requérant'   => 'nullable|boolean',
+            'notify_agent'       => 'nullable|boolean',
+            'is_active'          => 'nullable|boolean',
         ];
     }
 
