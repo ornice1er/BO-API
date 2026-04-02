@@ -40,24 +40,19 @@ class PrestationStatusRepository
      */
     public function getAll($request)
     {
-
         $per_page = 10;
 
-        $req = PrestationStatus::ignoreRequest(['per_page'])
-            ->filter(array_filter($request->all(), function ($k) {
-                return $k != 'page';
-            }, ARRAY_FILTER_USE_KEY))
-            ->with('prestation','status')
-            ;
+        $req = PrestationStatus::with('prestation', 'status');
+
+        if ($request->filled('prestation_id')) {
+            $req->where('prestation_id', (int) $request->prestation_id);
+        }
 
         if (array_key_exists('per_page', $request->all())) {
-            $per_page = $request['per_page'];
-
-            return $req->paginate($per_page);
-
-        } else {
-            return $req->get();
+            return $req->paginate((int) $request->per_page);
         }
+
+        return $req->get();
     }
 
     /**
