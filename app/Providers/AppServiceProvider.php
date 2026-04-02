@@ -22,16 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(
-            ChangeStatutAgentEvent::class,
-            ChangeStatutAgentListener::class,
-        );
-        Schema::defaultStringLength(191);
 
-        // Queue::connection('rabbitmq')->pushRaw(json_encode([
-        //     'event' => 'TypeActivityDeleteEvent',
-        //     'activity_id' => 123, // Remplace par la vraie donnée
-        // ]));
+        Schema::defaultStringLength(191);
         if (config('app.env') === 'production') {
                 URL::forceScheme('https');
          }
