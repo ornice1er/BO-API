@@ -17,22 +17,22 @@ class StorePrestationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => 'required|string|unique:prestations,code',
-            'name' => 'required|string|max:255',
-           // 'slug' => 'required|string|unique:prestations,slug',
-            'needOut' => 'required|boolean',
-            'unite_admin_id' => 'nullable|integer|exists:unite_admins,id',
-            'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
-            'desc' => 'nullable|string',
-            'content_type' => 'required|integer',
-            'need_meeting' => 'required|boolean',
-            'need_validation' => 'required|boolean',
-            'signer' => 'required',
-            'start_point' => 'required|integer|min:0',
-            'delay' => 'required|integer|min:0',
-            'is_automatic_delivered' => 'required|boolean',
-            'from_pns' => 'required|boolean',
-            'eps_id' => 'nullable|integer|exists:etape_prestation_statuses,id',
+            'code'                  => 'required|string|unique:prestations,code',
+            'name'                  => 'required|string|max:255',
+            'needOut'               => 'nullable|boolean',
+            'has_document_circuit'  => 'nullable|boolean',
+            'unite_admin_id'        => 'nullable|integer|exists:unite_admins,id',
+            'entite_admin_id'       => 'nullable|integer|exists:entite_admins,id',
+            'desc'                  => 'nullable|string',
+            'content_type'          => 'required|integer',
+            'need_meeting'          => 'nullable|boolean',
+            'need_validation'       => 'nullable|boolean',
+            'signer'                => 'required',
+            'start_point'           => 'required|integer|min:0',
+            'delay'                 => 'required|integer|min:0',
+            'is_automatic_delivered'=> 'nullable|boolean',
+            'from_pns'              => 'nullable|boolean',
+            'eps_id'                => 'nullable|integer|exists:etape_prestation_statuses,id',
         ];
     }
 

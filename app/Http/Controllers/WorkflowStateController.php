@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Etape;
 use App\Models\MotifRejet;
+use App\Models\PrestationStatus;
 use App\Models\Requete;
 use App\Models\RequeteEtapeLog;
 use App\Models\Status;
@@ -136,6 +137,15 @@ class WorkflowStateController extends Controller
             // Vérifier que l'étape de départ correspond à l'étape courante
             if ((int) $transition->etape_from_id !== (int) $requete->current_etape_id) {
                 return Common::error('Cette transition ne part pas de l\'étape courante de la requête.', []);
+            }
+
+            // Vérifier que le statut résultant est bien associé à la prestation
+            $valid = PrestationStatus::where('prestation_id', $requete->prestation_id)
+                ->where('status_id', $transition->status_result_id)
+                ->exists();
+
+            if (!$valid) {
+                throw new \Exception("Ce statut n'est pas autorisé pour cette prestation.");
             }
 
             $previousEtapeId = $requete->current_etape_id;

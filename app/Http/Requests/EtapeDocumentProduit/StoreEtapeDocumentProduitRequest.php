@@ -25,7 +25,7 @@ class StoreEtapeDocumentProduitRequest extends FormRequest
             'template_key'        => 'required|string|max:255',
             'etape_edition_id'    => 'required|integer|exists:etapes,id',
             'etape_delivrance_id' => 'nullable|integer|exists:etapes,id',
-            'allow_correction'    => 'boolean',
+            'allow_correction'    => 'nullable|boolean',
             'order'               => 'nullable|integer|min:1',
         ];
     }
