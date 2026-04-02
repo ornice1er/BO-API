@@ -28,8 +28,8 @@ class StoreEtapeRequest extends FormRequest
             'name'                => 'required|string|max:255',
             'type'                => 'nullable|in:depot,traitement,commission,delivrance',
             'unite_admin_id'      => 'nullable|integer|exists:unite_admins,id',
-            'is_terminal'         => 'boolean',
-            'allow_partial_save'  => 'boolean',
+            'is_terminal'         => 'nullable|boolean',
+            'allow_partial_save'  => 'nullable|boolean',
             'sla_days'            => 'nullable|integer|min:0',
         ];
     }

@@ -43,7 +43,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('etape_documents_produits', function (Blueprint $table) {
+        Schema::create('etape_document_produits', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('prestation_id');
