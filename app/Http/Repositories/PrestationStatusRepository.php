@@ -69,21 +69,20 @@ class PrestationStatusRepository
     }
 
     /**
-     * To store model
+     * To store model — crée une ligne par status_id sélectionné
      */
-    public function makeStore($data): PrestationStatus
+    public function makeStore($data): array
     {
-
-        if (request()->hasFile('file')) {
-            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
-            $data['filename'] = 'projects/'.$filename;
+        $created = [];
+        foreach ($data['status_ids'] as $statusId) {
+            $model = PrestationStatus::firstOrCreate([
+                'prestation_id' => $data['prestation_id'],
+                'status_id'     => $statusId,
+            ]);
+            $created[] = $model;
         }
-        unset( $data['file']);
 
-        $model = new PrestationStatus($data);
-        $model->save();
-
-        return $model;
+        return $created;
     }
 
     /**

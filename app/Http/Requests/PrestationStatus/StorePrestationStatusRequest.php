@@ -25,9 +25,9 @@ class StorePrestationStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status_id' => 'required|integer|exists:statuses,id',
+            'status_ids'    => 'required|array|min:1',
+            'status_ids.*'  => 'integer|exists:statuses,id',
             'prestation_id' => 'required|integer|exists:prestations,id',
-
         ];
     }
 
