@@ -70,6 +70,11 @@ class StoreWorkflowRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
+        $this->merge([
+            'notify_requérant' => $this->notify_requérant == null ? false : $this->boolean('notify_requérant'),
+            'notify_agent' => $this->notify_agent==null ? false : $this->boolean('notify_agent'),
+            'is_active' => $this->is_active==null ? false : $this->boolean('is_active'),
+        ]);
         // Custom preparation logic if needed
     }
 }
