@@ -120,9 +120,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "prestation-status"=>"PrestationStatusController",
             "workflows"=>"WorkflowController",
             "etape-documents-produits"=>"EtapeDocumentProduitController",
+            "document-circuit-etapes"=>"DocumentCircuitEtapeController",
 
         ]);
         Route::post('etape-documents-produits-search', 'EtapeDocumentProduitController@search');
+        Route::post('document-circuit-etapes-search', 'DocumentCircuitEtapeController@search');
         Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
         Route::get('/logs', 'LogController@index');
