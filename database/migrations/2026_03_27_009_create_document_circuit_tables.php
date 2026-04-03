@@ -94,7 +94,7 @@ return new class extends Migration
             $table->index(['doc_produit_id', 'order'], 'idx_circuit_order');
 
             $table->foreign('doc_produit_id')
-                  ->references('id')->on('etape_documents_produits')
+                  ->references('id')->on('etape_document_produits')
                   ->cascadeOnDelete();
 
             $table->foreign('unite_admin_id')
@@ -152,7 +152,7 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             $table->foreign('doc_produit_id')
-                  ->references('id')->on('etape_documents_produits')
+                  ->references('id')->on('etape_document_produits')
                   ->restrictOnDelete();
 
             $table->foreign('current_circuit_step_id')

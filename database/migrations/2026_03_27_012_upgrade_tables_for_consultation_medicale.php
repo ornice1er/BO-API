@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Schema;
  *
  *   choix_sortie    : déclenche l'affichage du menu de sélection de document
  *                     après "Finaliser la consultation" (FN39/FN56/FN78/FN106/FN133).
- *                     Le moteur présente alors tous les etape_documents_produits
+ *                     Le moteur présente alors tous les etape_document_produits
  *                     où is_selectable = true pour cette prestation.
  *                     L'agent choisit → le système génère le document correspondant.
  *
@@ -83,7 +83,7 @@ return new class extends Migration
         });
 
         // ── ETAPE_DOCUMENTS_PRODUITS ─────────────────────────────────────────
-        Schema::table('etape_documents_produits', function (Blueprint $table) {
+        Schema::table('etape_document_produits', function (Blueprint $table) {
             $table->boolean('is_auto_signed')
                   ->default(false)
                   ->after('allow_correction')
@@ -145,7 +145,7 @@ return new class extends Migration
             ]);
         });
 
-        Schema::table('etape_documents_produits', function (Blueprint $table) {
+        Schema::table('etape_document_produits', function (Blueprint $table) {
             $table->dropColumn(['is_auto_signed', 'is_selectable']);
         });
 

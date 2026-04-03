@@ -58,7 +58,7 @@ use Illuminate\Support\Facades\Schema;
  * requetes.project_id  → déjà présent et nullable — aucun changement
  * project_requete      → pivot existant — aucun changement
  * agendas              → couvre l'entretien UC004 sans modification
- * etape_documents_produits → couvre la génération de l'autorisation UC012
+ * etape_document_produits → couvre la génération de l'autorisation UC012
  */
 return new class extends Migration
 {

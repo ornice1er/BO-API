@@ -82,7 +82,7 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             $table->foreign('doc_produit_id')
-                  ->references('id')->on('etape_documents_produits')
+                  ->references('id')->on('etape_document_produits')
                   ->nullOnDelete();
         });
 

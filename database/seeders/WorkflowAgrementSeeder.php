@@ -362,7 +362,7 @@ class WorkflowAgrementSeeder extends Seeder
         // ----------------------------------------------------------------
         // 5. DOCUMENTS PRODUITS — configuration des 2 artefacts
         // ----------------------------------------------------------------
-        $projetLettreId = DB::table('etape_documents_produits')->insertGetId([
+        $projetLettreId = DB::table('etape_document_produits')->insertGetId([
             'prestation_id'       => $prestationId,
             'name'                => 'Projet de lettre d\'agrément',
             'slug'                => 'projet_lettre_agrement',
@@ -377,7 +377,7 @@ class WorkflowAgrementSeeder extends Seeder
             'updated_at'          => now(),
         ]);
 
-        $decisionId = DB::table('etape_documents_produits')->insertGetId([
+        $decisionId = DB::table('etape_document_produits')->insertGetId([
             'prestation_id'       => $prestationId,
             'name'                => 'Décision d\'agrément',
             'slug'                => 'decision_agrement',

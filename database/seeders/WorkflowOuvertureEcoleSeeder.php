@@ -374,7 +374,7 @@ class WorkflowOuvertureEcoleSeeder extends Seeder
             // ----------------------------------------------------------------
             $slug = 'autorisation_ouverture_' . last(explode('-', $pData['slug']));
 
-            DB::table('etape_documents_produits')->insertOrIgnore([
+            DB::table('etape_document_produits')->insertOrIgnore([
                 'prestation_id'       => $prestationId,
                 'name'                => 'Autorisation d\'ouverture — ' . last(explode('— ', $pData['name'])),
                 'slug'                => $slug,
@@ -391,7 +391,7 @@ class WorkflowOuvertureEcoleSeeder extends Seeder
                 'updated_at'          => now(),
             ]);
 
-            $docId = DB::table('etape_documents_produits')
+            $docId = DB::table('etape_document_produits')
                 ->where('prestation_id', $prestationId)
                 ->where('slug', $slug)
                 ->value('id');

@@ -5,14 +5,14 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Migration 8/11 — Création de `etape_documents_produits`
+ * Migration 8/11 — Création de `etape_document_produits`
  *
  * DISTINCTION FONDAMENTALE avec `etape_documents` (migration 003) :
  *
  *   etape_documents          → pièces FOURNIES par le requérant (upload)
  *                              ex: RCCM, statuts, plan de localisation
  *
- *   etape_documents_produits → documents GÉNÉRÉS par le système à une étape
+ *   etape_document_produits → documents GÉNÉRÉS par le système à une étape
  *                              ex: projet de lettre, décision d'agrément
  *                              Ce sont des artefacts BackOffice, pas des uploads.
  *
@@ -101,6 +101,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('etape_documents_produits');
+        Schema::dropIfExists('etape_document_produits');
     }
 };

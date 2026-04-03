@@ -210,7 +210,7 @@ class WorkflowConsultationMedicaleSeeder extends Seeder
 
         $docIds = [];
         foreach ($docsProduits as $d) {
-            $id = DB::table('etape_documents_produits')->insertGetId([
+            $id = DB::table('etape_document_produits')->insertGetId([
                 'prestation_id'       => $prestationId,
                 'name'                => $d['name'],
                 'slug'                => $d['slug'],
