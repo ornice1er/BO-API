@@ -17,7 +17,7 @@ class UpdateDocumentCircuitEtapeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'doc_produit_id'       => 'sometimes|integer|exists:etape_documents_produits,id',
+            'doc_produit_id'       => 'sometimes|integer|exists:etape_document_produits,id',
             'unite_admin_id'       => 'nullable|integer|exists:unite_admins,id',
             'role_name'            => 'sometimes|string|max:100',
             'action_type'          => 'sometimes|in:edition,paraphe,prevalidation,signature,correction',

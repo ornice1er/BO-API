@@ -17,7 +17,7 @@ class StoreDocumentCircuitEtapeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'doc_produit_id'       => 'required|integer|exists:etape_documents_produits,id',
+            'doc_produit_id'       => 'required|integer|exists:etape_document_produits,id',
             'unite_admin_id'       => 'nullable|integer|exists:unite_admins,id',
             'role_name'            => 'required|string|max:100',
             'action_type'          => 'required|in:edition,paraphe,prevalidation,signature,correction',
