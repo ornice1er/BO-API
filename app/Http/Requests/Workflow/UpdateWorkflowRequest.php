@@ -29,7 +29,11 @@ class UpdateWorkflowRequest extends FormRequest
             'etape_from_id'      => 'sometimes|integer|exists:etapes,id',
             'etape_to_id'        => 'nullable|integer|exists:etapes,id',
             'condition_type'     => 'sometimes|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie',
-            'status_result_id'   => 'sometimes|integer|exists:statuses,id',
+            'status_result_id'   => [
+                'sometimes', 'integer', 'exists:statuses,id',
+                \Illuminate\Validation\Rule::exists('prestation_statuses', 'status_id')
+                    ->where('prestation_id', $this->prestation_id ?? $this->route('workflow')?->prestation_id),
+            ],
             'order'              => 'nullable|integer|min:0',
             'notify_requérant'   => 'nullable|boolean',
             'notify_agent'       => 'nullable|boolean',

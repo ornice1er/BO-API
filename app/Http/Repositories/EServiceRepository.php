@@ -151,6 +151,7 @@ class EServiceRepository
         $req->save();
 
 
+
         }
 
         $code = $req->code;
@@ -196,6 +197,32 @@ class EServiceRepository
             ], 500);
         }
        
+        $premiereTransition = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
+        ->where('condition_type', 'auto')
+        ->orderBy('order')
+        ->first();
+
+    if ($premiereTransition) {
+        // 2. Pointer l'étape courante et le statut
+        $req->current_etape_id   = $premiereTransition->etape_to_id;
+        $req->current_status_id  = $premiereTransition->status_result_id;
+        $req->etape_started_at   = now();
+        $req->save();
+
+        // 3. Logger la transition dans requete_etape_logs
+        \App\Models\RequeteEtapeLog::create([
+            'requete_id'              => $req->id,
+            'workflow_transition_id'  => $premiereTransition->id,
+            'etape_from_id'           => $premiereTransition->etape_from_id,
+            'etape_to_id'             => $premiereTransition->etape_to_id,
+            'status_id'               => $premiereTransition->status_result_id,
+            'triggered_by'            => null,      // système
+            'triggered_by_type'       => 'système',
+            'comment'                 => 'Soumission initiale de la demande',
+            'transitioned_at'         => now(),
+            'created_at'              => now(),
+        ]);
+    }
 
         Parcours::create(['libelle'=>"Soumission de la demande :".$prestation->name,'requete_id'=>$req->id]);
       //  $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
