@@ -252,7 +252,7 @@ Route::post('requetes/{id}/traiter',             [RequeteController::class, 'tra
 Route::post('requetes/{id}/corriger',            [RequeteController::class, 'corriger']);
 Route::post('requetes/documents/{acteId}/traiter',[RequeteController::class, 'traiterDocument']);
 
-
+Route::get('workflows/transitions', [WorkflowController::class, 'getTransitions']);
 
 
           

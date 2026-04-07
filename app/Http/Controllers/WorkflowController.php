@@ -608,4 +608,46 @@ class WorkflowController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+
+
+    /**
+ * Transitions disponibles depuis une étape pour une prestation donnée.
+ * Utilisé par le menu de décision dans l'espace de traitement.
+ * GET /api/workflows/transitions?prestation_id=X&etape_from_id=Y
+ */
+public function getTransitions(Request $request)
+{
+    $message = 'Récupération des transitions disponibles';
+
+    try {
+        $transitions = \App\Models\WorkflowTransition::with(['etapeTo', 'statusResult'])
+            ->where('is_active', true)
+            ->when($request->prestation_id, fn($q) =>
+                $q->where('prestation_id', $request->prestation_id)
+            )
+            ->when($request->etape_from_id, fn($q) =>
+                $q->where('etape_from_id', $request->etape_from_id)
+            )
+            ->orderBy('order')
+            ->get();
+
+        $this->ls->trace([
+            'action_name' => $message,
+            'description' => json_encode($request->all())
+        ]);
+
+        return Common::success($message, $transitions);
+
+    } catch (\Throwable $th) {
+        $this->ls->trace([
+            'action_name' => $message,
+            'description' => $th->getMessage()
+        ]);
+
+        return Common::error($th->getMessage(), []);
+    }
+}
+
+
+
 }
