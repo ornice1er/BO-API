@@ -6,6 +6,7 @@ use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\EtudeDossierController;
 use App\Http\Controllers\WorkflowStateController;
 use App\Http\Controllers\RequeteController;
+use App\Http\Controllers\WorkflowController;
 
 /*
 |--------------------------------------------------------------------------

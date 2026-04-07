@@ -44,10 +44,13 @@ class RequeteRepository
         $userRoles  = Auth::user()->getRoleNames(); // Spatie
 
         // Récupérer les transition_ids où ce rôle a can_act = true
-        $transitionIds = EtapeVisibilite::whereIn('role_name', $userRoles)
-            ->where('can_act', true)
-            ->where('scope_type', 'requete')
-            ->pluck('workflow_transition_id');
+       $transitionIds = EtapeVisibilite::whereIn('role_name', $userRoles)
+                ->where('can_act', true)
+                ->where(function($q) use ($userUniteAdminId) {
+                    $q->whereNull('unite_admin_id')           // s'applique à tous
+                    ->orWhere('unite_admin_id', $userUniteAdminId); // ou à cette unité
+                })
+                ->pluck('workflow_transition_id');
 
         // Récupérer les etape_to_id correspondantes (= étapes où l'agent peut agir)
         $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
