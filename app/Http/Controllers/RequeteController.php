@@ -12,632 +12,364 @@ use OpenApi\Attributes as OA;
 
 class RequeteController extends Controller
 {
-    /**
-     * The requete repository being queried.
-     *
-     * @var RequeteRepository
-     */
     protected $requeteRepository;
-
     protected $ls;
 
     public function __construct(RequeteRepository $requeteRepository, LogService $ls)
     {
         $this->requeteRepository = $requeteRepository;
         $this->ls = $ls;
-
-        //$this->middleware('auth:api')->except(['getNotified', 'show']);
-
     }
 
-    /** @OA\Get(
-     *      path="/requetes",
-     *      operationId="Requete list",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *      summary="Return requete data",
-     *      description="Get all requetes",
-     *
-     *      @OA\Parameter(
-     *          name="name",
-     *          in="query",
-     *          description="Can be used for filtering data by name",
-     *          required=false,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *
-     * @OA\Parameter(
-     *          name="project_id",
-     *          in="query",
-     *          description="Project ID",
-     *
-     *          @OA\Schema(
-     *              type="integer"
-     *          )
-     *      ),
-     *
-     * @OA\Parameter(
-     *          name="role",
-     *          in="query",
-     *          description="Requete Role ID",
-     *          required=false,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *
-     *      @OA\Parameter(
-     *          name="categorie",
-     *          in="query",
-     *          description="Can be used for filtering data by categorie| ANIMATRICE,RESPONSABLE",
-     *          required=false,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *          ),
-     *
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/Requete")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
+    // ─────────────────────────────────────────────────────────────────────────
+    // LECTURE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Liste complète (admin / superviseur).
+     * GET /requetes
      */
     public function index(Request $request)
     {
-        $message = 'Récupération de la liste des requetes';
-
+        $message = 'Récupération de la liste des requêtes';
         try {
-            $result = $this->requeteRepository->getAll($request);
+            $result = $this->requeteRepository->getAll($request->all());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
             return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-
-
-      public function getBanette($prestation_code)
+    /**
+     * Banette de l'agent connecté selon son rôle et les visibilités configurées.
+     * Remplace toutes les anciennes banettes hardcodées.
+     * GET /requetes/banette/{prestation_code}
+     */
+    public function getBanette($prestation_code)
     {
-        $message = 'Récupération de la liste des requetes';
-
+        $message = 'Récupération de la banette';
         try {
             $result = $this->requeteRepository->getBanette($prestation_code);
             $this->ls->trace(['action_name' => $message, 'description' => $prestation_code]);
-
             return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-
-     public function storeResponse(Request $request)
+    /**
+     * Détail complet d'une requête par code.
+     * GET /requetes/one/{code}
+     */
+    public function getOne(Request $request, $code)
     {
-        $message = 'Récupération de la liste des requetes';
-
+        $message = 'Récupération du détail d\'une requête';
         try {
-            $result = $this->requeteRepository->storeResponse($request->all());
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
+            $result = $this->requeteRepository->getOne(['code' => $code]);
+            $this->ls->trace(['action_name' => $message, 'description' => $code]);
             return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-     public function getByPrestationTreated(Request $request)
+    /**
+     * Suivi public par le requérant (sans authentification).
+     * GET /requetes/suivi/{code}
+     */
+    public function getSuivi($code)
     {
-        $message = 'Récupération de la liste des requetes';
-
-      //  try {
-            $result = $this->requeteRepository->getByPrestationTreated($request->all());
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
+        $message = 'Suivi de la demande';
+        try {
+            $result = $this->requeteRepository->getSuivi($code);
+            $this->ls->trace(['action_name' => $message, 'description' => $code]);
             return Common::success($message, $result);
-        // } catch (\Throwable $th) {
-        //     $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
-        //     return Common::error($th->getMessage(), []);
-        // }
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
     }
 
+    /**
+     * Vérification de la complétude du dossier.
+     * GET /requetes/{id}/completude
+     */
+    public function verifierCompletude($id)
+    {
+        $message = 'Vérification complétude dossier';
+        try {
+            $requete = $this->requeteRepository->get($id);
+            $result  = $this->requeteRepository->verifierCompletude($requete);
+            $this->ls->trace(['action_name' => $message, 'description' => $id]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
 
+    /**
+     * Vérifier si l'agent connecté peut agir sur une requête.
+     * GET /requetes/{id}/peut-agir
+     */
+    public function peutAgir($id)
+    {
+        $message = 'Vérification autorisation action';
+        try {
+            $requete = $this->requeteRepository->get($id);
+            $result  = $this->requeteRepository->peutAgir($requete);
+            return Common::success($message, ['peut_agir' => $result]);
+        } catch (\Throwable $th) {
+            return Common::error($th->getMessage(), []);
+        }
+    }
 
-
-    /** @OA\Get(
-     *      path="/requetes/{id}",
-     *      operationId="Requete show",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *
-     *  @OA\Parameter(
-     *          name="project_id",
-     *          in="query",
-     *          description="Project ID",
-     *
-     *          @OA\Schema(
-     *              type="integer"
-     *          )
-     *      ),
-     *
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          description="Requete ID",
-     *          required=true,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      summary="Return one Requete data",
-     *      description="Get Requete by ID",
-     *
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/Requete")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
+    /**
+     * Détail par ID.
+     * GET /requetes/{id}
      */
     public function show(Request $request, $id)
     {
-        $message = 'Récupération d\'un requete';
-
+        $message = 'Récupération d\'une requête';
         try {
             $result = $this->requeteRepository->get($id);
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
-
-            return Common::success('Utilisateur trouvé', $result);
+            $this->ls->trace(['action_name' => $message, 'description' => $id]);
+            return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // ACTIONS WORKFLOW
+    // ─────────────────────────────────────────────────────────────────────────
 
-     public function prendreEnCharge(Request $request, $id)
+    /**
+     * Prise en charge par l'agent.
+     * POST /requetes/{id}/prendre-en-charge
+     */
+    public function prendreEnCharge(Request $request, $id)
     {
-        $message = 'Récupération d\'un requete';
-
+        $message = 'Prise en charge de la requête';
         try {
             $result = $this->requeteRepository->prendreEnCharge($id);
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
-
-            return Common::success('Utilisateur trouvé', $result);
+            $this->ls->trace(['action_name' => $message, 'description' => $id]);
+            return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-
-    
-
-    /** @OA\Post(
-     *      path="/requetes",
-     *      operationId="Requete store",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *      summary="Store Requete data",
-     *      description="Create a new Requete",
+    /**
+     * Traiter une demande : valider, rejeter, signer, parapher, prévalider, clôturer.
      *
-     *       @OA\RequestBody(
-     *          description="body request",
-     *          required=true,
+     * Body JSON :
+     * {
+     *   "decision": "valider|rejeter|signer|parapher|prevalider|cloturer|completer",
+     *   "comment":  "Motif ou commentaire libre",
+     *   "motif_id": 3,
+     *   "metadata": {}
+     * }
      *
-     *          @OA\JsonContent(ref="#/components/schemas/RequeteCreate")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=201,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/Requete")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
+     * POST /requetes/{id}/traiter
      */
+    public function traiter(Request $request, $id)
+    {
+        $message = 'Traitement de la requête';
+        try {
+            $decision = $request->input('decision');
+            $options  = [
+                'comment'  => $request->input('comment'),
+                'motif_id' => $request->input('motif_id'),
+                'metadata' => $request->input('metadata', []),
+            ];
+
+            $result = $this->requeteRepository->traiterDemande($id, $decision, $options);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode(['id' => $id, 'decision' => $decision])]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Action sur le circuit documentaire (paraphe, signature, prévalidation).
+     *
+     * Body JSON :
+     * {
+     *   "action":    "paraphe|signature|prevalidation|edition",
+     *   "comment":   "Note facultative",
+     *   "file_path": "chemin/vers/document/signe.pdf",
+     *   "metadata":  {}
+     * }
+     *
+     * POST /requetes/documents/{acte_id}/traiter
+     */
+    public function traiterDocument(Request $request, $acteId)
+    {
+        $message = 'Action sur le circuit documentaire';
+        try {
+            $options = [
+                'action'    => $request->input('action'),
+                'comment'   => $request->input('comment'),
+                'file_path' => $request->input('file_path'),
+                'metadata'  => $request->input('metadata', []),
+            ];
+
+            $result = $this->requeteRepository->traiterDocument($acteId, $options['action'], $options);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode(['acte_id' => $acteId, 'action' => $options['action']])]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Correction d'une demande rejetée par le requérant.
+     *
+     * Body JSON :
+     * {
+     *   "step_contents": {},
+     *   "step_data":     {}
+     * }
+     *
+     * POST /requetes/{id}/corriger
+     */
+    public function corriger(Request $request, $id)
+    {
+        $message = 'Correction de la demande';
+        try {
+            $result = $this->requeteRepository->corrigerDemande($id, $request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => $id]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CRUD STANDARD
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function store(StoreRequeteRequest $request)
     {
-        $message = 'Enregistrement d\'un requete';
-
+        $message = 'Enregistrement d\'une requête';
         try {
             $result = $this->requeteRepository->makeStore($request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
-
-            return Common::successCreate('Utilisateur créé avec succès', $result);
+            return Common::successCreate('Requête créée avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-
-    public function getByPrestation(Request $request,$slug)
-    {
-        $message = 'Enregistrement d\'un requete';
-
-        try {
-            $result = $this->requeteRepository->getByPrestation(array_merge($request->all(),['code'=>$slug]));
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
-            return Common::successCreate('Utilisateur créé avec succès', $result);
-        } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
-            return Common::error($th->getMessage(), []);
-        }
-    }
-    public function getOne(Request $request,$code)
-    {
-        $message = 'Enregistrement d\'un requete';
-
-        try {
-            $result = $this->requeteRepository->getOne(array_merge($request->all(),['code'=>$code]));
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
-            return Common::successCreate('Utilisateur créé avec succès', $result);
-        } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
-            return Common::error($th->getMessage(), []);
-        }
-    }
-    public function getByPrestationAll(Request $request,$slug)
-    {
-        $message = 'Enregistrement d\'un requete';
-
-        try {
-            $result = $this->requeteRepository->getByPrestationAll(array_merge($request->all(),['code'=>$slug]));
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
-            return Common::successCreate('Utilisateur créé avec succès', $result);
-        } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
-            return Common::error($th->getMessage(), []);
-        }
-    }
-
-
-    /** @OA\Put(
-     *      path="/requetes/{id}",
-     *      operationId="Requete update",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *      summary="Update one Requete data",
-     *      description="Update Requete by ID",
-     *
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          description="Requete ID",
-     *          required=true,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *
-     *      @OA\RequestBody(
-     *          description="body request",
-     *          required=true,
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/RequeteCreate")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/Requete")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
-     */
     public function update(UpdateRequeteRequest $request, $id)
     {
-        $message = 'Mise à jour d\'un requete';
-
+        $message = 'Mise à jour d\'une requête';
         try {
             $result = $this->requeteRepository->makeUpdate($id, $request->validated());
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->validated())]);
-
-            return Common::success('Mise à jour de l\'requete effectuée avec succès', $result);
+            return Common::success('Mise à jour effectuée avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-    /** @OA\Delete(
-     *      path="/requetes/{id}",
-     *      operationId="Requete Delete",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *      summary="Delete Requete data",
-     *      description="Delete Requete by ID",
-     *
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          description="Requete ID",
-     *          required=true,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=204,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/DeleteResponseData"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/DeleteResponseData")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
-     */
     public function destroy($id)
     {
-        $message = 'Suppression d\'un requete';
-
+        $message = 'Suppression d\'une requête';
         try {
-            $recup = $this->requeteRepository->get($id);
-
+            $recup  = $this->requeteRepository->get($id);
             $result = $this->requeteRepository->makeDestroy($id);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($recup)]);
-
-            return Common::successDelete('Utilisateur supprimé avec succès', $result);
+            return Common::successDelete('Requête supprimée avec succès', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
 
-    /** @OA\Get(
-     *      path="/requetes/{id}/state/{state}",
-     *      operationId="Requete change state",
-     *      tags={"Requete"},
-     *      security={{"JWT":{}}},
-     *
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="path",
-     *          description="Requete ID",
-     *          required=true,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *
-     *      @OA\Parameter(
-     *          name="state",
-     *          in="path",
-     *          description="Requete state",
-     *          required=true,
-     *
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
-     *      summary="Change Requete state",
-     *      description="Change Requete state by ID",
-     *
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *
-     *          @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *          @OA\XmlContent(ref="#/components/schemas/Requete")
-     *      ),
-     *
-     *      @OA\Response(
-     *          response=400,
-     *          description="Bad Request"
-     *      ),
-     *      @OA\Response(
-     *          response=419,
-     *          description="Expired session"
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Not found"
-     *      ),
-     *      @OA\Response(
-     *          response=500,
-     *          description="Server Error"
-     *      )
-     * )
-     */
-    public function changeState($id, $state)
-    {
-        $message = 'Changement de l\'état d\'un requete';
-
-        try {
-            $result = $this->requeteRepository->setStatus($id, $state);
-            $statusMessage = $state == 1 ? 'activé' : 'désactivé';
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
-
-            return Common::success("Utilisateur $statusMessage avec succès", $result);
-        } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
-            return Common::error($th->getMessage(), []);
-        }
-    }
-
-    /** @OA\Post(
-     *      path="/requetes-search",
-     *      operationId="Requete searching",
-     *      tags={"Requete"},
-     *       security={{"JWT":{}}},
-     *      summary="Return list of Requete respecting term",
-     *      description="Get all filtered requetes using term",
-     *
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *
-     *         @OA\JsonContent(ref="#/components/schemas/Requete"),
-     *
-     *         @OA\XmlContent(ref="#/components/schemas/Requete")
-     *     ),
-     *
-     *     @OA\RequestBody(
-     *         description="Body request",
-     *         required=true,
-     *
-     *         @OA\JsonContent(ref="#/components/schemas/TermSearch")
-     *     ),
-     *
-     * @OA\Response(
-     *         response=400,
-     *         description="Bad Request"
-     *     ),
-     * @OA\Response(
-     *         response=419,
-     *         description="Expired session"
-     *     ),
-     * @OA\Response(
-     *         response=404,
-     *         description="Not found"
-     *     ),
-     * @OA\Response(
-     *         response=500,
-     *         description="Server Error"
-     *     )
-     *)
-     */
     public function search(Request $request)
     {
-        $message = 'Filtrage des requetes';
-
+        $message = 'Recherche de requêtes';
         try {
-            $term = $request->term;
-            $result = $this->requeteRepository->search($term);
-            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-
-            return Common::success('Filtrage effectué avec succès', $result);
+            $result = $this->requeteRepository->search($request->term);
+            $this->ls->trace(['action_name' => $message, 'description' => $request->term]);
+            return Common::success('Recherche effectuée', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
 
+    public function changeState($id, $state)
+    {
+        $message = 'Changement d\'état d\'une requête';
+        try {
+            $result = $this->requeteRepository->setStatus($id, $state);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
+            return Common::success('État mis à jour', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MÉTHODES CONSERVÉES POUR RÉTROCOMPATIBILITÉ
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** @deprecated Utiliser getBanette() */
+    public function getByPrestation(Request $request, $slug)
+    {
+        return $this->getBanette($slug);
+    }
+
+    /** @deprecated Utiliser index() avec filtre prestation_code */
+    public function getByPrestationAll(Request $request, $slug)
+    {
+        $message = 'Récupération de toutes les requêtes d\'une prestation';
+        try {
+            $result = $this->requeteRepository->getByPrestationAll(['code' => $slug]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /** @deprecated Utiliser traiter() avec decision=valider|rejeter */
+    public function storeResponse(Request $request)
+    {
+        $message = 'Enregistrement de la réponse';
+        try {
+            $result = $this->requeteRepository->storeResponse($request->all());
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /** @deprecated Utiliser getBanette() */
+    public function getByPrestationTreated(Request $request)
+    {
+        $message = 'Récupération des requêtes traitées';
+        try {
+            $result = $this->requeteRepository->getByPrestationTreated($request->all());
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
             return Common::error($th->getMessage(), []);
         }
     }
