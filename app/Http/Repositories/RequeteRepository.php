@@ -38,39 +38,55 @@ class RequeteRepository
      * Banette principale d'un agent selon son rôle et les visibilités configurées.
      * Remplace getByPrestation() qui filtrait par affectations.
      */
-    public function getBanette(string $prestationCode): \Illuminate\Support\Collection
-    {
-        $prestation = Prestation::where('code', $prestationCode)->firstOrFail();
-        $userRoles  = Auth::user()->getRoleNames(); // Spatie
-
-        // Récupérer les transition_ids où ce rôle a can_act = true
-       $transitionIds = EtapeVisibilite::whereIn('role_name', $userRoles)
-                ->where('can_act', true)
-                ->where(function($q) use ($userUniteAdminId) {
-                    $q->whereNull('unite_admin_id')           // s'applique à tous
-                    ->orWhere('unite_admin_id', $userUniteAdminId); // ou à cette unité
-                })
-                ->pluck('workflow_transition_id');
-
-        // Récupérer les etape_to_id correspondantes (= étapes où l'agent peut agir)
-        $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
-            ->where('prestation_id', $prestation->id)
-            ->pluck('etape_to_id');
-
-        return Requete::with([
-                'currentEtape',
-                'currentStatus',
-                'prestation',
-                'files',
-                'parcours',
-            ])
-            ->where('prestation_id', $prestation->id)
-            ->whereIn('current_etape_id', $etapeIds)
-            ->where('isTreated', false)
-            ->where('isDeclined', false)
-            ->orderByDesc('created_at')
-            ->get();
-    }
+  public function getBanette(string $prestationCode): \Illuminate\Support\Collection
+{
+    $prestation       = Prestation::where('code', $prestationCode)->firstOrFail();
+    $user             = Auth::user();
+    $userRoles        = $user->getRoleNames(); // Spatie
+    $userUniteAdminId = $user->agent?->unite_admin_id;
+ 
+    // Récupérer les transition_ids où ce rôle peut agir
+    // en tenant compte du scope_type et de l'unite_admin_id
+    $transitionIds = EtapeVisibilite::whereIn('role_name', $userRoles)
+        ->where('can_act', true)
+        ->where(function ($q) use ($userUniteAdminId) {
+            $q
+              // Scope 'requete' → s'applique à tous les agents du rôle
+              ->where('scope_type', 'requete')
+              // Scope 'unite_admin' → uniquement si l'unité correspond
+              ->orWhere(function ($q2) use ($userUniteAdminId) {
+                  $q2->where('scope_type', 'unite_admin')
+                     ->where('unite_admin_id', $userUniteAdminId);
+              });
+        })
+        ->pluck('workflow_transition_id');
+ 
+    // Récupérer les etape_to_id correspondantes
+    $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
+        ->where('prestation_id', $prestation->id)
+        ->pluck('etape_to_id');
+ 
+    return Requete::with([
+            'currentEtape',
+            'currentStatus',
+            'prestation',
+            'files',
+            'parcours',
+            'lastLog',
+        ])
+        ->where('prestation_id', $prestation->id)
+        ->whereIn('current_etape_id', $etapeIds)
+        ->where('isTreated', false)
+        ->where('isDeclined', false)
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($requete) {
+            $requete->sla_restant        = $this->calculerSlaRestant($requete);
+            $requete->dernier_acteur     = $requete->lastLog?->triggeredBy?->name ?? 'Système';
+            $requete->derniere_action_at = $requete->lastLog?->transitioned_at;
+            return $requete;
+        });
+}
 
     /**
      * Toutes les demandes d'une prestation (vue admin / superviseur).
@@ -477,19 +493,27 @@ class RequeteRepository
      * Vérifier si l'utilisateur courant peut agir sur cette requête
      * selon les visibilités configurées.
      */
-    public function peutAgir(Requete $requete): bool
-    {
-        $userRoles = Auth::user()->getRoleNames();
-
-        return EtapeVisibilite::whereIn('role_name', $userRoles)
-            ->where('can_act', true)
-            ->where('scope_type', 'requete')
-            ->whereHas('workflowTransition', function ($q) use ($requete) {
-                $q->where('prestation_id', $requete->prestation_id)
-                  ->where('etape_to_id',   $requete->current_etape_id);
-            })
-            ->exists();
-    }
+   public function peutAgir(Requete $requete): bool
+{
+    $user             = Auth::user();
+    $userRoles        = $user->getRoleNames();
+    $userUniteAdminId = $user->agent?->unite_admin_id;
+ 
+    return EtapeVisibilite::whereIn('role_name', $userRoles)
+        ->where('can_act', true)
+        ->where(function ($q) use ($userUniteAdminId) {
+            $q->where('scope_type', 'requete')
+              ->orWhere(function ($q2) use ($userUniteAdminId) {
+                  $q2->where('scope_type', 'unite_admin')
+                     ->where('unite_admin_id', $userUniteAdminId);
+              });
+        })
+        ->whereHas('workflowTransition', function ($q) use ($requete) {
+            $q->where('prestation_id', $requete->prestation_id)
+              ->where('etape_to_id',   $requete->current_etape_id);
+        })
+        ->exists();
+}
 
     // ─────────────────────────────────────────────────────────────────────────
     // MÉTHODES CONSERVÉES POUR RÉTROCOMPATIBILITÉ
