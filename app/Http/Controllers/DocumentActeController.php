@@ -59,7 +59,9 @@ class DocumentActeController extends Controller
             }
 
             // Charger le texte à trou depuis step_data de la requête
-            $stepData    = json_decode($requete->step_data ?? '{}', true);
+            $stepData = is_array($requete->step_data)
+                ? $requete->step_data
+                : json_decode($requete->step_data ?? '{}', true);
             $templateKey = $docProduit->template_key;
 
             // Préremplir les variables du template
@@ -309,27 +311,30 @@ class DocumentActeController extends Controller
         return sprintf('%s-%d-%04d', $prefix, $annee, $dernier + 1);
     }
 
-    private function extraireVariables(Requete $requete, array $stepData, string $templateKey): array
-    {
-        // Variables communes à tous les documents
-        $base = [
-            'code'         => $requete->code,
-            'email'        => $requete->email,
-            'phone'        => $requete->phone,
-            'date'         => now()->format('d/m/Y'),
-            'annee'        => now()->year,
-        ];
+ private function extraireVariables(Requete $requete, array $stepData, string $templateKey): array
+{
+    $base = [
+        'code'  => $requete->code,
+        'email' => $requete->email,
+        'phone' => $requete->phone,
+        'date'  => now()->format('d/m/Y'),
+        'annee' => now()->year,
+    ];
 
-        // Variables extraites du step_contents
-        $contents = json_decode($requete->step_contents ?? '[]', true);
-        foreach ($contents as $step) {
-            foreach ($step['content'] ?? [] as $key => $value) {
-                $base[$key] = $value;
-            }
+    // step_contents peut être un array (déjà désérialisé par Laravel)
+    // ou une string JSON selon le cast du modèle
+    $contents = is_array($requete->step_contents)
+        ? $requete->step_contents
+        : json_decode($requete->step_contents ?? '[]', true);
+
+    foreach ($contents as $step) {
+        foreach ($step['content'] ?? [] as $key => $value) {
+            $base[$key] = $value;
         }
-
-        return $base;
     }
+
+    return $base;
+}
 
        // ─────────────────────────────────────────────────────────────────────────
     // RÉCUPÉRER LE DOC PRODUIT CONFIGURÉ POUR UNE ÉTAPE
