@@ -5,6 +5,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\EtudeDossierController;
 use App\Http\Controllers\WorkflowStateController;
+use App\Http\Controllers\RequeteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,7 +52,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::post('eservice/post-2', 'EServiceController@store2');
     Route::post('eservice/files/deleting', 'EServiceController@removeFile');
     Route::get('eservice/{slug}/{code}/{edition}', 'EServiceController@show');
-    Route::get('detab/{id}', 'DetabController@show');
     Route::post('eservice/requete/update', 'EServiceController@update');
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
@@ -101,7 +101,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "unity-admin"=>"UniteAdminController",
             "officers"=>"AgentController",
             "users"=>"UserController",
-            "profile"=>"ProfileController",
             "files"=>"FilesController",
             "fonction-agent"=>"FonctionAgentController",
             "requete"=>"RequeteController",
@@ -109,12 +108,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "affectation"=>"AffectationController",
             "current-officer-posts"=>"CurrentOfficerPostController",
             "dash"=>"DashboardController",
-            "detab"=>"DetabController",
-            "company"=>"CompanyController",
-            "establish-personal"=>"PersonalController",
-            "contrat-p"=>"ContratPController",
             "agenda"=>"AgendaController",
-
             "status"=>"StatusController",
             "etapes"=>"EtapeController",
             "prestation-status"=>"PrestationStatusController",
@@ -230,7 +224,6 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
         Route::get('requete/{id}/etape-logs',       [WorkflowStateController::class, 'getLogs']);
 
 
-        Route::post('contrat-p/file/upload', 'ContratPController@storeFile');
 
         Route::post('response/decline/store', 'ReponseController@decline');
 

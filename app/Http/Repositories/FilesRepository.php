@@ -2,7 +2,7 @@
 
 namespace App\Http\Repositories;
 
-use App\Models\Files;
+use App\Models\File;
 use App\Traits\Repository;
 
 class FilesRepository
@@ -12,7 +12,7 @@ class FilesRepository
     /**
      * The model being queried.
      *
-     * @var Files
+     * @var File
      */
     protected $model;
 
@@ -23,7 +23,7 @@ class FilesRepository
     public function __construct()
     {
         // Don't forget to update the model's name
-        $this->model = app(Files::class);
+        $this->model = app(File::class);
     }
 
     /**
@@ -41,7 +41,7 @@ class FilesRepository
     {
         $per_page = 10;
 
-        $req = Files::ignoreRequest(['per_page'])
+        $req = File::ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
@@ -71,12 +71,12 @@ class FilesRepository
     /**
      * Store a new files
      */
-  public function makeStore(array $data): Files
+  public function makeStore(array $data): File
 {
 
 
     // Création de l'utilisateur
-    $files = Files::create($data);
+    $files = File::create($data);
 
     return $files;
 }
@@ -85,9 +85,9 @@ class FilesRepository
     /**
      * Update an existing files
      */
-  public function makeUpdate($id, array $data): Files
+  public function makeUpdate($id, array $data): File
 {
-    $model = Files::findOrFail($id);
+    $model = File::findOrFail($id);
 
 
 
@@ -125,7 +125,7 @@ class FilesRepository
      */
     public function search($term)
     {
-        $query = Files::query(); // Start with an empty query
+        $query = File::query(); // Start with an empty query
         $attrs = ['lib_couvert']; // Attributes you want to search in
 
         foreach ($attrs as $value) {
