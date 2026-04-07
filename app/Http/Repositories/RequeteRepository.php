@@ -365,6 +365,11 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                     'transitioned_at'        => now(),
                     'created_at'             => now(),
                 ]);
+            } else {
+                // Circuit terminé
+                $acte->status                  = 'complet';
+                $acte->completed_at            = now();
+                $acte->current_circuit_step_id = null; // ← ajouter
             }
         }
 
