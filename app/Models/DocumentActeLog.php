@@ -9,6 +9,6 @@ class DocumentActeLog extends Model
 {
      protected $table = 'document_acte_logs';
     protected $guarded = [];
- 
+    public $timestamps = false;
     protected $casts = [];
 }
