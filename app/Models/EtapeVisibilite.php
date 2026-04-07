@@ -27,4 +27,10 @@ class EtapeVisibilite extends Model
     {
         return $this->belongsTo(EtapeDocumentProduit::class, 'doc_produit_id');
     }
+
+ 
+    public function workflowTransition()
+    {
+        return $this->belongsTo(WorkflowTransition::class, 'workflow_transition_id');
+    }
 }
