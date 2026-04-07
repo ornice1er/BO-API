@@ -280,79 +280,103 @@ class RequeteRepository
     /**
      * TC-25/TC-31/TC-34 — Action sur le circuit documentaire (paraphe, signature, prévalidation).
      */
-    public function traiterDocument(int $acteId, string $action, array $options = []): DocumentActe
-    {
-        DB::beginTransaction();
+public function traiterDocument(int $acteId, string $action, array $options = []): DocumentActe
+{
+    DB::beginTransaction();
 
-        try {
-            $acte = DocumentActe::with(['currentCircuitStep', 'requete'])->findOrFail($acteId);
-            $user = Auth::user();
+    try {
+        $acte = DocumentActe::with(['currentCircuitStep', 'requete'])->findOrFail($acteId);
+        $user = Auth::user();
 
-            // Vérifier que c'est bien le rôle de l'utilisateur qui doit agir ici
-            $step = $acte->currentCircuitStep;
-            if (!$user->hasRole($step->role_name)) {
-                throw new \Exception("Rôle {$step->role_name} requis pour cette action.");
-            }
+        $step = $acte->currentCircuitStep;
 
-            // Logger l'action sur le document
-            \App\Models\DocumentActeLog::create([
-                'document_acte_id' => $acte->id,
-                'circuit_step_id'  => $step->id,
-                'action'           => $action,
-                'triggered_by'     => $user->id,
-                'role_name'        => $step->role_name,
-                'file_path_after'  => $options['file_path'] ?? null,
-                'comment'          => $options['comment'] ?? null,
-                'metadata'         => isset($options['metadata'])
-                                          ? json_encode($options['metadata'])
-                                          : null,
-                'acted_at'         => now(),
-                'created_at'       => now(),
-            ]);
+        // Vérifier que c'est bien le rôle de l'utilisateur qui doit agir
+        if (!$user->hasRole($step->role_name)) {
+            throw new \Exception("Rôle {$step->role_name} requis pour cette action.");
+        }
 
-            // Avancer le circuit documentaire
-            $nextStep = DocumentCircuitEtape::where('doc_produit_id', $acte->doc_produit_id)
-                ->where('order', '>', $step->order)
-                ->orderBy('order')
+        // Logger l'action sur le document
+        \App\Models\DocumentActeLog::create([
+            'document_acte_id' => $acte->id,
+            'circuit_step_id'  => $step->id,
+            'action'           => $action,
+            'triggered_by'     => $user->id,
+            'role_name'        => $step->role_name,
+            'comment'          => $options['comment'] ?? null,
+            'acted_at'         => now(),
+            'created_at'       => now(),
+        ]);
+
+        // Avancer vers l'étape suivante du circuit
+        $nextStep = \App\Models\DocumentCircuitEtape::where('doc_produit_id', $acte->doc_produit_id)
+            ->where('order', '>', $step->order)
+            ->orderBy('order')
+            ->first();
+
+        if ($nextStep) {
+            // Étape suivante dans le circuit
+            $acte->current_circuit_step_id = $nextStep->id;
+            $acte->status = 'en_circuit';
+        } else {
+            // Circuit terminé
+            $acte->status       = 'complet';
+            $acte->completed_at = now();
+        }
+        $acte->save();
+
+        // ✅ Mettre à jour le statut de la requête via short_name
+        if ($step->requete_status_after) {
+            $nouveauStatut = \App\Models\Status::where('short_name', $step->requete_status_after)
                 ->first();
 
-            if ($nextStep) {
-                // Étape suivante dans le circuit
-                $acte->current_circuit_step_id = $nextStep->id;
-                $acte->status = 'en_circuit';
+            if ($nouveauStatut) {
+                $acte->requete->current_status_id = $nouveauStatut->id;
+                $acte->requete->status            = $nouveauStatut->id;
+                $acte->requete->save();
             } else {
-                // Circuit terminé
-                $acte->status       = 'complet';
-                $acte->completed_at = now();
+                \Log::warning("Status non trouvé pour short_name: {$step->requete_status_after}");
             }
-
-            $acte->save();
-
-            // Si l'étape du circuit pose un statut sur la requête
-            if ($step->requete_status_after) {
-                $nouveauStatut = \App\Models\Status::where('short_name', $step->requete_status_after)->first();
-                if ($nouveauStatut) {
-                    $acte->requete->current_status_id = $nouveauStatut->id;
-                    $acte->requete->status = $nouveauStatut->id; // rétrocompatibilité
-                    $acte->requete->save();
-                }
-            }
-
-            // Si is_blocking et circuit complet → avancer le workflow de la requête
-            if ($step->is_blocking && $acte->status === 'complet') {
-                $this->avancerWorkflow($acte->requete, $action, $options);
-            }
-
-            DB::commit();
-
-            return $acte->fresh(['currentCircuitStep', 'logs']);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('traiterDocument error: ' . $e->getMessage(), ['acte_id' => $acteId]);
-            throw $e;
         }
+
+        // ✅ Mettre à jour current_etape_id de la requête selon l'étape du circuit
+        if ($nextStep) {
+            // Trouver la transition workflow correspondant à ce rôle
+            $transition = \App\Models\WorkflowTransition::where('prestation_id', $acte->requete->prestation_id)
+                ->where('condition_type', $action)
+                ->whereHas('etapeFrom', fn($q) =>
+                    $q->where('id', $acte->requete->current_etape_id)
+                )
+                ->first();
+
+            if ($transition) {
+                $acte->requete->current_etape_id = $transition->etape_to_id;
+                $acte->requete->save();
+
+                // Journaliser la transition workflow
+                \App\Models\RequeteEtapeLog::create([
+                    'requete_id'             => $acte->requete->id,
+                    'workflow_transition_id' => $transition->id,
+                    'etape_from_id'          => $transition->etape_from_id,
+                    'etape_to_id'            => $transition->etape_to_id,
+                    'status_id'              => $nouveauStatut?->id ?? $acte->requete->current_status_id,
+                    'triggered_by'           => $user->id,
+                    'triggered_by_type'      => 'agent',
+                    'comment'                => $options['comment'] ?? null,
+                    'transitioned_at'        => now(),
+                    'created_at'             => now(),
+                ]);
+            }
+        }
+
+        DB::commit();
+        return $acte->fresh(['currentCircuitStep', 'logs']);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        \Log::error('traiterDocument error: ' . $e->getMessage(), ['acte_id' => $acteId]);
+        throw $e;
     }
+}
 
     /**
      * Correction d'une demande rejetée par le requérant (FA2 / FA1).
