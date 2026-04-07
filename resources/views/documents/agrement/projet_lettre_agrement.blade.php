@@ -1,6 +1,6 @@
 {{-- resources/views/pdf/documents/projet_lettre_agrement.blade.php --}}
 {{-- Étend le layout PDF de base existant --}}
-@extends('pdf.pdfBase')
+@extends('documents.pdfBase')
 
 @section('body-title')
     <div style="text-align: center; margin-bottom: 20px;">
