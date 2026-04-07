@@ -28,4 +28,10 @@ class EtapeDocumentProduit extends Model
     {
         return $this->belongsTo(Etape::class, 'etape_delivrance_id');
     }
+
+    public function circuitEtapes()
+{
+    return $this->hasMany(DocumentCircuitEtape::class, 'doc_produit_id')
+                ->orderBy('order');
+}
 }
