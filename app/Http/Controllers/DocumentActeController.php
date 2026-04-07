@@ -279,10 +279,10 @@ class DocumentActeController extends Controller
             ]);
 
             // Avancer le workflow de la requête via transition 'validation'
-            app(\App\Http\Repositories\RequeteRepository::class)
-                ->avancerWorkflow($acte->requete, 'validation', [
-                    'comment' => 'Document soumis au circuit de signature',
-                ]);
+            // app(\App\Http\Repositories\RequeteRepository::class)
+            //     ->avancerWorkflow($acte->requete, 'validation', [
+            //         'comment' => 'Document soumis au circuit de signature',
+            //     ]);
 
             DB::commit();
 
