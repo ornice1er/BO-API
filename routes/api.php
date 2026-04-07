@@ -7,6 +7,7 @@ use App\Http\Controllers\EtudeDossierController;
 use App\Http\Controllers\WorkflowStateController;
 use App\Http\Controllers\RequeteController;
 use App\Http\Controllers\WorkflowController;
+use App\Http\Controllers\DocumentActeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -299,13 +300,13 @@ Route::prefix('etude_dossiers')->group(function () {
 
 
 Route::prefix('document-actes')->group(function () {
-    Route::get('init/{requeteId}/{docProduitId}', [DocumentActeController::class, 'init']);
-    Route::post('{acteId}/generer',    [DocumentActeController::class, 'generer']);
-    Route::post('{acteId}/sauvegarder',[DocumentActeController::class, 'sauvegarder']);
-    Route::post('{acteId}/upload',     [DocumentActeController::class, 'upload']);
-    Route::post('{acteId}/soumettre',  [DocumentActeController::class, 'soumettre']);
+    Route::get('init/{requeteId}/{docProduitId}',           [DocumentActeController::class, 'init']);
+    Route::get('doc-produit/{prestationId}/{etapeId}',      [DocumentActeController::class, 'getDocProduit']);
+    Route::post('{acteId}/generer',                         [DocumentActeController::class, 'generer']);
+    Route::post('{acteId}/sauvegarder',                     [DocumentActeController::class, 'sauvegarder']);
+    Route::post('{acteId}/upload',                          [DocumentActeController::class, 'upload']);
+    Route::post('{acteId}/soumettre',                       [DocumentActeController::class, 'soumettre']);
 });
-
 
     });
 
