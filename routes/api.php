@@ -296,6 +296,17 @@ Route::prefix('etude_dossiers')->group(function () {
     Route::patch('/update/{id}', [EtudeDossierController::class, 'update']);
     Route::delete('/delete/{id}', [EtudeDossierController::class, 'destroy']);
 });
+
+
+Route::prefix('document-actes')->group(function () {
+    Route::get('init/{requeteId}/{docProduitId}', [DocumentActeController::class, 'init']);
+    Route::post('{acteId}/generer',    [DocumentActeController::class, 'generer']);
+    Route::post('{acteId}/sauvegarder',[DocumentActeController::class, 'sauvegarder']);
+    Route::post('{acteId}/upload',     [DocumentActeController::class, 'upload']);
+    Route::post('{acteId}/soumettre',  [DocumentActeController::class, 'soumettre']);
+});
+
+
     });
 
 
