@@ -531,13 +531,30 @@ class RequeteRepository
     /**
      * @deprecated Utiliser getAll() à la place
      */
-    public function getByPrestationAll($data): \Illuminate\Support\Collection
-    {
-        $prestation = Prestation::where('code', $data['code'])->firstOrFail();
-        return Requete::with(['currentEtape', 'currentStatus', 'prestation', 'files', 'parcours'])
-            ->where('prestation_id', $prestation->id)
-            ->get();
-    }
+public function getByPrestationAll($data): \Illuminate\Support\Collection
+{
+    $prestation = Prestation::where('code', $data['code'])->firstOrFail();
+
+    return Requete::with([
+            'currentEtape',                    // étape courante
+            'currentStatus',                   // statut courant
+            'prestation',
+            'files',
+            'parcours',
+            'lastLog.triggeredBy',             // user qui a effectué la dernière action
+        ])
+        ->where('prestation_id', $prestation->id)
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($requete) {
+            // Enrichir la réponse avec les données calculées
+            $requete->sla_restant     = $this->calculerSlaRestant($requete);
+            $requete->dernier_acteur  = $requete->lastLog?->triggeredBy?->name ?? 'Système';
+            $requete->dernier_action  = $requete->lastLog?->comment;
+            $requete->derniere_action_at = $requete->lastLog?->transitioned_at;
+            return $requete;
+        });
+}
 
     /**
      * @deprecated Utiliser traiterDemande() à la place

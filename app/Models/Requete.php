@@ -110,4 +110,15 @@ public function documentActes()   { return $this->hasMany(DocumentActe::class); 
     {
         return $this->belongsToMany(Project::class, 'project_requete', 'requete_id', 'project_id')->withTimestamps();
     }
+
+
+
+
+
+// Dernier log (utilisateur qui a effectué la dernière action)
+public function lastLog()
+{
+    return $this->hasOne(\App\Models\RequeteEtapeLog::class)
+                ->latestOfMany('transitioned_at');
+}
 }
