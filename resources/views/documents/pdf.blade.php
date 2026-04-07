@@ -1,4 +1,4 @@
-@extends('pdf.pdfBase')
+@extends('documents.pdfBase')
 
 @section('body-title')
     <h1 class="text-center">{{ $title }}</h1>
