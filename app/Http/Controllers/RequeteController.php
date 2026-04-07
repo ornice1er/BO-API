@@ -125,6 +125,24 @@ class RequeteController extends Controller
     }
 
 
+
+      public function getBanette($prestation_code)
+    {
+        $message = 'Récupération de la liste des requetes';
+
+        try {
+            $result = $this->requeteRepository->getBanette($prestation_code);
+            $this->ls->trace(['action_name' => $message, 'description' => $prestation_code]);
+
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+
      public function storeResponse(Request $request)
     {
         $message = 'Récupération de la liste des requetes';

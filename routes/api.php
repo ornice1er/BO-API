@@ -207,6 +207,8 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
   Route::post('requete/confirm/byPrestation/{code}', 'RequeteController@confirm');
 
 
+  Route::get('requetes/banette/{prestation_code}', 'RequeteController@getBanette');
+
 
   Route::get('stats-for-menu', 'DashboardController@statsForMenu'); 
 
