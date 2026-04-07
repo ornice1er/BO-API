@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentActe;
+use App\Models\DocumentActeLog;
 use App\Models\DocumentCircuitEtape;
 use App\Models\EtapeDocumentProduit;
 use App\Models\Requete;
