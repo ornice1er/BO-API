@@ -72,33 +72,11 @@ class Requete extends Model
         return $this->hasOne(Affectation::class,'requete_id')->where('isLast',true);
     }
 
-
-
-    public function adhcmps()
-    {
-        return $this->hasOne(AdherantCmps::class,'requete_id');
-    }
-    public function pccmps()
-    {
-        return $this->hasOne(PaiementCotisation::class,'requete_id');
-    }
-    public function ifur()
-    {
-        return $this->hasOne(ImmatriculationFichierUniqueReference::class,'requete_id');
-    }
-    public function cnr()
-    {
-        return $this->hasOne(CertificatDeNonRadiation::class,'requete_id');
-    }
-    public function vsa()
-    {
-        return $this->hasOne(ValidationDesServiceAux::class,'requete_id');
-    }
-    public function ascmps()
-    {
-        return $this->hasOne(AttestationDeSoin::class,'requete_id');
-    }
-
+// Dans app/Models/Requete.php — ajouter si absent
+public function currentEtape()    { return $this->belongsTo(Etape::class, 'current_etape_id'); }
+public function currentStatus()   { return $this->belongsTo(Status::class, 'current_status_id'); }
+public function requeteEtapeLogs(){ return $this->hasMany(RequeteEtapeLog::class); }
+public function documentActes()   { return $this->hasMany(DocumentActe::class); }
     /**
      * Les commissions auxquelles cette requête est associée
      */

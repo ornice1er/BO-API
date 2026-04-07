@@ -46,4 +46,5 @@ class WorkflowTransition extends Model
     {
         return $this->hasMany(EtapeVisibilite::class, 'workflow_transition_id');
     }
+public function etape()      { return $this->belongsTo(Etape::class, 'etape_to_id'); }
 }

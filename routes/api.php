@@ -123,12 +123,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "document-circuit-etapes"=>"DocumentCircuitEtapeController",
             "etape-documents"=>"EtapeDocumentController",
             "motifs-rejet"=>"MotifRejetController",
+            "etape-visibilites"=>"EtapeVisibiliteController",
 
         ]);
         Route::post('etape-documents-produits-search', 'EtapeDocumentProduitController@search');
         Route::post('document-circuit-etapes-search', 'DocumentCircuitEtapeController@search');
         Route::post('etape-documents-search', 'EtapeDocumentController@search');
         Route::post('motifs-rejet-search', 'MotifRejetController@search');
+        Route::post('etape-visibilites-search', 'EtapeVisibiliteController@search');
         Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
         Route::get('/logs', 'LogController@index');
