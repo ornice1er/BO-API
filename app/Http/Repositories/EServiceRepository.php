@@ -93,8 +93,18 @@ class EServiceRepository
       public function getSessionData($request)
     {
     
-    return Project::where('status', '!=', 'closed')->first();  
+    $check= Project::where('status', '!=', 'closed')->first();  
 
+    if ($check) {
+        return $check->id;
+    }else{
+          throw new JsonResponseException([
+                'message' => 'Aucune session active trouvée',
+                'success' => false,
+                'data' => null,
+                'warning' => '',
+            ], 500);
+    }
     
     }
 
