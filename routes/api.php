@@ -49,6 +49,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::post('eservices-close-request', 'EServiceController@closeRequest');
     //Charegement de données connexe
     Route::get('eservices-get-data', 'EServiceController@getData');
+    Route::get('eservices-get-session', 'EServiceController@getSessionData');
+
 
     Route::get('eservice/zip', 'EServiceController@getZip');
     Route::post('eservice/post-2', 'EServiceController@store2');
@@ -163,7 +165,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('user-settings', 'UserSettingController@index');
         Route::put('user-settings', 'UserSettingController@update');
 
-        Route::get('user-projects/{id}/state/{state}', 'UserProjectController@changeState');
         
         // Project routes
         Route::get('projects/{id}/state/{state}', 'ProjectController@changeState');

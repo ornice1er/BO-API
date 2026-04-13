@@ -90,6 +90,14 @@ class EServiceRepository
        }
     }
 
+      public function getSessionData($request)
+    {
+    
+    return Project::where('is_active', true)->first();  
+
+    
+    }
+
 
 
     
