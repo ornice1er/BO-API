@@ -96,7 +96,7 @@ class EServiceRepository
     $check= Project::where('status', '!=', 'closed')->first();  
 
     if ($check) {
-        return $check->id;
+        return $check;
     }else{
           throw new JsonResponseException([
                 'message' => 'Aucune session active trouvée',

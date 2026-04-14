@@ -144,13 +144,13 @@ class EServiceController extends Controller
 
       public function getSessionData(Request $request)
     {
-        $message = 'Récupération de la liste des eServices';
 
         try {
             $result = $this->eServiceRepository->getSessionData($request);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+            $message = 'Soummision de dossier pour la session du'.$result->date_start. " au ".$result->date_end;
 
-            return Common::success($message, $result);
+            return Common::success($message, $result->id);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
