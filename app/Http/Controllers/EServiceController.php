@@ -147,8 +147,8 @@ class EServiceController extends Controller
 
         try {
             $result = $this->eServiceRepository->getSessionData($request);
+                        $message = 'Soummision de dossier pour la session du'.$result->date_start. " au ".$result->date_end;
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
-            $message = 'Soummision de dossier pour la session du'.$result->date_start. " au ".$result->date_end;
 
             return Common::success($message, $result->id);
         } catch (\Throwable $th) {

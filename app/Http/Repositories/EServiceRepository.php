@@ -272,6 +272,8 @@ class EServiceRepository
 
         $h_datas=array();
 
+        info($h_datas);
+
         if (isset($headers['uxp-service'])) {
         $h_datas['uxp-service']=$headers['uxp-service'][0];
         $h_datas['uxp-client']=$headers['uxp-client'][0];
