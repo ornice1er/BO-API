@@ -27,6 +27,7 @@ class UpdateEtapeDocumentProduitRequest extends FormRequest
             'etape_delivrance_id' => 'nullable|integer|exists:etapes,id',
             'allow_correction'    => 'nullable|boolean',
             'order'               => 'nullable|integer|min:1',
+            "generate_from"       => 'sometimes|in:pns,system',
         ];
     }
 

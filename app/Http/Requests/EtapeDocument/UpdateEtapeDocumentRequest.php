@@ -26,9 +26,7 @@ class UpdateEtapeDocumentRequest extends FormRequest
             'accepted_mime_types.*'=> 'string',
             'max_size_kb'         => 'nullable|integer|min:1',
             'description'         => 'nullable|string|max:500',
-            'order'               => 'nullable|integer|min:0',
-            'generate_from'       => 'sometimes|in:pns,system',
-        ];
+            'order'               => 'nullable|integer|min:0'        ];
     }
 
     public function failedValidation(Validator $validator)

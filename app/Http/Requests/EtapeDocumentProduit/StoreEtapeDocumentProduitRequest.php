@@ -27,6 +27,8 @@ class StoreEtapeDocumentProduitRequest extends FormRequest
             'etape_delivrance_id' => 'nullable|integer|exists:etapes,id',
             'allow_correction'    => 'nullable|boolean',
             'order'               => 'nullable|integer|min:1',
+            'generate_from'       => 'required|in:pns,system',
+
         ];
     }
 
@@ -48,6 +50,9 @@ class StoreEtapeDocumentProduitRequest extends FormRequest
             'etape_edition_id.required' => 'L\'étape d\'édition est requise.',
             'etape_edition_id.exists'   => 'L\'étape d\'édition sélectionnée n\'existe pas.',
             'etape_delivrance_id.exists'=> 'L\'étape de délivrance sélectionnée n\'existe pas.',
+            'order.min'                => 'L\'ordre doit être au moins 1.',
+            'generate_from.required'    => 'Le champ "Généré depuis" est requis.',
+            'generate_from.in'          => 'Le champ "Généré depuis" doit être soit "pns" soit "system".'
         ];
     }
 }
