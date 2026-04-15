@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('document_actes', function (Blueprint $table) {
-        $table->string('file_url')->nullable()->after('file_path');
-        $table->longText('content_data')->nullable()->after('file_url');
+         Schema::table('document_actes', function (Blueprint $table) {
+        $table->enum('generate_from', ['pns', 'system'])->nullable()->after('file_path');
         });
     }
 
@@ -22,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('document_actes', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };
