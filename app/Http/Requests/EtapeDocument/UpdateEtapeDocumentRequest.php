@@ -27,6 +27,7 @@ class UpdateEtapeDocumentRequest extends FormRequest
             'max_size_kb'         => 'nullable|integer|min:1',
             'description'         => 'nullable|string|max:500',
             'order'               => 'nullable|integer|min:0',
+            'generate_from'       => 'sometimes|in:pns,system',
         ];
     }
 

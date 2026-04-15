@@ -27,6 +27,7 @@ class StoreEtapeDocumentRequest extends FormRequest
             'max_size_kb'         => 'nullable|integer|min:1',
             'description'         => 'nullable|string|max:500',
             'order'               => 'nullable|integer|min:0',
+            'generate_from'       => 'required|in:pns,system',
         ];
     }
 
@@ -44,6 +45,8 @@ class StoreEtapeDocumentRequest extends FormRequest
             'etape_id.exists'        => 'L\'étape sélectionnée n\'existe pas.',
             'name.required'          => 'Le libellé est requis.',
             'slug.required'          => 'L\'identifiant technique est requis.',
+            'generate_from.required' => 'Le champ "Généré depuis" est requis.',
+            'generate_from.in'       => 'Le champ "Généré depuis" doit être soit "pns" soit "system".',
         ];
     }
 }
