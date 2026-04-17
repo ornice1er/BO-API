@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PNSService;
+use Illuminate\Support\Facades\Http;
+
 
 class DocumentActeController extends Controller
 {
@@ -154,35 +157,75 @@ class DocumentActeController extends Controller
             $title       = $request->input('title', '');
             $conclusion  = $request->input('conclusion', '');
 
+            if ($acte->docProduit->generate_from=="pns") {
+                $pnsService = new PNSService($acte->docProduit->header,[
+                    "data" => $htmlContent,
+                    "message" => "Génération du document via PNS",
+                    "status" =>false,
+                    "decision" =>null
+                ]);
+                $pnsServiceResult = $pnsService->reply();
+
+                if ($pnsServiceResult->successful()) {
+                    $body = $pnsServiceResult->json();
+
+                        $docFileUrl = $body['doc_file'] ?? null;
+
+                        if (!$docFileUrl) {
+                            return Common::error('Lien du document introuvable dans la réponse PNS');
+                        }
+                        $response = Http::get($docFileUrl);
+
+                        if (!$response->successful()) {
+                            return Common::error('Erreur lors du téléchargement du document');
+                        }
+                        $fileName = 'documents/' . uniqid() . '.pdf'; // adapte l’extension si besoin
+                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+
+                         Storage::disk('public')->put($path, $response->body());
+
+                        $acte->update([
+                            'file_path'    => $path,
+                            'file_url'     => Storage::disk('public')->url($path),
+                            'content_data' => json_encode($data),
+                            'status'       => 'en_edition',
+                        ]);
+
+                }else{
+                    return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
+                }
+            }else{
             // Générer PDF depuis le contenu HTML WYSIWYG
-            $templateKey = $acte->docProduit->template_key
-                ?? 'pdf.documents.projet_lettre_agrement';
+                        $templateKey = $acte->docProduit->template_key
+                            ?? 'pdf.documents.projet_lettre_agrement';
 
-            $data = [
-                'title'      => $title,
-                'content'    => $htmlContent,
-                'conclusion' => $conclusion,
-                'requete'    => $acte->requete,
-                'acte'       => $acte,
-                'numero'     => $acte->numero_identification,
-                'date'       => now()->format('d/m/Y'),
-            ];
+                        $data = [
+                            'title'      => $title,
+                            'content'    => $htmlContent,
+                            'conclusion' => $conclusion,
+                            'requete'    => $acte->requete,
+                            'acte'       => $acte,
+                            'numero'     => $acte->numero_identification,
+                            'date'       => now()->format('d/m/Y'),
+                        ];
 
-            $pdf = Pdf::loadView($templateKey, $data)
-                      ->setPaper('a4', 'portrait');
+                        $pdf = Pdf::loadView($templateKey, $data)
+                                ->setPaper('a4', 'portrait');
 
-            $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
-            $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+                        $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
+                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
 
-            Storage::disk('public')->put($path, $pdf->output());
+                        Storage::disk('public')->put($path, $pdf->output());
 
-            $acte->update([
-                'file_path'    => $path,
-                'file_url'     => Storage::disk('public')->url($path),
-                'content_data' => json_encode($data),
-                'status'       => 'en_edition',
-            ]);
+                        $acte->update([
+                            'file_path'    => $path,
+                            'file_url'     => Storage::disk('public')->url($path),
+                            'content_data' => json_encode($data),
+                            'status'       => 'en_edition',
+                        ]);
 
+            }
+          
             return Common::success($message, [
                 'acte'     => $acte->fresh(['docProduit', 'currentCircuitStep']),
                 'file_url' => Storage::disk('public')->url($path),

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Services\PNSService;
 
 class RequeteRepository
 {
@@ -467,8 +468,24 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                 };
 
                 if (!$destinataire) continue;
+                if ($destinataire=="requérant") {
+                $pnsService= new PNSService($requete->header,[
+                    "data" => null,
+                    "message" => "Mise à jour de votre demande : ".$requete->code,
+                    "status" => true,
+                    "decision" => $transition->conditon_type,
+                ]);   
 
-                match($notif->channel) {
+                $result= $pnsService->reply();
+                if (!$result->successful()) {
+                    Log::error("Échec de la notification PNS pour la requête {$requete->code}", [
+                        'response_status' => $result->status(),
+                        'response_body'   => $result->body(),
+                    ]);
+                }
+
+                }else{
+                       match($notif->channel) {
                     'email' => Mail::send(
                         $notif->template_key,
                         ['requete' => $requete, 'extra' => $notif->extra_data],
@@ -481,6 +498,9 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                     ]),
                     default => null,
                 };
+                }
+
+             
 
             } catch (\Throwable $e) {
                 // Ne pas bloquer le workflow si une notification échoue

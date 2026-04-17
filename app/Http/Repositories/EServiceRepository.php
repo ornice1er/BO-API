@@ -12,7 +12,7 @@ use ZipArchive;
 use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\Agenda;
-
+use App\Services\PNSService;
 
 use App\Models\RequeteFile;
 use Illuminate\Support\Facades\Storage;
@@ -359,6 +359,16 @@ class EServiceRepository
     }
 
     public function closeRequest($data) {
+        $req=Requete::where("code",$data['code'])->first();
+        $req->status=2;
+        $req->save();
+
+        $pnsService = new PNSService($req->header,[
+            "data" => null,
+            "message" => "Clôture de la demande : ".$req->code,
+            "status" => true,
+            "decision" => $data['decision'] ?? null
+        ]);
         return $data;
     }
 
