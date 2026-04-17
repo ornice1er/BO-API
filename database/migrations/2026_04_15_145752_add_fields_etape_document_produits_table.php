@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::table('document_actes', function (Blueprint $table) {
-        $table->enum('generate_from', ['pns', 'system'])->nullable()->after('file_path');
+         Schema::table('etape_document_produits', function (Blueprint $table) {
+        $table->enum('generate_from', ['pns', 'system'])->nullable();
         });
     }
 
