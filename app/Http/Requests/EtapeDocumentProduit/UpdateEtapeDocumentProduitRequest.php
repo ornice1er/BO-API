@@ -28,6 +28,8 @@ class UpdateEtapeDocumentProduitRequest extends FormRequest
             'allow_correction'    => 'nullable|boolean',
             'order'               => 'nullable|integer|min:1',
             "generate_from"       => 'sometimes|in:pns,system',
+            'content'=> 'nullable|string', // ✅ Champ pour le contenu HTML du document
+
         ];
     }
 

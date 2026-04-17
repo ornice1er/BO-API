@@ -28,6 +28,7 @@ class StoreEtapeDocumentProduitRequest extends FormRequest
             'allow_correction'    => 'nullable|boolean',
             'order'               => 'nullable|integer|min:1',
             'generate_from'       => 'required|in:pns,system',
+            'content'=> 'nullable|string', // ✅ Champ pour le contenu HTML du document
 
         ];
     }
