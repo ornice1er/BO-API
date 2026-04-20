@@ -12,6 +12,7 @@ use App\Models\EtapeVisibilite;
 use App\Models\DocumentActe;
 use App\Models\DocumentCircuitEtape;
 use App\Models\EtapeNotification;
+use App\Models\Agenda;
 use App\Traits\Repository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
