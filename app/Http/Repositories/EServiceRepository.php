@@ -267,24 +267,21 @@ class EServiceRepository
 
     }
 
-    private function getHeaders(){
-        $headers=request()->header;
+private function getHeaders()
+{
+    $request = request();
+    $h_datas = [];
 
-        $h_datas=array();
-
-        info($h_datas);
-
-        if (isset($headers['uxp-service'])) {
-        $h_datas['uxp-service']=$headers['uxp-service'][0];
-        $h_datas['uxp-client']=$headers['uxp-client'][0];
-        $h_datas['application-id']=$headers['application-id'][0];
-        $h_datas['response-token']=$headers['response-token'][0];
-
-         }
-
-      return $h_datas;
+    info($request->headers->all());
+    if ($request->hasHeader('uxp-service')) {
+        $h_datas['uxp-service']    = $request->header('uxp-service');
+        $h_datas['uxp-client']     = $request->header('uxp-client');
+        $h_datas['application-id'] = $request->header('application-id');
+        $h_datas['response-token'] = $request->header('response-token');
     }
 
+    return $h_datas;
+}
 
 
 
