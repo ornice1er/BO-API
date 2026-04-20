@@ -20,6 +20,10 @@ class PNSService{
     function reply() {
 
         try {
+                info('Envoi de la décision PNS', [
+                    'header' => $this->header,
+                    'payload' => $this->payload
+                ]);
                 $response = Http::withHeaders($this->header)->post(env('PNS_URI').'/api/portal/event/uxp/rest',$this->payload);
                  if ($response?->successful()) {
                     return $response?->json();
