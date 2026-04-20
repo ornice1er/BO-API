@@ -1,6 +1,8 @@
 <?php
 namespace App\Services;
 use Log;
+use Illuminate\Support\Facades\Http; // ✅ Ajouter cette ligne
+
 
 class PNSService{
 
@@ -19,13 +21,13 @@ class PNSService{
 
         try {
                 $response = Http::withHeaders($this->header)->post(env('PNS_URI').'/api/portal/event/uxp/rest',$this->payload);
-                 if ($response->successful()) {
-                    return $response->json();
+                 if ($response?->successful()) {
+                    return $response?->json();
                 }
 
             Log::error('Erreur lors de l\'envoi de la décision PNS', [
-                'status' => $response->status(),
-                'body' => $response->body()
+                'status' => $response?->status(),
+                'body' => $response?->body()
             ]);
         } catch (\Throwable $th) {
             Log::error('Exception lors de l\'appel PNS', [
