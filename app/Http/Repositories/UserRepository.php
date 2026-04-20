@@ -127,35 +127,49 @@ class UserRepository
     /**
      * Update an existing user
      */
-    public function makeUpdate($id, $data): User
-    {
-        $user=User::find($id);
+   public function makeUpdate($id, $data): User
+{
+    $user = User::find($id);
 
-         $roles = $data['roles'];
-        $choices = $data['choices'];
-        unset($data['roles']);
-        unset($data['choices']);
-        if(Auth::user()->hasRole('Admin national')){
-            $user->update($data);
+    $roles = $data['roles'] ?? [];
+    $choices = $data['choices'] ?? [];
+
+    unset($data['roles'], $data['choices']);
+
+    if (Auth::user()->hasRole('Admin national')) {
+
+        $user->update($data);
+
+        // 👉 Mise à jour des rôles
+        $user->syncRoles($roles);
+
         return $user;   
 
-        }else
-        if(Auth::user()->hasRole('Admin Sectoriel')){
-            $prestations=   $user->userprestations;
+    } elseif (Auth::user()->hasRole('Admin Sectoriel')) {
 
-            foreach ($prestations as $value) {
-                $value->delete();
-            }
-            $user->update($data);
-            foreach ($choices as $value) {
-                UserPrestation::create([ 'user_id'=>$user->id, 'prestation_id'=>$value]);
-            }
-        return $user;   
-
+        // Suppression anciennes prestations
+        foreach ($user->userprestations as $value) {
+            $value->delete();
         }
+
+        $user->update($data);
+
+        // Réinsertion prestations
+        foreach ($choices as $value) {
+            UserPrestation::create([
+                'user_id' => $user->id,
+                'prestation_id' => $value
+            ]);
+        }
+
+        // 👉 Mise à jour des rôles
+        $user->syncRoles($roles);
+
         return $user;   
-    
     }
+
+    return $user;   
+}
 
     /**
      * Delete a user
