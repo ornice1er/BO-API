@@ -135,7 +135,8 @@ class RequeteRepository
                 'requeteEtapeLogs.etapeTo',
                 'requeteEtapeLogs.status',
                 'requeteEtapeLogs.status',
-                'requeteEtapeLogs.triggeredBy'
+                'requeteEtapeLogs.triggeredBy',
+                'requeteEtapeLogs.transition.visibilites'
             ])
             ->where('code', $data['code'])
             ->firstOrFail();
