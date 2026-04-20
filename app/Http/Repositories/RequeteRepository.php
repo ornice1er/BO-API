@@ -63,15 +63,19 @@ class RequeteRepository
         ->pluck('workflow_transition_id');
  
     // Récupérer les etape_to_id correspondantes
-    $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
-        ->where('prestation_id', $prestation->id);
+   
         if (request()->nature=='validation') {
-          $etapeIds->whereIn('condition_type', ["validation","prevalidation","paraphe","choix_sortie"]);
+             $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
+             ->where('prestation_id', $prestation->id)
+            ->whereIn('condition_type', ["validation","prevalidation","paraphe","choix_sortie"])
+            ->pluck('etape_to_id');
         } else {
-        $etapeIds->where('condition_type', request()->nature);
+        $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
+        ->where('prestation_id', $prestation->id)
+        ->where('condition_type', request()->nature)
+        ->pluck('etape_to_id');
         }
         
-        $etapeIds->pluck('etape_to_id');
  
     return Requete::with([
             'currentEtape',
