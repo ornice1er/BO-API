@@ -33,4 +33,10 @@ class EtapeVisibilite extends Model
     {
         return $this->belongsTo(WorkflowTransition::class, 'workflow_transition_id');
     }
+
+     public function ua()
+    {
+        return $this->belongsTo(UniteAdmin::class, 'unite_admin_id');
+    }
+
 }

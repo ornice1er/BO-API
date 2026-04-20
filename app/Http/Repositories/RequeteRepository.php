@@ -136,7 +136,7 @@ class RequeteRepository
                 'requeteEtapeLogs.status',
                 'requeteEtapeLogs.status',
                 'requeteEtapeLogs.triggeredBy',
-                'requeteEtapeLogs.transition.visibilites'
+                'requeteEtapeLogs.transition.visibilites.ua.entite',
             ])
             ->where('code', $data['code'])
             ->firstOrFail();
