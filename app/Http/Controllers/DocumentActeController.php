@@ -192,6 +192,37 @@ class DocumentActeController extends Controller
                         ]);
 
                 }else{
+
+                // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
+                  $templateKey = $acte->docProduit->template_key
+                            ?? 'pdf.documents.projet_lettre_agrement';
+
+                        $data = [
+                            'title'      => $title,
+                            'content'    => $htmlContent,
+                            'conclusion' => $conclusion,
+                            'requete'    => $acte->requete,
+                            'acte'       => $acte,
+                            'numero'     => $acte->numero_identification,
+                            'date'       => now()->format('d/m/Y'),
+                        ];
+
+                        $pdf = Pdf::loadView($templateKey, $data)
+                                ->setPaper('a4', 'portrait');
+
+                        $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
+                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+
+                        Storage::disk('public')->put($path, $pdf->output());
+
+                        $acte->update([
+                            'file_path'    => $path,
+                            'file_url'     => Storage::disk('public')->url($path),
+                            'content_data' => json_encode($data),
+                            'status'       => 'en_edition',
+                        ]);
+
+
                  //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
                 }
             }else{
