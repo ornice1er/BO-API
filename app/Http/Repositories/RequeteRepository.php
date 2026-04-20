@@ -631,7 +631,8 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
             'files',
             'parcours',
             'lastLog.triggeredBy',     
-            'lastLog.transition.visibilites.ua.entite',        // user qui a effectué la dernière action
+            'lastLog.transition.visibilites.ua.entite',   
+            'lastLog.etapeTo'     // user qui a effectué la dernière action
         ])
         ->where('prestation_id', $prestation->id)
         ->orderByDesc('created_at')
