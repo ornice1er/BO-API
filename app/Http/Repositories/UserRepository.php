@@ -145,7 +145,7 @@ class UserRepository
 
         return $user;   
 
-    } elseif (Auth::user()->hasRole('Admin Sectoriel')) {
+    } elseif (Auth::user()->hasRole('Administrateur Sectoriel')) {
 
         // Suppression anciennes prestations
         foreach ($user->userprestations as $value) {
