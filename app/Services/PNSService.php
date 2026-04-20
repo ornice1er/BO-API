@@ -29,8 +29,8 @@ class PNSService{
             ]);
         } catch (\Throwable $th) {
             Log::error('Exception lors de l\'appel PNS', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
             ]);
         }
             return null;
