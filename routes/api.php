@@ -193,7 +193,7 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
   Route::get('requete/byPrestation/{code}/finished', 'RequeteController@getByPrestationFinished');
   Route::get('requete/byPrestation/{code}/visa', 'RequeteController@getByPrestationVisa');
   Route::get('requete/byPrestation/{code}/correct', 'RequeteController@getByPrestationCorrect');
-  Route::get('requete/byPrestation/{code}/all', 'RequeteController@getByPrestationAll');
+  Route::get('requetes/byPrestation/{code}/all', 'RequeteController@getByPrestationAll');
   Route::get('requete/byPrestation/{code}/agenda', 'RequeteController@getForAgenda');
 
   Route::get('requete/byPrestation/{code}/to-sign', 'RequeteController@getByPrestationToSign');
