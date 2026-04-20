@@ -128,6 +128,22 @@ class RequeteController extends Controller
         }
     }
 
+      /**
+     * Vérifier si l'agent connecté peut agir sur une requête.
+     * GET /requetes/{id}/peut-agir
+     */
+    public function getForAgenda($code)
+    {
+        $message = 'Récupération des données pour l\'agenda';
+        try {
+            $requete = $this->requeteRepository->get($id);
+            $result  = $this->requeteRepository->getForAgenda($code);
+            return Common::success($message, ['peut_agir' => $result]);
+        } catch (\Throwable $th) {
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
     /**
      * Détail par ID.
      * GET /requetes/{id}

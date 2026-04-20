@@ -675,4 +675,11 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
 
         return $reponse;
     }
+
+    function getForAgenda($code)
+    {
+        return Agenda::with(['requete.prestation'=>function($q) { $q->where('code', $code); }, 'requete.currentEtape', 'requete.currentStatus'])
+            ->where('code', $code)
+            ->getAll();
+    }
 }
