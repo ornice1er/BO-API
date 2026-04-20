@@ -65,6 +65,7 @@ class RequeteRepository
     // Récupérer les etape_to_id correspondantes
     $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
         ->where('prestation_id', $prestation->id)
+         ->where('condition_type', request()->nature)
         ->pluck('etape_to_id');
  
     return Requete::with([
