@@ -10,4 +10,9 @@ class Agenda extends Model
     use Filterable,HasFactory;
     private static $whiteListFilter = ['*'];
     protected $guarded = [];
+
+
+    function requete() {
+        return $this->belongsTo(Requete::class,'requete_id');
+    }
 }
