@@ -137,7 +137,7 @@ class RequeteController extends Controller
         $message = 'Récupération des données pour l\'agenda';
         try {
             $result  = $this->requeteRepository->getForAgenda($code);
-            return Common::success($message, ['peut_agir' => $result]);
+            return Common::success($message,  $result);
         } catch (\Throwable $th) {
             return Common::error($th->getMessage(), []);
         }
