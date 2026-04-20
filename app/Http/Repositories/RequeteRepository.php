@@ -679,8 +679,10 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
 
     function getForAgenda($code)
     {
-        return Agenda::with(['requete.prestation'=>function($q) { $q->where('code', $code); }, 'requete.currentEtape', 'requete.currentStatus'])
-            ->where('code', $code)
+        return Agenda::with(['requete.prestation', 'requete.currentEtape', 'requete.currentStatus'])
+            ->whereHas('requete.prestation', function($q) use ($code) {
+                $q->where('code', $code);
+            }) 
             ->get();
     }
 }
