@@ -272,7 +272,6 @@ private function getHeaders()
     $request = request();
     $h_datas = [];
 
-    info($request->headers->all());
     if ($request->hasHeader('uxp-service')) {
         $h_datas['uxp-service']    = $request->header('uxp-service');
         $h_datas['uxp-client']     = $request->header('uxp-client');
