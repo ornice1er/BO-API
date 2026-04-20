@@ -61,8 +61,6 @@ class RequeteRepository
               });
         })
         ->pluck('workflow_transition_id');
-
-        return $transitionIds ;
  
     // Récupérer les etape_to_id correspondantes
    
