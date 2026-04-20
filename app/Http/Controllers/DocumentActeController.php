@@ -158,7 +158,7 @@ class DocumentActeController extends Controller
             $conclusion  = $request->input('conclusion', '');
 
             if ($acte->docProduit->generate_from=="pns") {
-                $pnsService = new PNSService($acte->docProduit->header,[
+                $pnsService = new PNSService($acte->requete->header,[
                     "data" => $htmlContent,
                     "message" => "Génération du document via PNS",
                     "status" =>false,
