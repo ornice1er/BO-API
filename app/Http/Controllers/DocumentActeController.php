@@ -162,11 +162,11 @@ class DocumentActeController extends Controller
                     "data" => $htmlContent,
                     "message" => "Génération du document via PNS",
                     "status" =>false,
-                    "decision" =>null
+                    "decision" =>'gendoc'
                 ]);
                 $pnsServiceResult = $pnsService->reply();
 
-                if ($pnsServiceResult->successful()) {
+                if ($pnsServiceResult?->successful()) {
                     $body = $pnsServiceResult->json();
 
                         $docFileUrl = $body['doc_file'] ?? null;
@@ -192,7 +192,7 @@ class DocumentActeController extends Controller
                         ]);
 
                 }else{
-                    return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
+                 //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
                 }
             }else{
             // Générer PDF depuis le contenu HTML WYSIWYG
