@@ -163,7 +163,7 @@ function getContent($agenda) {
         : 'Non définie';
 
     $prestation = $agenda->requete->prestation->name ?? 'N/A';
-    $auteur     = optional($agenda->user->agent)->lastname . ' ' . optional($agenda->user->agent)->firstname;
+    $auteur     = optional($agenda->user?->name) ?? 'Un agent du service';
 
     $content = "
         Bonjour,
