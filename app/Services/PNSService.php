@@ -27,6 +27,12 @@ class PNSService{
                 $response = Http::withHeaders($this->header)->post(env('PNS_URI').'/api/portal/event/uxp/rest',$this->payload);
                  if ($response?->successful()) {
                     return $response?->json();
+                } else {
+                    Log::error('Erreur lors de l\'envoi de la décision PNS', [
+                        'status' => $response?->status(),
+                         'response' => $response?->body()
+                    ]);
+                    return false;
                 }
 
           

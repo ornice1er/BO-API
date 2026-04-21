@@ -112,22 +112,15 @@ function sendMail($id) {
         ]);
         $result= $pnsService->reply();
 
-        if ($result->successful()) {
-            return true;
-        } else {
-              Log::error('Erreur lors de l\'envoi de la décision PNS', [
-                'status' => $response?->status(),
-                'body' => $response?->body()
-            ]);
-
+        if ($result===false) {
             throw new JsonResponseException([
                 'message' => 'Echec d\'envoyé.Le service PNS a répondu avec une erreur.',
                 'success' => false,
                 'data' => null,
                 'warning' => null
-            ], 401);
+            ], 500);
         }
-        }
+        } 
     } catch (\Throwable $th) {
         Log::error('Exception lors de l\'appel PNS', [
                 'message' => $th->getMessage(),
