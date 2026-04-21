@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('etapes', function (Blueprint $table) {
-                $table->enum('type', ['depot', 'traitement', 'commission', 'delivrance'])
+                $table->enum('type', ['depot', 'traitement', 'visite','commission', 'delivrance'])
                   ->default('traitement')
                   ->after('name')
                   ->comment('Phase métier de l\'étape')
