@@ -31,6 +31,8 @@ class UpdateEtapeRequest extends FormRequest
             'is_terminal'         => 'nullable|boolean',
             'allow_partial_save'  => 'nullable|boolean',
             'sla_days'            => 'nullable|integer|min:0',
+            'can_associate'       => 'nullable|boolean',
+
         ];
     }
 
