@@ -99,7 +99,7 @@ class AgendaRepository
 }
 
 function sendMail($id) {
-    try {
+
     
     $agenda = Agenda::findOrFail($id);
     $requete = $agenda->requete;
@@ -121,17 +121,6 @@ function sendMail($id) {
             ], 500);
         }
         } 
-    } catch (\Throwable $th) {
-        Log::error('Exception lors de l\'appel PNS', [
-                'message' => $th->getMessage(),
-                'trace' => $th->getTraceAsString()
-            ]);
-        }finally {
-            return null;
-        }
-  
-        
-    
 }
 
 function getContent($agenda) {
