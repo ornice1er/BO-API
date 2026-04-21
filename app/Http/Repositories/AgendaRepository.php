@@ -4,7 +4,8 @@ namespace App\Http\Repositories;
 
 use App\Models\Agenda;
 use App\Traits\Repository;
-
+use App\Exceptions\JsonResponseException;
+use Auth, Log;
 class AgendaRepository
 {
     use Repository;
@@ -75,13 +76,124 @@ class AgendaRepository
 {
 
 
+    if (Auth::check()) {
+    $data['user_id'] = Auth::user()->id;
+    }
+    $requete = Requete::findOrFail($data['requete_id']);
     // Création de l'utilisateur
     $agenda = Agenda::create($data);
+
+    if ($requete) {
+        $pnsService = new PnsService($requete->header,[
+            'success' => 'true',
+            'decision' => 'program',
+            'message' => 'Agenda créé avec succès',
+            'data' =>  $this->getContent($agenda)
+        ]);
+    }
+   
 
     return $agenda;
 }
 
+function sendMail($id) {
+    try {
+    
+    $agenda = Agenda::findOrFail($id);
+    $requete = $agenda->requete;
+    if ($requete) {
+        $pnsService = new PnsService($requete->header,[
+            'success' => 'true',
+            'decision' => 'program',
+            'message' => 'Agenda créé avec succès',
+            'data' =>  $this->getContent($agenda)
+        ]);
+        $result= $pnsService->reply();
 
+        if ($result->successful()) {
+            return true;
+        } else {
+              Log::error('Erreur lors de l\'envoi de la décision PNS', [
+                'status' => $response?->status(),
+                'body' => $response?->body()
+            ]);
+
+            throw new JsonResponseException([
+                'message' => 'Echec d\'envoyé.Le service PNS a répondu avec une erreur.',
+                'success' => false,
+                'data' => null,
+                'warning' => null
+            ], 401);
+        }
+        }
+    } catch (\Throwable $th) {
+        Log::error('Exception lors de l\'appel PNS', [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
+        }finally {
+            return null;
+        }
+  
+        
+    
+}
+
+function getContent($agenda) {
+    $sessionLabels = [
+        'matinee'        => 'Matinée',
+        'apres_midi'     => 'Après-midi',
+        'journee_entiere'=> 'Journée entière',
+    ];
+
+    $rdvLabels = [
+        'premier_rdv'      => 'Premier RDV',
+        'second_rdv'       => 'Second RDV',
+        'suivi_traitement' => 'Suivi traitement',
+    ];
+
+    $session = $sessionLabels[$agenda->session_type] ?? $agenda->session_type;
+    $rdvType = $rdvLabels[$agenda->rdv_type]         ?? $agenda->rdv_type;
+
+    $dateStart = \Carbon\Carbon::parse($agenda->date_start)->format('d/m/Y à H:i');
+    $dateEnd   = $agenda->date_end
+        ? \Carbon\Carbon::parse($agenda->date_end)->format('d/m/Y à H:i')
+        : 'Non définie';
+
+    $prestation = $agenda->requete->prestation->name ?? 'N/A';
+    $auteur     = optional($agenda->user->agent)->lastname . ' ' . optional($agenda->user->agent)->firstname;
+
+    $content = "
+        Bonjour,
+
+        Vous avez un programme planifié concernant votre dossier. Veuillez trouver ci-dessous les détails :
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📋 DÉTAILS DU PROGRAMME
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        • Titre         : {$agenda->title}
+        • Prestation    : {$prestation}
+        • Type de RDV   : {$rdvType}
+        • Session       : {$session}
+        • Date début    : {$dateStart}
+        • Date fin      : {$dateEnd}
+        • Durée         : " . ($agenda->duration_minutes ? $agenda->duration_minutes . ' minutes' : 'Non précisée') . "
+        • Priorité      : {$agenda->priority}
+        • Origine       : {$agenda->from}
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        " . ($agenda->description ? "📝 Note : {$agenda->description}" : '') . "
+
+        Merci de confirmer votre disponibilité en répondant à ce message.
+
+        Cordialement,
+        {$auteur}
+    ";
+
+    return trim($content);
+}
     /**
      * Update an existing agenda
      */

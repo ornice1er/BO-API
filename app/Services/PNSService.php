@@ -29,10 +29,7 @@ class PNSService{
                     return $response?->json();
                 }
 
-            Log::error('Erreur lors de l\'envoi de la décision PNS', [
-                'status' => $response?->status(),
-                'body' => $response?->body()
-            ]);
+          
         } catch (\Throwable $th) {
             Log::error('Exception lors de l\'appel PNS', [
                 'message' => $th->getMessage(),

@@ -199,6 +199,22 @@ class AgendaController extends Controller
         }
     }
 
+      public function sendMail(Request $request, $id)
+    {
+        $message = 'Récupération d\'un agenda';
+
+        try {
+            $result = $this->agendaRepository->sendMail($id);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($result)]);
+
+            return Common::success('Utilisateur trouvé', $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
 
     /** @OA\Post(
      *      path="/agendas",

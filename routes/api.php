@@ -60,8 +60,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
     Route::get('eservice/with-prestations', 'EServiceController@getEntityWithPrestations');
     Route::post('eservice/zip-files', 'EServiceController@downloadZip'); 
-        Route::get('dash/stats/{download?}/{userId?}', 'DashboardController@index'); 
+    Route::get('dash/stats/{download?}/{userId?}', 'DashboardController@index'); 
 
+    
 
     Route::middleware('basic.auth')->group(function () { });
     Route::apiResources([
@@ -132,6 +133,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
         Route::get('/logs', 'LogController@index');
+
+        Route::get('/agenda/mail/send/{id}', 'AgendaController@sendMail');
+
 
         Route::get('municipalities-format', 'MunicipalityController@downloadFormat');
         Route::post('municipalities-import', 'MunicipalityController@import');
