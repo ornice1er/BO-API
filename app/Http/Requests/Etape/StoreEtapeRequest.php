@@ -26,7 +26,7 @@ class StoreEtapeRequest extends FormRequest
     {
         return [
             'name'                => 'required|string|max:255',
-            'type'                => 'nullable|in:depot,traitement,commission,delivrance',
+            'type'                => 'nullable|in:depot,traitement,visite,commission,delivrance',
             'unite_admin_id'      => 'nullable|integer|exists:unite_admins,id',
             'is_terminal'         => 'nullable|boolean',
             'allow_partial_save'  => 'nullable|boolean',
