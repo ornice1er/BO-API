@@ -29,6 +29,7 @@ class StoreEtapeDocumentProduitRequest extends FormRequest
             'order'               => 'nullable|integer|min:1',
             'generate_from'       => 'required|in:pns,system',
             'content'=> 'nullable|string', // ✅ Champ pour le contenu HTML du document
+            'decision'          => 'nullable|string|max:255',
 
         ];
     }

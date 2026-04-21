@@ -239,6 +239,23 @@ class RequeteRepository
                 'created_at'             => now(),
             ]);
 
+            if ($transition->can_act_pns) {
+              $pnsService= new PNSService($requete->header,[
+                    "data" => null,
+                    "message" => "Mise à jour de votre demande : ".$requete->code,
+                    "status" => true,
+                    "decision" => $transition->decision,
+                ]);   
+            }
+              
+
+                $result= $pnsService->reply();
+                // if (!$result->successful()) {
+                //     Log::error("Échec de la notification PNS pour la requête {$requete->code}", [
+                //         'response_status' => $result->status(),
+                //         'response_body'   => $result->body(),
+                //     ]);
+                // }
             // 4. Déclencher les notifications configurées
             $this->declencherNotifications($transition, $requete);
 
@@ -482,23 +499,7 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                 };
 
                 if (!$destinataire) continue;
-                if ($destinataire=="requérant") {
-                $pnsService= new PNSService($requete->header,[
-                    "data" => null,
-                    "message" => "Mise à jour de votre demande : ".$requete->code,
-                    "status" => true,
-                    "decision" => $transition->conditon_type,
-                ]);   
-
-                $result= $pnsService->reply();
-                if (!$result->successful()) {
-                    Log::error("Échec de la notification PNS pour la requête {$requete->code}", [
-                        'response_status' => $result->status(),
-                        'response_body'   => $result->body(),
-                    ]);
-                }
-
-                }else{
+                if ($destinataire!="requérant"){
                        match($notif->channel) {
                     'email' => Mail::send(
                         $notif->template_key,

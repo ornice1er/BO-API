@@ -38,6 +38,8 @@ class UpdateWorkflowRequest extends FormRequest
             'notify_requérant'   => 'nullable|boolean',
             'notify_agent'       => 'nullable|boolean',
             'is_active'          => 'nullable|boolean',
+            'decision'          => 'nullable|string|max:255',
+            'can_act_pns'       => 'nullable|boolean'
         ];
     }
 
