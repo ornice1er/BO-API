@@ -246,10 +246,11 @@ class RequeteRepository
                     "status" => true,
                     "decision" => $transition->decision,
                 ]);   
+                $result= $pnsService->reply();
             }
               
 
-                $result= $pnsService->reply();
+                
                 // if (!$result->successful()) {
                 //     Log::error("Échec de la notification PNS pour la requête {$requete->code}", [
                 //         'response_status' => $result->status(),

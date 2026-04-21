@@ -88,14 +88,14 @@ class AgendaRepository
     // Création de l'utilisateur
     $agenda = Agenda::create($data);
 
-    if ($requete) {
-        $pnsService = new PnsService($requete->header,[
-            'success' => 'true',
-            'decision' => 'program',
-            'message' => 'Agenda créé avec succès',
-            'data' =>  $this->getContent($agenda)
-        ]);
-    }
+    // if ($requete) {
+    //     $pnsService = new PnsService($requete->header,[
+    //         'success' => 'true',
+    //         'decision' => 'program',
+    //         'message' => 'Agenda créé avec succès',
+    //         'data' =>  $this->getContent($agenda)
+    //     ]);
+    // }
    
 
     return $agenda;
