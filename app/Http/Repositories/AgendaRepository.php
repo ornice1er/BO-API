@@ -115,7 +115,7 @@ function sendMail($id) {
         ]);
         $result= $pnsService->reply();
 
-        $requeteRepository->avancerWorkflow($requete, 'validation', [
+        $this->requeteRepository->avancerWorkflow($requete, 'validation', [
             'comment' => 'Prise de rdv par ' . Auth::user()?->name,
         ]);
 
