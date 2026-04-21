@@ -12,6 +12,8 @@ class AgendaRepository
 {
     use Repository;
 
+    protected $requeteRepository;
+
     /**
      * The model being queried.
      *
@@ -23,8 +25,9 @@ class AgendaRepository
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(RequeteRepository $requeteRepository)
     {
+        $this->requeteRepository = $requeteRepository;
         // Don't forget to update the model's name
         $this->model = app(Agenda::class);
     }
@@ -112,9 +115,13 @@ function sendMail($id) {
         ]);
         $result= $pnsService->reply();
 
+        $this->avancerWorkflow($requete, 'validation', [
+            'comment' => 'Prise de rdv par ' . Auth::user()?->name,
+        ]);
+
         if ($result===false) {
             throw new JsonResponseException([
-                'message' => 'Echec d\'envoyé.Le service PNS a répondu avec une erreur.',
+                'message' => 'Echec d\'envoyé.Le service PNS a répondu avec une erreur. Mais le flux a été avancé.',
                 'success' => false,
                 'data' => null,
                 'warning' => null

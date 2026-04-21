@@ -25,16 +25,16 @@ class DeletePrestationData extends Command
             }
 
             // 1. Notifications
-            DB::table('etape_notifications')
-                ->whereIn('workflow_transition_id', function ($q) use ($pid) {
-                    $q->select('id')->from('workflow_transitions')->where('prestation_id', $pid);
-                })->delete();
+            // DB::table('etape_notifications')
+            //     ->whereIn('workflow_transition_id', function ($q) use ($pid) {
+            //         $q->select('id')->from('workflow_transitions')->where('prestation_id', $pid);
+            //     })->delete();
 
             // 2. Visibilités
-            DB::table('etape_visibilites')
-                ->whereIn('workflow_transition_id', function ($q) use ($pid) {
-                    $q->select('id')->from('workflow_transitions')->where('prestation_id', $pid);
-                })->delete();
+            // DB::table('etape_visibilites')
+            //     ->whereIn('workflow_transition_id', function ($q) use ($pid) {
+            //         $q->select('id')->from('workflow_transitions')->where('prestation_id', $pid);
+            //     })->delete();
 
             // 3. Transitions
             DB::table('workflow_transitions')->where('prestation_id', $pid)->delete();
