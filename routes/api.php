@@ -224,7 +224,7 @@ Route::get('requete/byPrestation/{code}/new', 'RequeteController@getByPrestation
         Route::get('requete/treatment/{id}/{code}', 'RequeteController@show');
         Route::post('requete/generate/{id}/{code}', 'RequeteController@createPDF');
         Route::get('requete-prise-en-charge/{id}', 'RequeteController@prendreEnCharge');
-        Route::get('requete-associate-to-project/{id}', 'RequeteController@associateToProject');
+        Route::post('requete-associate-to-project/{id}', 'RequeteController@associateToProject');
 
         // ── Workflow state (étape courante + transitions disponibles) ──────────────
         Route::get('requete/{id}/workflow-state',   [WorkflowStateController::class, 'getState']);
