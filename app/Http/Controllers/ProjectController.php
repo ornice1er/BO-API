@@ -624,35 +624,154 @@ class ProjectController extends Controller
     function exportList(Request $request) {
            try {
 
-             // Récupérer les données
-        $requetes = Requete::with('prestation') // si prestation est une relation
-            ->whereIn('id', $request->ids)
-            ->get(['id', 'code', 'email', 'phone', 'prestation_id']); // récupère juste les champs nécessaires
+    use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Color, Fill, Font};
 
+// Récupérer les données
+$requetes = Requete::with('prestation')
+    ->whereIn('id', $request->ids)
+    ->get(['id', 'code', 'email', 'phone', 'prestation_id']);
 
-                $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Liste des demandes validées');
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setTitle('Liste des demandes validées');
 
-                   // En-têtes
-                    $headers = ['Code Prestation', 'Code Demande', 'Email', 'Phone'];
-                    $sheet->fromArray($headers, null, 'A1');
+// ──────────────────────────────────────────
+// LIGNE 1 : Titre principal
+// ──────────────────────────────────────────
+$sheet->mergeCells('A1:D1');
+$sheet->setCellValue('A1', 'Liste des demandes validées');
+$sheet->getStyle('A1')->applyFromArray([
+    'font' => [
+        'bold'  => true,
+        'size'  => 16,
+        'color' => ['argb' => 'FFFFFFFF'],
+        'name'  => 'Arial',
+    ],
+    'fill' => [
+        'fillType'   => Fill::FILL_SOLID,
+        'startColor' => ['argb' => 'FF1F3864'], // bleu foncé
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical'   => Alignment::VERTICAL_CENTER,
+    ],
+]);
+$sheet->getRowDimension(1)->setRowHeight(40);
 
-                    // Remplir les données
-                    $rowIndex = 2; // commence après l'en-tête
-                    foreach ($requetes as $req) {
-                        $sheet->setCellValue("A{$rowIndex}", $req->prestation?->code ?? ''); // Code Prestation
-                        $sheet->setCellValue("B{$rowIndex}", $req->code);                     // Code Demande
-                        $sheet->setCellValue("C{$rowIndex}", $req->email);                    // Email
-                        $sheet->setCellValue("D{$rowIndex}", $req->phone);                    // Phone
-                        $rowIndex++;
-                    }
+// ──────────────────────────────────────────
+// LIGNE 2 : Sous-titre avec date de génération
+// ──────────────────────────────────────────
+$sheet->mergeCells('A2:D2');
+$sheet->setCellValue('A2', 'Généré le ' . now()->format('d/m/Y à H:i'));
+$sheet->getStyle('A2')->applyFromArray([
+    'font' => [
+        'italic' => true,
+        'size'   => 10,
+        'color'  => ['argb' => 'FF808080'],
+        'name'   => 'Arial',
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+    ],
+    'fill' => [
+        'fillType'   => Fill::FILL_SOLID,
+        'startColor' => ['argb' => 'FFD9E1F2'], // bleu clair
+    ],
+]);
+$sheet->getRowDimension(2)->setRowHeight(20);
 
-            $filename=uniqid().".xlsx";
-            $path=Storage::disk('public')->path($filename);
+// ──────────────────────────────────────────
+// LIGNE 3 : Ligne vide de séparation
+// ──────────────────────────────────────────
+$sheet->getRowDimension(3)->setRowHeight(8);
 
-            $writer = new Xlsx($spreadsheet);
-            $writer->save($path);
+// ──────────────────────────────────────────
+// LIGNE 4 : En-têtes des colonnes
+// ──────────────────────────────────────────
+$headers = ['Code Prestation', 'Code Demande', 'Email', 'Téléphone'];
+$headerColumns = ['A', 'B', 'C', 'D'];
+
+foreach ($headers as $i => $header) {
+    $cell = $headerColumns[$i] . '4';
+    $sheet->setCellValue($cell, $header);
+}
+
+$sheet->getStyle('A4:D4')->applyFromArray([
+    'font' => [
+        'bold'  => true,
+        'size'  => 11,
+        'color' => ['argb' => 'FFFFFFFF'],
+        'name'  => 'Arial',
+    ],
+    'fill' => [
+        'fillType'   => Fill::FILL_SOLID,
+        'startColor' => ['argb' => 'FF2E75B6'], // bleu moyen
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical'   => Alignment::VERTICAL_CENTER,
+    ],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color'       => ['argb' => 'FFBFBFBF'],
+        ],
+    ],
+]);
+$sheet->getRowDimension(4)->setRowHeight(25);
+
+// ──────────────────────────────────────────
+// LIGNES DE DONNÉES : alternance de couleurs
+// ──────────────────────────────────────────
+$rowIndex = 5;
+foreach ($requetes as $req) {
+    $sheet->setCellValue("A{$rowIndex}", $req->prestation?->code ?? '');
+    $sheet->setCellValue("B{$rowIndex}", $req->code);
+    $sheet->setCellValue("C{$rowIndex}", $req->email);
+    $sheet->setCellValue("D{$rowIndex}", $req->phone);
+
+    // Alternance blanc / bleu très clair
+    $bgColor = ($rowIndex % 2 === 0) ? 'FFDCE6F1' : 'FFFFFFFF';
+
+    $sheet->getStyle("A{$rowIndex}:D{$rowIndex}")->applyFromArray([
+        'font' => ['name' => 'Arial', 'size' => 10],
+        'fill' => [
+            'fillType'   => Fill::FILL_SOLID,
+            'startColor' => ['argb' => $bgColor],
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color'       => ['argb' => 'FFBFBFBF'],
+            ],
+        ],
+        'alignment' => [
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+    ]);
+    $sheet->getRowDimension($rowIndex)->setRowHeight(20);
+
+    $rowIndex++;
+}
+
+// ──────────────────────────────────────────
+// LARGEUR DES COLONNES
+// ──────────────────────────────────────────
+$sheet->getColumnDimension('A')->setWidth(20);
+$sheet->getColumnDimension('B')->setWidth(20);
+$sheet->getColumnDimension('C')->setWidth(35);
+$sheet->getColumnDimension('D')->setWidth(20);
+
+// ──────────────────────────────────────────
+// SAUVEGARDE
+// ──────────────────────────────────────────
+$filename = uniqid() . '.xlsx';
+$path = Storage::disk('public')->path($filename);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save($path);
             return Common::success("Fichier excel",Storage::disk('public')->url($filename));
 
                } catch (\Throwable $th) {
