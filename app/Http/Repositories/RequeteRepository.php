@@ -139,6 +139,7 @@ class RequeteRepository
                 'prestation',
                 'files',
                 'parcours',
+                'project',
                 'documentActes.docProduit',
                 'documentActes.currentCircuitStep',
                 'documentActes.logs',
