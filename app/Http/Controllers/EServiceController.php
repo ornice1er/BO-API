@@ -152,8 +152,6 @@ class EServiceController extends Controller
 
             return Common::success($message, $result->id);
         } catch (\Throwable $th) {
-            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
-
             return Common::error($th->getMessage(), []);
         }
     }
