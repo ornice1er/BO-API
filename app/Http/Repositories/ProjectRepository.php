@@ -69,7 +69,7 @@ if (array_key_exists('per_page', $request->all())) {
     public function get($id)
     {
          return $this->with([
-        'requetes.eps.ps.status'
+        'requetes.currentStatus'
     ])->findOrFail($id);
     }
 
