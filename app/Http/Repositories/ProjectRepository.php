@@ -165,7 +165,7 @@ if (array_key_exists('per_page', $request->all())) {
      */
     public function getWithRequests($id)
     {
-        return Project::with(['requetes.prestation','requetes.lastReponse','requetes.project','requetes.eps.ps.status'])->findOrFail($id);
+        return Project::with(['requetes.prestation','requetes.project','requetes.currentStatus'])->findOrFail($id);
     }
 
     /**
