@@ -92,13 +92,17 @@ class EServiceRepository
 
       public function getSessionData($request)
     {
+$query = Project::where('status', '!=', 'closed');
 
-  $query = Project::where('status', '!=', 'closed');
+if ($request->has('prestation_codes')) {
+    $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
 
-   if ($request->has('prestation_codes')) {
-       $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
-       $query->whereIn('prestations', $codes);
-   }
+    $query->where(function($q) use ($codes) {
+        foreach ($codes as $code) {
+            $q->orWhereJsonContains('prestations', $code);
+        }
+    });
+}
 
    $check = $query->first();
     
