@@ -40,30 +40,27 @@ class ProjectRepository
      */
     public function getAll($request)
     {
+$per_page = 10;
 
-        $per_page = 10;
+$req = Project::ignoreRequest(['per_page', 'prestation_codes']) // ✅
+    ->orderByDesc('created_at');
 
-        $req = Project::ignoreRequest(['per_page'])
-            ->orderByDesc('created_at');
+if ($request->has('prestation_codes')) {
+    $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
 
-        if ($request->has('prestation_codes')) {
-            $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
-
-            $req->where(function($q) use ($codes) {
-                foreach ($codes as $code) {
-                    $q->orWhereJsonContains('prestations', $code);
-                }
-            });
+    $req->where(function($q) use ($codes) {
+        foreach ($codes as $code) {
+            $q->orWhereJsonContains('prestations', $code);
         }
+    });
+}
 
-        if (array_key_exists('per_page', $request->all())) {
-            $per_page = $request['per_page'];
-
-            return $req->paginate($per_page);
-
-        } else {
-            return $req->get();
-        }
+if (array_key_exists('per_page', $request->all())) {
+    $per_page = $request['per_page'];
+    return $req->paginate($per_page);
+} else {
+    return $req->get();
+}
     }
 
     /**
