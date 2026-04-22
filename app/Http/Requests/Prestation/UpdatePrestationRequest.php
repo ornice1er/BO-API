@@ -31,6 +31,8 @@ class UpdatePrestationRequest extends FormRequest
             'start_point'           => 'required|integer|min:0',
             'delay'                 => 'required|integer|min:0',
             'is_automatic_delivered'=> 'nullable|boolean',
+            'is_group_delivered'=> 'nullable|boolean',
+            'decision'                  => 'nullable|string|max:255',
             'from_pns'              => 'nullable|boolean',
         ];
     }
