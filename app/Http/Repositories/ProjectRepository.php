@@ -7,7 +7,7 @@ use App\Models\Requete;
 use App\Services\PNSService;
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
-use Str;
+use Str,Storage;
 
 class ProjectRepository
 {
@@ -168,7 +168,8 @@ if (isset($data['status']) && $data['status'] === 'closed') {
                     'link'     => $uniqueLink,
                     'decision' => $prestation->decision,
                 ]);
-
+                $requete->filename=$uniqueLink;
+                 $requete->save();
                 $pnsService->reply();
 
             } catch (\Exception $e) {
