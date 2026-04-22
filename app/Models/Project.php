@@ -16,7 +16,7 @@ class Project extends Model
 
     protected $casts = [
         'request_ids' => 'array',
-        'prestations' => 'array',
+        //'prestations' => 'array',
     ];
 
     /**
