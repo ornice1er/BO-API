@@ -93,13 +93,14 @@ class EServiceRepository
       public function getSessionData($request)
     {
 
-    if ($request-has('prestation_codes')) {
-           $check= Project::where('status', '!=', 'closed')->whereIn('prestations', explode(',', $request->get('prestation_codes')))->first();  
+  $query = Project::where('status', '!=', 'closed');
 
-    }else{
-    $check= Project::where('status', '!=', 'closed')->first();  
+   if ($request->has('prestation_codes')) {
+       $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
+       $query->whereIn('prestations', $codes);
+   }
 
-    }
+   $check = $query->first();
     
 
     if ($check) {
