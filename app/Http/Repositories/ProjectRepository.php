@@ -44,11 +44,17 @@ class ProjectRepository
         $per_page = 10;
 
         $req = Project::ignoreRequest(['per_page'])
-            ->filter(array_filter($request->all(), function ($k) {
-                return $k != 'page';
-            }, ARRAY_FILTER_USE_KEY))
-            ->with(['requetes'])
             ->orderByDesc('created_at');
+
+        if ($request->has('prestation_codes')) {
+            $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
+
+            $req->where(function($q) use ($codes) {
+                foreach ($codes as $code) {
+                    $q->orWhereJsonContains('prestations', $code);
+                }
+            });
+        }
 
         if (array_key_exists('per_page', $request->all())) {
             $per_page = $request['per_page'];
