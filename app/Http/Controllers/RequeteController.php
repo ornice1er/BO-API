@@ -388,4 +388,18 @@ class RequeteController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+
+    function associateToProject(Request $request, $id) {
+        $message = 'Association de la requête à un projet';
+        try {
+            $projectId = $request->input('project_id');
+            $result = $this->requeteRepository->associateToProject($id, $projectId);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode(['requete_id' => $id, 'project_id' => $projectId])]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+     }
+    
 }

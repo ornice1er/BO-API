@@ -687,4 +687,12 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
             }) 
             ->get();
     }
+
+    function associateToProject($id,$projectId)  {
+        $requete = Requete::findOrFail($id);
+        $requete->project_id = $projectId;
+        $requete->save();
+
+        return $requete;
+    }
 }

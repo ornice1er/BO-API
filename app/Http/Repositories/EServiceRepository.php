@@ -92,8 +92,15 @@ class EServiceRepository
 
       public function getSessionData($request)
     {
-    
+
+    if ($request-has('prestation_codes')) {
+           $check= Project::where('status', '!=', 'closed')->whereIn('prestations', explode(',', $request->get('prestation_codes')))->first();  
+
+    }else{
     $check= Project::where('status', '!=', 'closed')->first();  
+
+    }
+    
 
     if ($check) {
         return $check;
