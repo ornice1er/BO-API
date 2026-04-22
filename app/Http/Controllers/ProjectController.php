@@ -777,4 +777,22 @@ $writer->save($path);
         }
 
     }
+
+    public function accessClosingFile($token)
+{
+    try {
+        $data = decrypt($token);
+
+        if (now()->gt($data['expires_at'])) {
+            abort(403, 'Lien expiré');
+        }
+
+        $project = Project::findOrFail($data['project_id']);
+
+        return Storage::disk('public')->download($project->closing_filename);
+
+    } catch (\Exception $e) {
+        abort(403, 'Lien invalide');
+    }
+}
 }

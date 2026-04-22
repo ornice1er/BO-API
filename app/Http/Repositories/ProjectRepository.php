@@ -3,6 +3,7 @@
 namespace App\Http\Repositories;
 
 use App\Models\Project;
+use App\Services\PNSService;
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
 use Str;
@@ -103,26 +104,80 @@ if (array_key_exists('per_page', $request->all())) {
      */
     public function makeUpdate($id, $data): Project
     {
+$model = Project::findOrFail($id);
 
-        $model = Project::findOrFail($id);
+if (request()->hasFile('file')) {
+    FileStorage::deleteFile('public', $model->filename, 'projects');
+    $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
+    $data['filename'] = 'projects/'.$filename;
+    unset($data['file']);
+}
 
-        if (request()->hasFile('file')) {
-            FileStorage::deleteFile('public', $model->filename, 'projects');
-            $filename = FileStorage::setFile('public', request()->file('file'), 'projects', Str::slug($data['title'].'.'.time()));
-            $data['filename'] = 'projects/'.$filename;
-                    unset( $data['file']);
+if (request()->hasFile('closing_filename')) {
+    FileStorage::deleteFile('public', $model->closing_filename, 'projects');
+    $filename = FileStorage::setFile('public', request()->file('closing_filename'), 'projects', Str::slug($data['title'].'.'.time()));
+    $data['closing_filename'] = 'projects/'.$filename;
+}
 
-        }
-          if (request()->hasFile('closing_filename')) {
-            FileStorage::deleteFile('public', $model->filename, 'projects');
-            $filename = FileStorage::setFile('public', request()->file('closing_filename'), 'projects', Str::slug($data['title'].'.'.time()));
-            $data['closing_filename'] = 'projects/'.$filename;
-                    
+$model->update($data);
 
-        }
-        $model->update($data);
+// ──────────────────────────────────────────
+// Si le projet passe au statut "closed"
+// ──────────────────────────────────────────
+if (isset($data['status']) && $data['status'] === 'closed') {
 
+    // Fichier de clôture obligatoire
+    $closingFileUrl = $model->closing_filename
+        ? Storage::disk('public')->url($model->closing_filename)
+        : null;
+
+    if (!$closingFileUrl) {
         return $model;
+    }
+
+    $prestationCodes = is_array($model->prestations)
+        ? $model->prestations
+        : json_decode($model->prestations, true) ?? [];
+
+    $prestations = Prestation::whereIn('code', $prestationCodes)
+        ->where('is_group_delivered', true)
+        ->get();
+
+    foreach ($prestations as $prestation) {
+
+        // ✅ Récupération directe via project_id et prestation_id
+        $requetes = Requete::where('project_id', $model->id)
+            ->where('prestation_id', $prestation->id)
+            ->get();
+
+        $uniqueToken = encrypt([
+            'project_id'    => $model->id,
+            'prestation_id' => $prestation->id,
+            'expires_at'    => now()->addDays(30)->toDateTimeString(),
+        ]);
+
+        $uniqueLink = route('project.closing.file', ['token' => $uniqueToken]);
+
+        foreach ($requetes as $requete) {
+            try {
+                $pnsService = new PNSService($requete->header, [
+                    'data'     => null,
+                    'message'  => "Publication d'arrêté de clôture demande : " . $requete->code,
+                    'status'   => true,
+                    'link'     => $uniqueLink,
+                    'decision' => $prestation->decision,
+                ]);
+
+                $pnsService->reply();
+
+            } catch (\Exception $e) {
+                \Log::error("Erreur PNS requête {$requete->code} : " . $e->getMessage());
+            }
+        }
+    }
+}
+
+return $model;
     }
 
     /**

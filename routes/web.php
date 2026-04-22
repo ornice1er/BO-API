@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('emails.base');
 });
+
+Route::get('/project/closing/{token}', [ProjectController::class, 'accessClosingFile'])
+    ->name('project.closing.file');
