@@ -12,7 +12,10 @@ class PNSService{
     public $uxpService="BJ/GOV/PNS/PRE-PROD-PORTAIL/rest-api-listener/v1";
 
     public function __construct($header,$payload) {
-        $this->header = array_merge($header,['uxp-client' =>$this->uxpClient,'uxp-service' =>$this->uxpService]);
+        $this->header = array_merge([
+            'Application-id'=>$header['application-id'],
+            'Response-token'=>$header['response-token'],
+        ],['uxp-client' =>$this->uxpClient,'uxp-service' =>$this->uxpService]);
         $this->payload = $payload;
     }
 
