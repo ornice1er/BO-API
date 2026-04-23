@@ -15,4 +15,8 @@ class Agenda extends Model
     function requete() {
         return $this->belongsTo(Requete::class,'requete_id');
     }
+
+    function user() {
+        return $this->belongsTo(\App\Models\User::class,'user_id');
+    }
 }

@@ -28,6 +28,11 @@ class UpdateAgendaRequest extends FormRequest
             'requete_id' => 'nullable|exists:requetes,id',
             'priority' => 'nullable|string|max:50',
             'ua_up' => 'nullable|integer',
+            'from' => 'nullable|in:Usager,Métier',
+            'session_type' => 'nullable|in:matinee,apres_midi,journee_entiere',
+            'rdv_type' => 'nullable|in:premier_rdv,second_rdv,suivi_traitement',
+            'duration_minutes' => 'nullable|integer|min:1',
+            'max_slots' => 'nullable|integer|min:1',
         ];
     }
 
@@ -42,6 +47,9 @@ class UpdateAgendaRequest extends FormRequest
             'user_id.exists' => 'L\'utilisateur sélectionné est invalide.',
             'requete_id.exists' => 'La requête sélectionnée est invalide.',
             'priority.max' => 'La priorité ne doit pas dépasser 50 caractères.',
+            'session_type.in' => 'Le type de session doit être matinee, apres_midi ou journee_entiere.',
+            'rdv_type.in' => 'Le type de RDV doit être premier_rdv, second_rdv ou suivi_traitement.',
+            'from.in' => 'L\'origine doit être Usager ou Métier.',
         ];
     }
 }

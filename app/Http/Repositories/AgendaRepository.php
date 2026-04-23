@@ -127,7 +127,8 @@ function sendMail($id) {
                 'warning' => null
             ], 500);
         }
-        } 
+        }
+    return $agenda;
 }
 
 function getContent($agenda) {
@@ -220,7 +221,7 @@ function getContent($agenda) {
 
     public function setStatus($id, $status)
     {
-        return $this->findOrFail($id)->update(['is_active' => $status]);
+        return $this->findOrFail($id)->update(['status' => $status]);
     }
 
     /**
