@@ -43,6 +43,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
     //enregistrement d'une requete
     Route::post('eservices', 'EServiceController@store');
+    //créneaux de rdv disponibles
+    Route::get('eservices-get-rdv-slots', 'EServiceController@getRDVSlots');
     //enregistrement d'un rdv
     Route::post('eservices-set-rdv', 'EServiceController@setRDV');
     //cloture d'une requete

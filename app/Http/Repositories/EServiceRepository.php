@@ -15,6 +15,7 @@ use App\Models\Agenda;
 use App\Services\PNSService;
 
 use App\Models\RequeteFile;
+use App\Models\PlanningSlot;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use DB;
@@ -364,6 +365,47 @@ private function getHeaders()
             $agenda->save();
 
         return $agenda;
+    }
+
+    public function getRDVSlots($request)
+    {
+        $query = PlanningSlot::available()
+            ->with(['uniteAdmin:id,libelle', 'prestation:id,name,code']);
+
+        if ($request->filled('prestation_code')) {
+            $prestation = Prestation::whereCode($request->prestation_code)->first();
+            if ($prestation) {
+                $query->where(function ($q) use ($prestation) {
+                    $q->where('prestation_id', $prestation->id)
+                      ->orWhereNull('prestation_id');
+                });
+            }
+        }
+
+        if ($request->filled('prestation_id')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('prestation_id', $request->prestation_id)
+                  ->orWhereNull('prestation_id');
+            });
+        }
+
+        if ($request->filled('unite_admin_id')) {
+            $query->where('unite_admin_id', $request->unite_admin_id);
+        }
+
+        if ($request->filled('date_start')) {
+            $query->whereDate('slot_date', '>=', $request->date_start);
+        }
+
+        if ($request->filled('date_end')) {
+            $query->whereDate('slot_date', '<=', $request->date_end);
+        }
+
+        if ($request->filled('session_type')) {
+            $query->where('session_type', $request->session_type);
+        }
+
+        return $query->orderBy('slot_date')->orderBy('heure_debut')->get();
     }
 
     public function closeRequest($data) {

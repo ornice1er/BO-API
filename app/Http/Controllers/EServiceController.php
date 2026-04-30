@@ -560,6 +560,22 @@ class EServiceController extends Controller
     }
 
 
+    public function getRDVSlots(Request $request)
+    {
+        $message = 'Récupération des créneaux de RDV disponibles';
+
+        try {
+            $result = $this->eServiceRepository->getRDVSlots($request);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
      public function setRDV(Request $request)
     {
         $message = 'Création d\'un rdv pour une demande';
