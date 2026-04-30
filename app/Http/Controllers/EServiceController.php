@@ -560,6 +560,33 @@ class EServiceController extends Controller
     }
 
 
+    public function recupDoc(Request $request)
+    {
+        $message = 'Rattachement d\'un document externe au flux';
+
+        try {
+            $request->validate([
+                'code_demande'    => 'required|string',
+                'prestation_code' => 'required|string',
+                'file'            => 'required|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:20480',
+            ]);
+
+            $result = $this->eServiceRepository->recupDoc($request);
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode([
+                'code_demande'    => $request->code_demande,
+                'prestation_code' => $request->prestation_code,
+            ])]);
+
+            return Common::success('Document rattaché au flux avec succès', $result);
+
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return Common::error('Données invalides : ' . implode(' | ', \Arr::flatten($ve->errors())), []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
     public function getRDVSlots(Request $request)
     {
         $message = 'Récupération des créneaux de RDV disponibles';

@@ -16,8 +16,11 @@ use App\Services\PNSService;
 
 use App\Models\RequeteFile;
 use App\Models\PlanningSlot;
+use App\Models\DocumentActe;
+use App\Models\EtapeDocumentProduit;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use DB;
 
 
@@ -406,6 +409,92 @@ private function getHeaders()
         }
 
         return $query->orderBy('slot_date')->orderBy('heure_debut')->get();
+    }
+
+    public function recupDoc(Request $request): array
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1. Résoudre la requête et la prestation
+            $requete = Requete::where('code', $request->code_demande)->firstOrFail();
+            $prestation = Prestation::whereCode($request->prestation_code)->firstOrFail();
+
+            // Cohérence : la prestation de la requête doit correspondre
+            if ($requete->prestation_id !== $prestation->id) {
+                throw new JsonResponseException([
+                    'message' => 'La prestation_code ne correspond pas à la demande',
+                    'success' => false,
+                    'data'    => null,
+                ], 422);
+            }
+
+            // 2. Trouver le document produit configuré pour l'étape courante
+            $docProduit = EtapeDocumentProduit::where('prestation_id', $prestation->id)
+                ->where('etape_edition_id', $requete->current_etape_id)
+                ->first();
+
+            if (!$docProduit) {
+                throw new JsonResponseException([
+                    'message' => "Aucun document produit configuré pour l'étape courante de cette demande",
+                    'success' => false,
+                    'data'    => null,
+                ], 422);
+            }
+
+            // 3. Trouver ou initialiser le DocumentActe
+            $acte = DocumentActe::firstOrNew([
+                'requete_id'     => $requete->id,
+                'doc_produit_id' => $docProduit->id,
+            ]);
+
+            if (!$acte->numero_identification) {
+                $prefix  = $docProduit->numero_prefix ?? 'DOC';
+                $annee   = now()->year;
+                $dernier = DocumentActe::where('doc_produit_id', $docProduit->id)
+                    ->whereYear('created_at', $annee)->count();
+                $acte->numero_identification = sprintf('%s-%d-%04d', $prefix, $annee, $dernier + 1);
+                $acte->generated_at = now();
+            }
+
+            // 4. Stocker le fichier
+            $file     = $request->file('file');
+            $ext      = $file->getClientOriginalExtension() ?: 'pdf';
+            $filename = $acte->numero_identification . '_ext_' . time() . '.' . $ext;
+            $dir      = 'documents/' . $requete->code;
+
+            Storage::disk('public')->putFileAs($dir, $file, $filename);
+
+            $path = $dir . '/' . $filename;
+
+            $acte->file_path    = $path;
+            $acte->file_url     = Storage::disk('public')->url($path);
+            $acte->status       = 'en_edition';
+            $acte->save();
+
+            // 5. Avancer le workflow selon la transition configurée sur le doc produit
+            $conditionType = $docProduit->decision ?? 'validation';
+
+            app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, [
+                'comment'  => 'Document reçu depuis générateur externe',
+                'metadata' => [
+                    'doc_acte_id' => $acte->id,
+                    'file_path'   => $path,
+                    'source'      => 'generateur_externe',
+                ],
+            ]);
+
+            DB::commit();
+
+            return [
+                'acte'     => $acte->load(['docProduit', 'requete']),
+                'file_url' => $acte->file_url,
+            ];
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
 
     public function closeRequest($data) {

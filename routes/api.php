@@ -45,6 +45,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::post('eservices', 'EServiceController@store');
     //créneaux de rdv disponibles
     Route::get('eservices-get-rdv-slots', 'EServiceController@getRDVSlots');
+    //rattachement d'un document généré en externe au flux en cours
+    Route::post('eservices-recup-doc', 'EServiceController@recupDoc');
     //enregistrement d'un rdv
     Route::post('eservices-set-rdv', 'EServiceController@setRDV');
     //cloture d'une requete
@@ -263,6 +265,14 @@ Route::post('requetes/{id}/corriger',            [RequeteController::class, 'cor
 Route::post('requetes/documents/{acteId}/traiter',[RequeteController::class, 'traiterDocument']);
 
 Route::get('workflows-transitions', [WorkflowController::class, 'getTransitions']);
+
+// Planning slots (créneaux RDV)
+Route::get('planning-slots', 'PlanningSlotController@index');
+Route::post('planning-slots', 'PlanningSlotController@store');
+Route::get('planning-slots/{id}', 'PlanningSlotController@show');
+Route::patch('planning-slots/{id}', 'PlanningSlotController@update');
+Route::delete('planning-slots/{id}', 'PlanningSlotController@destroy');
+Route::get('planning-slots/{id}/toggle-availability', 'PlanningSlotController@toggleAvailability');
 
 
           
