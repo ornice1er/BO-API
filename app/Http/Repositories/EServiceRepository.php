@@ -19,6 +19,7 @@ use App\Models\PlanningSlot;
 use App\Models\DocumentActe;
 use App\Models\EtapeDocumentProduit;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use DB;
@@ -411,28 +412,24 @@ private function getHeaders()
         return $query->orderBy('slot_date')->orderBy('heure_debut')->get();
     }
 
-    public function recupDoc(Request $request): array
+    public function recupDoc(array $data): array
     {
         DB::beginTransaction();
 
         try {
-            // 1. Résoudre la requête et la prestation
-            $requete = Requete::where('code', $request->code_demande)->firstOrFail();
-            $prestation = Prestation::whereCode($request->prestation_code)->firstOrFail();
-
-            // Cohérence : la prestation de la requête doit correspondre
-            if ($requete->prestation_id !== $prestation->id) {
-                throw new JsonResponseException([
-                    'message' => 'La prestation_code ne correspond pas à la demande',
-                    'success' => false,
-                    'data'    => null,
-                ], 422);
-            }
+            // 1. Résoudre la requête — la prestation en est déduite directement
+            $requete = Requete::with('prestation')->where('code', $data['code_demande'])->firstOrFail();
 
             // 2. Trouver le document produit configuré pour l'étape courante
-            $docProduit = EtapeDocumentProduit::where('prestation_id', $prestation->id)
-                ->where('etape_edition_id', $requete->current_etape_id)
-                ->first();
+            $query = EtapeDocumentProduit::where('prestation_id', $requete->prestation_id)
+                ->where('etape_edition_id', $requete->current_etape_id);
+
+            // Filtrage optionnel par type si renseigné
+            if (!empty($data['type'])) {
+                $query->where('type', $data['type']);
+            }
+
+            $docProduit = $query->first();
 
             if (!$docProduit) {
                 throw new JsonResponseException([
@@ -457,15 +454,32 @@ private function getHeaders()
                 $acte->generated_at = now();
             }
 
-            // 4. Stocker le fichier
-            $file     = $request->file('file');
-            $ext      = $file->getClientOriginalExtension() ?: 'pdf';
+            // 4. Télécharger le fichier depuis l'URL externe
+            $response = Http::timeout(30)->get($data['url']);
+
+            if (!$response->successful()) {
+                throw new JsonResponseException([
+                    'message' => "Impossible de télécharger le document depuis l'URL fournie (HTTP {$response->status()})",
+                    'success' => false,
+                    'data'    => null,
+                ], 502);
+            }
+
+            // Déduire l'extension depuis le Content-Type ou l'URL
+            $contentType = $response->header('Content-Type') ?? 'application/pdf';
+            $ext = match(true) {
+                str_contains($contentType, 'pdf')  => 'pdf',
+                str_contains($contentType, 'word') => 'docx',
+                str_contains($contentType, 'png')  => 'png',
+                str_contains($contentType, 'jpeg') => 'jpg',
+                default                            => pathinfo(parse_url($data['url'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'pdf',
+            };
+
             $filename = $acte->numero_identification . '_ext_' . time() . '.' . $ext;
             $dir      = 'documents/' . $requete->code;
+            $path     = $dir . '/' . $filename;
 
-            Storage::disk('public')->putFileAs($dir, $file, $filename);
-
-            $path = $dir . '/' . $filename;
+            Storage::disk('public')->put($path, $response->body());
 
             $acte->file_path    = $path;
             $acte->file_url     = Storage::disk('public')->url($path);
@@ -478,9 +492,11 @@ private function getHeaders()
             app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, [
                 'comment'  => 'Document reçu depuis générateur externe',
                 'metadata' => [
-                    'doc_acte_id' => $acte->id,
-                    'file_path'   => $path,
-                    'source'      => 'generateur_externe',
+                    'doc_acte_id'  => $acte->id,
+                    'file_path'    => $path,
+                    'source_url'   => $data['url'],
+                    'type'         => $data['type'] ?? null,
+                    'source'       => 'generateur_externe',
                 ],
             ]);
 

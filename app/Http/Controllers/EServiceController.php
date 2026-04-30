@@ -566,15 +566,16 @@ class EServiceController extends Controller
 
         try {
             $request->validate([
-                'code_demande'    => 'required|string',
-                'prestation_code' => 'required|string',
-                'file'            => 'required|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:20480',
+                'code_demande' => 'required|string',
+                'url'          => 'required|url',
+                'type'         => 'nullable|string',
             ]);
 
-            $result = $this->eServiceRepository->recupDoc($request);
+            $result = $this->eServiceRepository->recupDoc($request->only('code_demande', 'url', 'type'));
             $this->ls->trace(['action_name' => $message, 'description' => json_encode([
-                'code_demande'    => $request->code_demande,
-                'prestation_code' => $request->prestation_code,
+                'code_demande' => $request->code_demande,
+                'url'          => $request->url,
+                'type'         => $request->type,
             ])]);
 
             return Common::success('Document rattaché au flux avec succès', $result);
