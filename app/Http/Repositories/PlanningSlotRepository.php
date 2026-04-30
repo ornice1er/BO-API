@@ -47,9 +47,17 @@ class PlanningSlotRepository
             $query->where('is_available', (bool) $request->is_available);
         }
 
+        if ($request->filled('per_page')) {
+            
         $per_page = $request->get('per_page', 20);
 
         return $query->paginate($per_page);
+        }else{
+
+
+        return $query->get();
+        }
+
     }
 
     public function get($id)
