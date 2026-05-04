@@ -454,8 +454,13 @@ private function getHeaders()
                 $acte->generated_at = now();
             }
 
+            $host = parse_url($data['url'], PHP_URL_HOST);
+            $docUrl = ($host === 'localhost')
+            ? env('APP_FAKE_URL')
+            : $data['url']; 
+
             // 4. Télécharger le fichier depuis l'URL externe
-            $response = Http::timeout(30)->get($data['url']);
+            $response = Http::timeout(30)->get($docUrl);
 
             if (!$response->successful()) {
                 throw new JsonResponseException([
@@ -465,10 +470,7 @@ private function getHeaders()
                 ], 502);
             }
 
-            $host = parse_url($data['url'], PHP_URL_HOST);
-            $docUrl = ($host === 'localhost')
-            ? env('APP_ZIP_URL')
-            : $data['url']; 
+           
 
             // Déduire l'extension depuis le Content-Type ou l'URL
             $contentType = $response->header('Content-Type') ?? 'application/pdf';
