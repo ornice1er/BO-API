@@ -465,6 +465,11 @@ private function getHeaders()
                 ], 502);
             }
 
+            $host = parse_url($data['url'], PHP_URL_HOST);
+            $docUrl = ($host === 'localhost')
+            ? env('APP_ZIP_URL')
+            : $data['url']; 
+
             // Déduire l'extension depuis le Content-Type ou l'URL
             $contentType = $response->header('Content-Type') ?? 'application/pdf';
             $ext = match(true) {
@@ -472,7 +477,7 @@ private function getHeaders()
                 str_contains($contentType, 'word') => 'docx',
                 str_contains($contentType, 'png')  => 'png',
                 str_contains($contentType, 'jpeg') => 'jpg',
-                default                            => pathinfo(parse_url($data['url'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'pdf',
+                default                            => pathinfo(parse_url($docUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'pdf',
             };
 
             $filename = $acte->numero_identification . '_ext_' . time() . '.' . $ext;
@@ -494,7 +499,7 @@ private function getHeaders()
                 'metadata' => [
                     'doc_acte_id'  => $acte->id,
                     'file_path'    => $path,
-                    'source_url'   => $data['url'],
+                    'source_url'   => $docUrl,
                     'type'         => $data['type'] ?? null,
                     'source'       => 'generateur_externe',
                 ],
