@@ -456,7 +456,7 @@ private function getHeaders()
 
             $host = parse_url($data['url'], PHP_URL_HOST);
             $docUrl = ($host === 'localhost')
-            ? env('APP_FAKE_URL')
+            ? env('APP_DOC_FAKE_URL')
             : $data['url']; 
 
             // 4. Télécharger le fichier depuis l'URL externe
