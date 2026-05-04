@@ -19,7 +19,7 @@ class PNSService{
 
          $this->header =[
              'Application-id'=>$header['application-id'],
-             'Response-token'=>$header['response-token']];
+             'Token'=>$header['response-token']];
         $this->payload = $payload;
     }
 
