@@ -409,17 +409,7 @@ private function getHeaders()
             $query->where('session_type', $request->session_type);
         }
 
-      $slots = $query->orderBy('slot_date')->orderBy('heure_debut')->get();
-
-            $slots = $slots->map(function ($slot) {
-               // $slot->datetime = $slot->slot_date . ' ' . $slot->heure_debut;
-                // Ou avec Carbon pour un format plus propre :
-                $slot->datetime = \Carbon\Carbon::parse($slot->slot_date . ' ' . $slot->heure_debut)
-                                    ->format('Y-m-d H:i:s');
-                return $slot;
-            });
-
-            return $slots;
+        return $query->orderBy('slot_date')->orderBy('heure_debut')->get();
     }
 
     public function recupDoc(array $data): array

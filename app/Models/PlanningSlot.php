@@ -12,7 +12,18 @@ class PlanningSlot extends Model
     protected $table = 'planning_slots';
     protected $guarded = [];
 
-    protected $appends = ['slots_remaining', 'is_full'];
+
+    protected $appends = ['slots_remaining', 'is_full', 'datetime'];
+
+
+
+
+    public function getDatetimeAttribute(): string
+    {
+        return \Carbon\Carbon::parse($this->slot_date . ' ' . $this->heure_debut)
+                    ->format('Y-m-d H:i:s');
+    }
+
 
     public function getSlotsRemainingAttribute(): int
     {
