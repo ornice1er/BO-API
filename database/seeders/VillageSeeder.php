@@ -15,6 +15,7 @@ class VillageSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Village::count() > 0) return;
 
           $villagesData = [
             // Votre liste de données fournie

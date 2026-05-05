@@ -16,6 +16,8 @@ class DistrictSeeder extends Seeder
      */
     public function run(): void
     {
+        if (District::count() > 0) return;
+
         $districtsData = [
     ['name' => 'BANIKOARA', 'municipality_id' => 1],
     ['name' => 'FOUNOUGO', 'municipality_id' => 1],

@@ -14,6 +14,8 @@ class DepartmentSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Department::count() > 0) return;
+
         $departmentNames = [
             'ALIBORI',
             'ATACORA',

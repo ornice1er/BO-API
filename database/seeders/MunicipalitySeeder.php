@@ -15,6 +15,8 @@ class MunicipalitySeeder extends Seeder
      */
     public function run(): void
     {
+        if (Municipality::count() > 0) return;
+
         $municipalitiesData = [
     ['name' => 'BANIKOARA', 'department_id' => 1],
     ['name' => 'GOGOUNOU', 'department_id' => 1],

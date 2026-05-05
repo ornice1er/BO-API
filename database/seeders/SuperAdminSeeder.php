@@ -22,21 +22,27 @@ class SuperAdminSeeder extends Seeder
     {
         $role = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'api']);
 
-        $user = User::create([
-            'username' => 'Super Admin',
-            'email' => 'superadmin@gouv.bj',
-            'password' => Hash::make('boes@2025')
-        ]);
-    
-        UserSetting::create([
-            'user_id' => $user->id,
-            'use_2FA' => false,
-            'accept_notification' => false,
-            'notification_list' => null,
-            'mode_2FA' => 'SMS',
-        ]);
-       
-        $user->assignRole($role);
+        $user = User::firstOrCreate(
+            ['email' => 'superadmin@gouv.bj'],
+            [
+                'username' => 'Super Admin',
+                'password' => Hash::make('boes@2025'),
+            ]
+        );
+
+        UserSetting::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'use_2FA' => false,
+                'accept_notification' => false,
+                'notification_list' => null,
+                'mode_2FA' => 'SMS',
+            ]
+        );
+
+        if (!$user->hasRole($role)) {
+            $user->assignRole($role);
+        }
 
     }
 }
