@@ -47,7 +47,8 @@ class AgendaRepository
     {
         $per_page = 10;
 
-        $req = Agenda::ignoreRequest(['per_page'])
+        $req = Agenda::with(['user.agent:id,user_id,lastname,firstname'])
+            ->ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))

@@ -22,9 +22,9 @@ class UpdateAgentRequest extends FormRequest
             'lastname' => 'required|string|max:255',
             'firstname' => 'required|string|max:255',
             'numero_matricule' => "required|string|unique:agents,numero_matricule,{$agentId}",
-            'unite_admin_id' => 'required|exists:unite_admins,id',
-            'entite_admin_id' => 'required|exists:entite_admins,id',
-            'fonction_agent_id' => 'required|exists:fonction_agents,id',
+            'unite_admin_id' => 'nullable|exists:unite_admins,id',
+            'entite_admin_id' => 'nullable|exists:entite_admins,id',
+            'fonction_agent_id' => 'nullable|exists:fonction_agents,id',
         ];
     }
 
