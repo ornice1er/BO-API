@@ -77,6 +77,7 @@ public function currentEtape()    { return $this->belongsTo(Etape::class, 'curre
 public function currentStatus()   { return $this->belongsTo(Status::class, 'current_status_id'); }
 public function requeteEtapeLogs(){ return $this->hasMany(RequeteEtapeLog::class); }
 public function documentActes()   { return $this->hasMany(DocumentActe::class); }
+public function agendas()         { return $this->hasMany(Agenda::class, 'requete_id'); }
     /**
      * Les commissions auxquelles cette requête est associée
      */

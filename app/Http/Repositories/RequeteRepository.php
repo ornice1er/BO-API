@@ -140,6 +140,7 @@ class RequeteRepository
                 'files',
                 'parcours',
                 'project',
+                'agendas',
                 'documentActes.docProduit',
                 'documentActes.currentCircuitStep',
                 'documentActes.logs',
@@ -241,13 +242,26 @@ class RequeteRepository
             ]);
 
             if ($transition->can_act_pns) {
-              $pnsService= new PNSService($requete->header,[
-                    "data" => null,
-                    "message" => "Mise à jour de votre demande : ".$requete->code,
-                    "status" => true,
-                    "decision" => $transition->decision,
-                ]);   
-                $result= $pnsService->reply();
+                $isGroupDelivered  = (bool) ($requete->prestation->is_group_delivered ?? false);
+                $isTerminal        = (bool) ($transition->etape->is_terminal ?? false);
+                $isFavorable       = !in_array(
+                    $transition->statusResult->short_name ?? '',
+                    ['rejete', 'rejete_clos', 'cloture', 'annule']
+                );
+
+                // Pour une délivrance groupée, l'étape terminale favorable est traitée
+                // en masse côté projet ; on ne notifie pas le PNS individuellement.
+                $skipPns = $isGroupDelivered && $isTerminal && $isFavorable;
+
+                if (!$skipPns) {
+                    $pnsService = new PNSService($requete->header, [
+                        "data"     => null,
+                        "message"  => "Mise à jour de votre demande : " . $requete->code,
+                        "status"   => true,
+                        "decision" => $transition->decision,
+                    ]);
+                    $result = $pnsService->reply();
+                }
             }
               
 
