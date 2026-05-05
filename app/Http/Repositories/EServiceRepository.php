@@ -494,7 +494,7 @@ private function getHeaders()
             $acte->save();
 
             // 5. Avancer le workflow selon la transition configurée sur le doc produit
-            $conditionType = $docProduit->decision ?? 'validation';
+            $conditionType = 'validation';
 
             app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, [
                 'comment'  => 'Document reçu depuis générateur externe',
