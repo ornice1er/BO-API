@@ -28,7 +28,7 @@ class AgendaRepository
     public function __construct(RequeteRepository $requeteRepository)
     {
         $this->requeteRepository = $requeteRepository;
-        // Don't forget to update the model's name
+        // Don't forget to update the model's namep
         $this->model = app(Agenda::class);
     }
 
