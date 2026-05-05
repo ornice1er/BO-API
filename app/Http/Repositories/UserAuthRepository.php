@@ -192,13 +192,32 @@ class UserAuthRepository
 
         if (request()->hasFile('photo')) {
             FileStorage::deleteFile('public', $user->filename, 'avatars');
-            $filename = FileStorage::setFile('public', request()->file('photo'), 'avatars', Str::slug($data['lastname'].'.'.$data['firstname'].'.'.time()));
+            $filename = FileStorage::setFile('public', request()->file('photo'), 'avatars', Str::slug(time()));
             $data['photo'] = 'avatars/'.$filename;
         }
 
-        $user->update($data);
+        // Champs appartenant à la table users
+        $userFields = array_filter([
+            'email'    => $data['email'] ?? null,
+            'photo'    => $data['photo'] ?? null,
+            'is_trade' => $data['is_trade'] ?? null,
+        ], fn($v) => !is_null($v));
 
-        return $user;
+        $user->update($userFields);
+
+        // Champs appartenant à la table agents
+        if ($user->agent) {
+            $agentFields = array_filter([
+                'firstname' => $data['firstname'] ?? null,
+                'lastname'  => $data['lastname'] ?? null,
+            ], fn($v) => !is_null($v));
+
+            if (!empty($agentFields)) {
+                $user->agent->update($agentFields);
+            }
+        }
+
+        return $user->fresh(['roles.permissions', 'agent.uniteAdmin']);
     }
 
     public function logout(Request $request)

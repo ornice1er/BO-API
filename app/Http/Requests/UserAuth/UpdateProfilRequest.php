@@ -25,13 +25,13 @@ class UpdateProfilRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|unique:users,id,email',
-            'firstname' => 'required|string|max:100',
-            'lastname' => 'required|string|max:100',
+            'email' => 'required|email',
+            'firstname' => 'nullable|string|max:100',
+            'lastname' => 'nullable|string|max:100',
             'birthdate' => 'nullable|date',
             'birthplace' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             // 'photo' => 'nullable|file|mimes:jpg,bmp,png,webp,jpeg',
             'photo' => 'nullable|string',
             'projects' => 'nullable|array',
