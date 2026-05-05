@@ -44,27 +44,25 @@ class RequeteRepository
 {
     $prestation       = Prestation::where('code', $prestationCode)->firstOrFail();
     $user             = Auth::user();
-    $userRoles        = $user->getRoleNames(); // Spatie
+    $userRoles        = $user->getRoleNames();
     $userUniteAdminId = $user->agent?->unite_admin_id;
- 
-    // Récupérer les transition_ids où ce rôle peut agir
-    // en tenant compte du scope_type et de l'unite_admin_id
+
+    // Périmètre géographique de l'unité de l'agent (CS ou DDEMP)
+    $userUA = $userUniteAdminId
+        ? UniteAdmin::find($userUniteAdminId)
+        : null;
+
     $transitionIds = EtapeVisibilite::whereIn('role_name', $userRoles)
         ->where('can_act', true)
         ->where(function ($q) use ($userUniteAdminId) {
-            $q
-              // Scope 'requete' → s'applique à tous les agents du rôle
-              ->where('scope_type', 'requete')
-              // Scope 'unite_admin' → uniquement si l'unité correspond
+            $q->where('scope_type', 'requete')
               ->orWhere(function ($q2) use ($userUniteAdminId) {
                   $q2->where('scope_type', 'unite_admin')
                      ->where('unite_admin_id', $userUniteAdminId);
               });
         })
         ->pluck('workflow_transition_id');
- 
-    // Récupérer les etape_to_id correspondantes
-   
+
         if (request()->nature=='validation') {
              $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
              ->where('prestation_id', $prestation->id)
@@ -76,8 +74,7 @@ class RequeteRepository
         ->where('condition_type', request()->nature)
         ->pluck('etape_to_id');
         }
-        
- 
+
     return Requete::with([
             'currentEtape',
             'currentStatus',
@@ -90,6 +87,16 @@ class RequeteRepository
         ->whereIn('current_etape_id', $etapeIds)
         ->where('isTreated', false)
         ->where('isDeclined', false)
+        // ── Filtre géographique ──────────────────────────────────────────────
+        // CS (unité communale) : ne voit que les demandes de sa commune
+        ->when($userUA?->municipality_id, function ($q) use ($userUA) {
+            $q->where('municipality_id', $userUA->municipality_id);
+        })
+        // DDEMP (unité départementale sans commune) : demandes de son département
+        ->when(!$userUA?->municipality_id && $userUA?->department_id, function ($q) use ($userUA) {
+            $q->where('department_id', $userUA->department_id);
+        })
+        // ────────────────────────────────────────────────────────────────────
         ->orderByDesc('created_at')
         ->get()
         ->map(function ($requete) {

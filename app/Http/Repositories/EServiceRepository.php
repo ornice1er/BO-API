@@ -232,45 +232,57 @@ class EServiceRepository
             ], 500);
         }
        
-        $premiereTransition = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
-        ->where('condition_type', 'auto')
-        ->orderBy('order')
-        ->first();
+        // ── Champs géographiques ──────────────────────────────────────────────
+        $municipalityId = $data['meta']['municipality_id'] ?? null;
+        $departmentId   = $data['meta']['department_id']   ?? null;
 
-    if ($premiereTransition) {
-        // 2. Pointer l'étape courante et le statut
-        $req->current_etape_id   = $premiereTransition->etape_to_id;
-        $req->current_status_id  = $premiereTransition->status_result_id;
-        $req->etape_started_at   = now();
+        if ($municipalityId) {
+            $req->municipality_id = $municipalityId;
+            $req->department_id   = null; // la commune prime sur le département
+        } elseif ($departmentId) {
+            $req->department_id   = $departmentId;
+        }
         $req->save();
 
-        // 3. Logger la transition dans requete_etape_logs
-        \App\Models\RequeteEtapeLog::create([
-            'requete_id'              => $req->id,
-            'workflow_transition_id'  => $premiereTransition->id,
-            'etape_from_id'           => $premiereTransition->etape_from_id,
-            'etape_to_id'             => $premiereTransition->etape_to_id,
-            'status_id'               => $premiereTransition->status_result_id,
-            'triggered_by'            => null,      // système
-            'triggered_by_type'       => 'système',
-            'comment'                 => 'Soumission initiale de la demande',
-            'transitioned_at'         => now(),
-            'created_at'              => now(),
-        ]);
-    }
+        // ── Première transition auto ──────────────────────────────────────────
+        $premiereTransition = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
+            ->where('condition_type', 'auto')
+            ->orderBy('order')
+            ->first();
 
-        Parcours::create(['libelle'=>"Soumission de la demande :".$prestation->name,'requete_id'=>$req->id]);
-      //  $unite_admin_down=UniteAdmin::where('ua_parent_code',$prestation->uniteAdmin->id)->first();
-        $unite_admin_down=UniteAdmin::find($prestation->startPoint2?->id);
-        
+        if ($premiereTransition) {
+            $req->current_etape_id  = $premiereTransition->etape_to_id;
+            $req->current_status_id = $premiereTransition->status_result_id;
+            $req->etape_started_at  = now();
+            $req->save();
+
+            \App\Models\RequeteEtapeLog::create([
+                'requete_id'             => $req->id,
+                'workflow_transition_id' => $premiereTransition->id,
+                'etape_from_id'          => $premiereTransition->etape_from_id,
+                'etape_to_id'            => $premiereTransition->etape_to_id,
+                'status_id'              => $premiereTransition->status_result_id,
+                'triggered_by'           => null,
+                'triggered_by_type'      => 'système',
+                'comment'                => 'Soumission initiale de la demande',
+                'transitioned_at'        => now(),
+                'created_at'             => now(),
+            ]);
+        }
+
+        // ── Sélection de l'unité de traitement (routage géographique) ─────────
+        $unite_admin_down = $this->resolveUniteAdminDown($prestation, $municipalityId, $departmentId);
+
+        Parcours::create(['libelle' => "Soumission de la demande : " . $prestation->name, 'requete_id' => $req->id]);
+
         Affectation::create([
-            'unite_admin_up'=>$prestation->uniteAdmin->id,
-            'unite_admin_down'=>$unite_admin_down->id,
-            'requete_id'=>$req->id,
-            'isLast'=>1,
-            'sens'=>1,
+            'unite_admin_up'   => $prestation->uniteAdmin->id,
+            'unite_admin_down' => $unite_admin_down->id,
+            'requete_id'       => $req->id,
+            'isLast'           => 1,
+            'sens'             => 1,
         ]);
-        Parcours::create(['libelle'=>"Affectation de la demande  ".$req->code." par le/la ".$prestation->uniteAdmin->libelle." au/à la " .$unite_admin_down->libelle ,'requete_id'=>$req->id]);
+        Parcours::create(['libelle' => "Affectation de la demande " . $req->code . " par le/la " . $prestation->uniteAdmin->libelle . " au/à la " . $unite_admin_down->libelle, 'requete_id' => $req->id]);
          
             DB::commit();
 
@@ -282,6 +294,35 @@ class EServiceRepository
 
 
 
+    }
+
+    /**
+     * Résout l'unité admin de traitement (CS ou DDEMP) selon le périmètre géographique.
+     * Priorité : commune > département > start_point par défaut.
+     */
+    private function resolveUniteAdminDown(Prestation $prestation, ?int $municipalityId, ?int $departmentId): UniteAdmin
+    {
+        // 1. Si une commune est fournie, chercher la CS correspondante
+        if ($municipalityId) {
+            $cs = UniteAdmin::where('municipality_id', $municipalityId)
+                ->whereHas('typeUniteAdmin', fn($q) => $q->where('libelle', 'Service'))
+                ->first();
+
+            if ($cs) return $cs;
+        }
+
+        // 2. Si un département est fourni, chercher la DDEMP correspondante
+        if ($departmentId) {
+            $ddemp = UniteAdmin::where('department_id', $departmentId)
+                ->whereNull('municipality_id')
+                ->whereHas('typeUniteAdmin', fn($q) => $q->where('libelle', 'Direction Départementale'))
+                ->first();
+
+            if ($ddemp) return $ddemp;
+        }
+
+        // 3. Défaut : start_point configuré sur la prestation
+        return UniteAdmin::findOrFail($prestation->startPoint2?->id ?? $prestation->unite_admin_id);
     }
 
 private function getHeaders()
