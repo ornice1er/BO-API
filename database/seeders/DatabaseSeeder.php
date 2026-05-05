@@ -19,5 +19,6 @@ class DatabaseSeeder extends Seeder
         $this->call(MunicipalitySeeder::class);
         $this->call(DistrictSeeder::class);
         $this->call(VillageSeeder::class);
+        $this->call(MEMPUniteAdminSeeder::class);
     }
 }
