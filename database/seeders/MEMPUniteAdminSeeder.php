@@ -20,7 +20,7 @@ use Spatie\Permission\Models\Role;
 class MEMPUniteAdminSeeder extends Seeder
 {
     // Libellés de référence — résolus dynamiquement à l'exécution
-    const ENTITE_LIBELLE         = 'Ministère de l\'Enseignement Maternel et Primaire';
+    const ENTITE_LIBELLE         = 'Ministère de l\'Enseignement Maternelle et Primaire';
     const TYPE_DDEMP_LIBELLE     = 'Direction Départementale';
     const TYPE_CS_LIBELLE        = 'Circonscription Scolaire';
     const FONCTION_DIR_LIBELLE   = 'Directeur';
@@ -53,11 +53,17 @@ class MEMPUniteAdminSeeder extends Seeder
             ['libelle' => self::FONCTION_CCD_LIBELLE]
         );
 
-        // Idempotence : skip si des DDEMP MEMP réels (avec département) existent déjà
-        if (UniteAdmin::where('entite_admin_id', $entite->id)
-                       ->where('type_unite_admin_id', $typeDdemp->id)
-                       ->whereNotNull('department_id')
-                       ->exists()) {
+        // Idempotence : skip seulement si DDEMP et CS sont déjà tous présents
+        $ddempExist = UniteAdmin::where('entite_admin_id', $entite->id)
+                                ->where('type_unite_admin_id', $typeDdemp->id)
+                                ->whereNotNull('department_id')
+                                ->exists();
+        $csExist    = UniteAdmin::where('entite_admin_id', $entite->id)
+                                ->where('type_unite_admin_id', $typeCs->id)
+                                ->whereNull('department_id')
+                                ->whereNotNull('municipality_id')
+                                ->exists();
+        if ($ddempExist && $csExist) {
             $this->command->info('MEMPUniteAdminSeeder : données déjà présentes, skip.');
             return;
         }
@@ -113,7 +119,7 @@ class MEMPUniteAdminSeeder extends Seeder
                     'sigle'              => $sigle,
                     'type_unite_admin_id' => $typeCs->id,
                     'entite_admin_id'     => $entite->id,
-                    'department_id'       => $mun->department_id,
+                    'department_id'       => null,
                     'municipality_id'     => $mun->id,
                     'ua_parent_code'      => $parent?->id,
                 ]
