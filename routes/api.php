@@ -100,6 +100,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             'departments' => 'DepartmentController',
             'districts' => 'DistrictController',
             'villages' => 'VillageController',
+            'municipalities' => 'MunicipalityController',
             'roles' => 'RoleController',
             'permissions' => 'PermissionController',
             'profiles' => 'ProfilController',
