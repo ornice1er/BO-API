@@ -20,7 +20,7 @@ class Village extends Model
 
     public function district()
     {
-        return $this->belongsTo(Village::class);
+        return $this->belongsTo(District::class);
     }
 
     /**

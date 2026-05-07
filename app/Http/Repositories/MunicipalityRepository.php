@@ -45,6 +45,7 @@ class MunicipalityRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
+            ->with('department')
             ->where('department_id', '!=', null)
             ->orderByDesc('created_at');
 
