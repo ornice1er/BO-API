@@ -33,7 +33,8 @@ class UpdateUserRequest extends FormRequest
             'agent_id' => 'nullable|integer|exists:agents,id',
             'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
             'email' => 'required|email|max:255|unique:users,email,'. $userId ,
-            'choices' => 'nullable|array'
+            'choices' => 'nullable|array',
+            'is_trade' => 'nullable|boolean',
 
         ];
     }
