@@ -136,16 +136,16 @@ class UserRepository
 
     unset($data['roles'], $data['choices']);
 
-    if (Auth::user()->hasRole('Admin national')) {
+    // if (Auth::user()->hasRole('Admin national')) {
 
-        $user->update($data);
+    //     $user->update($data);
 
-        // 👉 Mise à jour des rôles
-        $user->syncRoles($roles);
+    //     // 👉 Mise à jour des rôles
+    //     $user->syncRoles($roles);
 
-        return $user;   
+    //     return $user;   
 
-    } elseif (Auth::user()->hasRole('Administrateur Sectoriel')) {
+    // } elseif (Auth::user()->hasRole('Administrateur Sectoriel')) {
 
         // Suppression anciennes prestations
         foreach ($user->userprestations as $value) {
@@ -166,9 +166,9 @@ class UserRepository
         $user->syncRoles($roles);
 
         return $user;   
-    }
+  //  }
 
-    return $user;   
+   // return $user;   
 }
 
     /**
