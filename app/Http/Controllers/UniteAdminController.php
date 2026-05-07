@@ -549,7 +549,7 @@ class UniteAdminController extends Controller
         $message = 'Filtrage des uniteAdmins';
 
         try {
-            $term = $request->term;
+            $term = $request->input('search') ?? $request->input('term');
             $result = $this->uniteAdminRepository->search($term);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 

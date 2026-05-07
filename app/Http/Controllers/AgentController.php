@@ -513,7 +513,7 @@ class AgentController extends Controller
         $message = 'Filtrage des agents';
 
         try {
-            $term = $request->term;
+            $term = $request->input('search') ?? $request->input('term');
             $result = $this->agentRepository->search($term);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 

@@ -126,13 +126,11 @@ class PrestationRepository
      */
     public function search($term)
     {
-        $query = Prestation::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
-
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Return the search results
+        return Prestation::where(function ($q) use ($term) {
+                $q->where('name', 'like', '%'.$term.'%')
+                  ->orWhere('code', 'like', '%'.$term.'%')
+                  ->orWhere('slug', 'like', '%'.$term.'%');
+            })
+            ->get();
     }
 }

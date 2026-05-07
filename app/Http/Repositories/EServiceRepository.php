@@ -387,14 +387,12 @@ private function getHeaders()
      */
     public function search($term)
     {
-        $query = Requete::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
-
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Return the search results
+        return Requete::where(function ($q) use ($term) {
+                $q->where('code', 'like', '%'.$term.'%')
+                  ->orWhere('email', 'like', '%'.$term.'%')
+                  ->orWhere('phone', 'like', '%'.$term.'%');
+            })
+            ->get();
     }
 
     public function setRDV($data) {

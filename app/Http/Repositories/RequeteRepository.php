@@ -717,4 +717,14 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
 
         return $requete;
     }
+
+    public function search($term)
+    {
+        return Requete::where(function ($q) use ($term) {
+                $q->where('code', 'like', '%'.$term.'%')
+                  ->orWhere('email', 'like', '%'.$term.'%')
+                  ->orWhere('phone', 'like', '%'.$term.'%');
+            })
+            ->get();
+    }
 }

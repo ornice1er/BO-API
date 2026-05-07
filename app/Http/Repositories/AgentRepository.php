@@ -126,13 +126,12 @@ class AgentRepository
      */
     public function search($term)
     {
-        $query = Agent::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
-
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Return the search results
+        return Agent::with(['FonctionAgent', 'uniteAdmin'])
+            ->where(function ($q) use ($term) {
+                $q->where('lastname', 'like', '%'.$term.'%')
+                  ->orWhere('firstname', 'like', '%'.$term.'%')
+                  ->orWhere('numero_matricule', 'like', '%'.$term.'%');
+            })
+            ->get();
     }
 }

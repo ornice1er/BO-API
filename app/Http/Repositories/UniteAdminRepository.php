@@ -138,13 +138,12 @@ $unite_admin = UniteAdmin::with("department")->where('ua_parent_code', Auth::use
      */
     public function search($term)
     {
-        $query = UniteAdmin::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
-
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Return the search results
+        return UniteAdmin::with(['department', 'municipality', 'parent'])
+            ->where(function ($q) use ($term) {
+                $q->where('libelle', 'like', '%'.$term.'%')
+                  ->orWhere('sigle',  'like', '%'.$term.'%')
+                  ->orWhere('email',  'like', '%'.$term.'%');
+            })
+            ->get();
     }
 }

@@ -389,7 +389,7 @@ class ProjectCategoryController
         $message = 'Filtrage des projets';
 
         try {
-            $term = $request->term;
+            $term = $request->input('search') ?? $request->input('term');
             $result = $this->projectCategory->search($term);
 
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);

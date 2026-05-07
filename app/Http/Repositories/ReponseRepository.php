@@ -179,13 +179,13 @@ class ReponseRepository
     public function search($term)
     {
         $query = Reponse::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
+        $attrs = ['reason', 'observation'];
 
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
 
-        return $query->get(); // Return the search results
+        return $query->get();
     }
 
 

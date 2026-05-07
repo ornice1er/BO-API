@@ -319,8 +319,9 @@ class RequeteController extends Controller
     {
         $message = 'Recherche de requêtes';
         try {
-            $result = $this->requeteRepository->search($request->term);
-            $this->ls->trace(['action_name' => $message, 'description' => $request->term]);
+            $term = $request->input('search') ?? $request->input('term');
+            $result = $this->requeteRepository->search($term);
+            $this->ls->trace(['action_name' => $message, 'description' => $term]);
             return Common::success('Recherche effectuée', $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);

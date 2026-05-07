@@ -403,7 +403,7 @@ class PermissionController
         $message = 'Filtrage des permissions';
 
         try {
-            $term = $request->term;
+            $term = $request->input('search') ?? $request->input('term');
             $result = $this->permissionRepository->search($term);
 
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);

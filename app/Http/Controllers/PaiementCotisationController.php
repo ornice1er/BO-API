@@ -513,7 +513,7 @@ class PaiementCotisationController extends Controller
         $message = 'Filtrage des paiementCotisations';
 
         try {
-            $term = $request->term;
+            $term = $request->input('search') ?? $request->input('term');
             $result = $this->paiementCotisationRepository->search($term);
             $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
 

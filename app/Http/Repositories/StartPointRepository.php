@@ -126,12 +126,12 @@ class StartPointRepository
     public function search($term)
     {
         $query = StartPoint::query(); // Start with an empty query
-        $attrs = ['lib_couvert']; // Attributes you want to search in
+        $attrs = ['id'];
 
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
 
-        return $query->get(); // Return the search results
+        return $query->get();
     }
 }

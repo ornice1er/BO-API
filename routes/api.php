@@ -156,9 +156,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('countries/{id}/state/{state}', 'CountryController@changeState');
         Route::post('countries-search', 'CountryController@search');
 
-        Route::get('countries/{id}/state/{state}', 'CountryController@changeState');
-        Route::post('countries-search', 'CountryController@search');
-
         Route::get('municipalities/{id}/state/{state}', 'MunicipalityController@changeState');
         Route::post('municipalities-search', 'MunicipalityController@search');
 
@@ -191,6 +188,21 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         Route::get('users/{id}/state/{state}', 'UserController@changeState');
         Route::post('users-search', 'UserController@search');
+        Route::post('unity-admin-search', 'UniteAdminController@search');
+        Route::post('type-unity-admin-search', 'TypeUniteAdminController@search');
+        Route::post('departments-search', 'DepartmentController@search');
+        Route::post('officers-search', 'AgentController@search');
+        Route::post('fonction-agent-search', 'FonctionAgentController@search');
+        Route::post('prestation-search', 'PrestationController@search');
+        Route::post('prestation-status-search', 'PrestationStatusController@search');
+        Route::post('etapes-search', 'EtapeController@search');
+        Route::post('status-search', 'StatusController@search');
+        Route::post('workflows-search', 'WorkflowController@search');
+        Route::post('agenda-search', 'AgendaController@search');
+        Route::post('requetes-search', 'RequeteController@search');
+        Route::post('type-entity-search', 'TypeEntiteController@search');
+        Route::post('entity-search', 'EntiteAdminController@search');
+        Route::post('files-search', 'FilesController@search');
 
         Route::get('unity-admin/principal/all', 'UniteAdminController@principal');
 
