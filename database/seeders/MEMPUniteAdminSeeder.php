@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\Agent;
 use App\Models\Department;
+use App\Models\EntiteAdmin;
+use App\Models\FonctionAgent;
 use App\Models\Municipality;
+use App\Models\TypeUniteAdmin;
 use App\Models\UniteAdmin;
 use App\Models\UserPrestation;
 use App\Models\UserSetting;
@@ -16,22 +19,43 @@ use Spatie\Permission\Models\Role;
 
 class MEMPUniteAdminSeeder extends Seeder
 {
-    // IDs stables dans la base
-    const ENTITE_ADMIN_ID    = 7; // Ministère de l'Enseignement Maternelle et Primaire
-    const TYPE_DDEMP         = 8; // Direction Départementale
-    const TYPE_CS            = 3; // Service
-    const FONCTION_DIRECTEUR = 7; // Directeur
-    const FONCTION_CHEF_SVC  = 3; // Chef Service
-    const PASSWORD           = 'boes@2025';
+    // Libellés de référence — résolus dynamiquement à l'exécution
+    const ENTITE_LIBELLE         = 'Ministère de l\'Enseignement Maternel et Primaire';
+    const TYPE_DDEMP_LIBELLE     = 'Direction Départementale';
+    const TYPE_CS_LIBELLE        = 'Circonscription Scolaire';
+    const FONCTION_DIR_LIBELLE   = 'Directeur';
+    const FONCTION_CCD_LIBELLE   = 'Chef de Circonscription';
+    const PASSWORD               = 'boes@2025';
 
     /** Codes des prestations à attribuer à chaque compte */
     const PRESTATION_CODES = ['PS00702', 'PS00706', 'PS00707', 'PS00709', 'PS00710'];
 
     public function run(): void
     {
+        // Résolution dynamique des références
+        $entite = EntiteAdmin::where('libelle', self::ENTITE_LIBELLE)->first();
+        if (!$entite) {
+            $this->command->warn('MEMPUniteAdminSeeder : entité "' . self::ENTITE_LIBELLE . '" introuvable, skip.');
+            return;
+        }
+
+        $typeDdemp = TypeUniteAdmin::firstOrCreate(
+            ['libelle' => self::TYPE_DDEMP_LIBELLE]
+        );
+        $typeCs = TypeUniteAdmin::firstOrCreate(
+            ['libelle' => self::TYPE_CS_LIBELLE]
+        );
+
+        $fonctionDir = FonctionAgent::firstOrCreate(
+            ['libelle' => self::FONCTION_DIR_LIBELLE]
+        );
+        $fonctionCcd = FonctionAgent::firstOrCreate(
+            ['libelle' => self::FONCTION_CCD_LIBELLE]
+        );
+
         // Idempotence : skip si des DDEMP MEMP réels (avec département) existent déjà
-        if (UniteAdmin::where('entite_admin_id', self::ENTITE_ADMIN_ID)
-                       ->where('type_unite_admin_id', self::TYPE_DDEMP)
+        if (UniteAdmin::where('entite_admin_id', $entite->id)
+                       ->where('type_unite_admin_id', $typeDdemp->id)
                        ->whereNotNull('department_id')
                        ->exists()) {
             $this->command->info('MEMPUniteAdminSeeder : données déjà présentes, skip.');
@@ -61,8 +85,8 @@ class MEMPUniteAdminSeeder extends Seeder
                 [
                     'libelle'             => $libelle,
                     'sigle'              => $sigle,
-                    'type_unite_admin_id' => self::TYPE_DDEMP,
-                    'entite_admin_id'     => self::ENTITE_ADMIN_ID,
+                    'type_unite_admin_id' => $typeDdemp->id,
+                    'entite_admin_id'     => $entite->id,
                     'department_id'       => $dept->id,
                     'ua_parent_code'      => null,
                 ]
@@ -71,7 +95,7 @@ class MEMPUniteAdminSeeder extends Seeder
             $ddempByDept[$dept->id] = $ddemp;
 
             $this->createUserForUA($ddemp, $email, $dept->name, 'DDEMP',
-                self::FONCTION_DIRECTEUR, $roleDirecteur, $prestations);
+                $fonctionDir->id, $roleDirecteur, $prestations);
         }
 
         // ─── 2. CS par commune ───────────────────────────────────────────────────
@@ -87,8 +111,8 @@ class MEMPUniteAdminSeeder extends Seeder
                 [
                     'libelle'             => $libelle,
                     'sigle'              => $sigle,
-                    'type_unite_admin_id' => self::TYPE_CS,
-                    'entite_admin_id'     => self::ENTITE_ADMIN_ID,
+                    'type_unite_admin_id' => $typeCs->id,
+                    'entite_admin_id'     => $entite->id,
                     'department_id'       => $mun->department_id,
                     'municipality_id'     => $mun->id,
                     'ua_parent_code'      => $parent?->id,
@@ -96,7 +120,7 @@ class MEMPUniteAdminSeeder extends Seeder
             );
 
             $this->createUserForUA($cs, $email, $mun->name, 'CS',
-                self::FONCTION_CHEF_SVC, $roleCCD, $prestations);
+                $fonctionCcd->id, $roleCCD, $prestations);
         }
 
         $total = count($depts) + count($muns);
@@ -122,7 +146,7 @@ class MEMPUniteAdminSeeder extends Seeder
                 'lastname'          => $type,
                 'firstname'         => $placeName,
                 'numero_matricule'  => $matricule,
-                'entite_admin_id'   => self::ENTITE_ADMIN_ID,
+                'entite_admin_id'   => $ua->entite_admin_id,
                 'fonction_agent_id' => $fonctionId,
             ]
         );
@@ -134,7 +158,7 @@ class MEMPUniteAdminSeeder extends Seeder
                 'name'            => $fullName,
                 'password'        => Hash::make(self::PASSWORD),
                 'agent_id'        => $agent->id,
-                'entite_admin_id' => self::ENTITE_ADMIN_ID,
+                'entite_admin_id' => $ua->entite_admin_id,
                 'is_active'       => true,
                 'first_signin'    => true,
             ]
