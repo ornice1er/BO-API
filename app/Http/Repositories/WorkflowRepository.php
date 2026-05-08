@@ -89,6 +89,14 @@ class WorkflowRepository
     }
 
     /**
+     * Delete all transitions for a given prestation
+     */
+    public function destroyByPrestation($prestationId): int
+    {
+        return WorkflowTransition::where('prestation_id', $prestationId)->delete();
+    }
+
+    /**
      * To get all latest
      */
     public function getlatest()

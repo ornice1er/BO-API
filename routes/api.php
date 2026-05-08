@@ -198,6 +198,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::post('etapes-search', 'EtapeController@search');
         Route::post('status-search', 'StatusController@search');
         Route::post('workflows-search', 'WorkflowController@search');
+        Route::delete('workflows/by-prestation/{prestationId}', 'WorkflowController@destroyByPrestation');
         Route::post('agenda-search', 'AgendaController@search');
         Route::post('requetes-search', 'RequeteController@search');
         Route::post('type-entity-search', 'TypeEntiteController@search');

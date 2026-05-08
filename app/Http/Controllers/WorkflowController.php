@@ -611,6 +611,25 @@ class WorkflowController extends Controller
 
 
     /**
+     * Supprimer toutes les transitions d'une prestation (cas de mauvaise configuration)
+     */
+    public function destroyByPrestation($prestationId)
+    {
+        $message = 'Suppression de toutes les transitions d\'une prestation';
+
+        try {
+            $count = $this->statusRepository->destroyByPrestation($prestationId);
+            $this->ls->trace(['action_name' => $message, 'description' => "prestation_id=$prestationId, deleted=$count"]);
+
+            return Common::success("$count transition(s) supprimée(s) avec succès", []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
  * Transitions disponibles depuis une étape pour une prestation donnée.
  * Utilisé par le menu de décision dans l'espace de traitement.
  * GET /api/workflows/transitions?prestation_id=X&etape_from_id=Y
