@@ -532,19 +532,20 @@ private function getHeaders()
             $acte->status       = 'en_edition';
             $acte->save();
 
-            // 5. Avancer le workflow selon la transition configurée sur le doc produit
-            $conditionType = 'validation';
-
-            app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, [
-                'comment'  => 'Document reçu depuis générateur externe',
-                'metadata' => [
-                    'doc_acte_id'  => $acte->id,
-                    'file_path'    => $path,
-                    'source_url'   => $docUrl,
-                    'type'         => $data['type'] ?? null,
-                    'source'       => 'generateur_externe',
-                ],
-            ]);
+            // 5. Avancer le workflow uniquement si l'option est activée sur le doc produit
+            if ($docProduit->avancer_workflow) {
+                $conditionType = $docProduit->condition_type ?? 'validation';
+                app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, [
+                    'comment'  => 'Document reçu depuis générateur externe',
+                    'metadata' => [
+                        'doc_acte_id'  => $acte->id,
+                        'file_path'    => $path,
+                        'source_url'   => $docUrl,
+                        'type'         => $data['type'] ?? null,
+                        'source'       => 'generateur_externe',
+                    ],
+                ]);
+            }
 
             DB::commit();
 
