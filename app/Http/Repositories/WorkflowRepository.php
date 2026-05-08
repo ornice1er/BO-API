@@ -4,6 +4,8 @@ namespace App\Http\Repositories;
 
 use App\Models\WorkflowTransition;
 use App\Models\Workflow;
+use App\Models\RequeteEtapeLog;
+use App\Models\EtapeVisibilite;
 
 use App\Traits\Repository;
 use App\Utilities\FileStorage;
@@ -85,6 +87,8 @@ class WorkflowRepository
      */
     public function makeDestroy($id)
     {
+        RequeteEtapeLog::where('workflow_transition_id', $id)->delete();
+        EtapeVisibilite::where('workflow_transition_id', $id)->delete();
         return WorkflowTransition::findOrFail($id)->delete();
     }
 
@@ -93,6 +97,9 @@ class WorkflowRepository
      */
     public function destroyByPrestation($prestationId): int
     {
+        $ids = WorkflowTransition::where('prestation_id', $prestationId)->pluck('id');
+        RequeteEtapeLog::whereIn('workflow_transition_id', $ids)->delete();
+        EtapeVisibilite::whereIn('workflow_transition_id', $ids)->delete();
         return WorkflowTransition::where('prestation_id', $prestationId)->delete();
     }
 
