@@ -8,6 +8,8 @@ use App\Http\Requests\Requete\UpdateRequeteRequest;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class RequeteController extends Controller
@@ -203,6 +205,7 @@ class RequeteController extends Controller
                 'comment'  => $request->input('comment'),
                 'motif_id' => $request->input('motif_id'),
                 'metadata' => $request->input('metadata', []),
+                'link'     => $request->input('link'),
             ];
 
             $result = $this->requeteRepository->traiterDemande($id, $decision, $options);
@@ -210,6 +213,37 @@ class RequeteController extends Controller
             return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Upload d'une note/PJ liée à une requête et génération d'un lien signé temporaire (30 jours).
+     * POST /requetes/{id}/upload-note-file
+     */
+    public function uploadNoteFile(Request $request, $id)
+    {
+        $message = 'Upload note/PJ requête';
+        try {
+            if (!$request->hasFile('file')) {
+                return Common::badRequest();
+            }
+
+            $file      = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+            $fileName  = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
+                       . '_' . Str::random(16) . '_' . time() . '.' . $extension;
+            $path      = 'requetes/' . $id . '/notes/' . $fileName;
+
+            Storage::disk('s3')->put($path, file_get_contents($file), 'private');
+
+            $signedUrl = Storage::disk('s3')->temporaryUrl($path, now()->addDays(30));
+
+            return Common::success($message, [
+                'signed_url' => $signedUrl,
+                'path'       => $path,
+            ]);
+        } catch (\Throwable $th) {
             return Common::error($th->getMessage(), []);
         }
     }

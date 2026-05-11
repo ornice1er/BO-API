@@ -162,7 +162,8 @@ class DocumentActeController extends Controller
                     "data" => $htmlContent,
                     "message" => "Génération du document via PNS",
                     "status" =>false,
-                    "decision" =>'gendoc'
+                    "decision" =>'gendoc',
+                    "link" => null,
                 ]);
                 $pnsServiceResult = $pnsService->reply();
 

@@ -569,7 +569,8 @@ private function getHeaders()
             "data" => null,
             "message" => "Clôture de la demande : ".$req->code,
             "status" => true,
-            "decision" => $data['decision'] ?? null
+            "decision" => $data['decision'] ?? null,
+            "link" => null,
         ]);
         return $data;
     }

@@ -198,7 +198,7 @@ class ReponseRepository
     {
         $req=Requete::whereId($request->requete_id)->first();
         $header=(array)json_decode($req->header);
-        $ps= new PNSService($header,['officialComment' => $request->commentaire,'decision' => "updaterequest"]);
+        $ps= new PNSService($header,['officialComment' => $request->commentaire,'decision' => "updaterequest",'link' => null]);
         $response=$ps->reply();
  
 
@@ -214,7 +214,7 @@ class ReponseRepository
     {
         $req=Requete::whereId($request->requete_id)->first();
         $header=(array)json_decode($req->header);
-        $ps= new PNSService($header,['decision' => "agreement_reached"]);
+        $ps= new PNSService($header,['decision' => "agreement_reached",'link' => null]);
         $response=$ps->reply();
 
         if ($response->status()>=200 && $response->status()<300) {
@@ -230,7 +230,7 @@ class ReponseRepository
 
         $req=Requete::whereId($request->requete_id)->first();
         $header=(array)json_decode($req->header);
-         $ps= new PNSService($header,['officialComment' =>  $request->commentaire,'decision' => "rejected"]);
+         $ps= new PNSService($header,['officialComment' =>  $request->commentaire,'decision' => "rejected",'link' => null]);
         $response=$ps->reply();
 
 
@@ -256,7 +256,7 @@ class ReponseRepository
         $header=(array)json_decode($req->header);
         $content=$req->content;
 
-        $ps= new PNSService($header,['content' =>  $content,'decision' => "accepted"]);
+        $ps= new PNSService($header,['content' =>  $content,'decision' => "accepted",'link' => null]);
         $response=$ps->reply();
 
 

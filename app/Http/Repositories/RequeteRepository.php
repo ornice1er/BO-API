@@ -266,6 +266,7 @@ class RequeteRepository
                         "message"  => "Mise à jour de votre demande : " . $requete->code,
                         "status"   => true,
                         "decision" => $transition->decision,
+                        "link"     => $options['link'] ?? null,
                     ]);
                     $result = $pnsService->reply();
                 }

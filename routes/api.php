@@ -275,6 +275,7 @@ Route::get('requetes/{id}/peut-agir',            [RequeteController::class, 'peu
 // Actions workflow
 Route::post('requetes/{id}/prendre-en-charge',   [RequeteController::class, 'prendreEnCharge']);
 Route::post('requetes/{id}/traiter',             [RequeteController::class, 'traiter']);
+Route::post('requetes/{id}/upload-note-file',    [RequeteController::class, 'uploadNoteFile']);
 Route::post('requetes/{id}/corriger',            [RequeteController::class, 'corriger']);
 Route::post('requetes/documents/{acteId}/traiter',[RequeteController::class, 'traiterDocument']);
 
