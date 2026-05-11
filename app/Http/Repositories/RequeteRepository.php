@@ -232,6 +232,11 @@ class RequeteRepository
             $requete->save();
 
             // 3. Journaliser la transition
+            $logMetadata = $options['metadata'] ?? [];
+            if (!empty($options['note_file_path'])) {
+                $logMetadata['note_file_path'] = $options['note_file_path'];
+            }
+
             RequeteEtapeLog::create([
                 'requete_id'             => $requete->id,
                 'workflow_transition_id' => $transition->id,
@@ -241,9 +246,7 @@ class RequeteRepository
                 'triggered_by'           => $user?->id,
                 'triggered_by_type'      => $user ? 'agent' : 'système',
                 'comment'                => $options['comment'] ?? null,
-                'metadata'               => isset($options['metadata'])
-                                                ? json_encode($options['metadata'])
-                                                : null,
+                'metadata'               => !empty($logMetadata) ? $logMetadata : null,
                 'transitioned_at'        => now(),
                 'created_at'             => now(),
             ]);
@@ -267,6 +270,7 @@ class RequeteRepository
                         "status"   => true,
                         "decision" => $transition->decision,
                         "link"     => $options['link'] ?? null,
+                        "comment"  => $options['comment'] ?? null,
                     ]);
                     $result = $pnsService->reply();
                 }

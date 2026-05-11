@@ -273,6 +273,7 @@ Route::get('requetes/{id}/completude',           [RequeteController::class, 'ver
 Route::get('requetes/{id}/peut-agir',            [RequeteController::class, 'peutAgir']);
 
 // Actions workflow
+Route::get('requetes/note-file-url',             [RequeteController::class, 'getNoteFileUrl']);
 Route::post('requetes/{id}/prendre-en-charge',   [RequeteController::class, 'prendreEnCharge']);
 Route::post('requetes/{id}/traiter',             [RequeteController::class, 'traiter']);
 Route::post('requetes/{id}/upload-note-file',    [RequeteController::class, 'uploadNoteFile']);

@@ -202,10 +202,11 @@ class RequeteController extends Controller
         try {
             $decision = $request->input('decision');
             $options  = [
-                'comment'  => $request->input('comment'),
-                'motif_id' => $request->input('motif_id'),
-                'metadata' => $request->input('metadata', []),
-                'link'     => $request->input('link'),
+                'comment'        => $request->input('comment'),
+                'motif_id'       => $request->input('motif_id'),
+                'metadata'       => $request->input('metadata', []),
+                'link'           => $request->input('link'),
+                'note_file_path' => $request->input('note_file_path'),
             ];
 
             $result = $this->requeteRepository->traiterDemande($id, $decision, $options);
@@ -213,6 +214,23 @@ class RequeteController extends Controller
             return Common::success($message, $result);
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Génère une URL signée temporaire (15 min) pour visualiser une note de traitement.
+     * GET /requetes/note-file-url?path=...
+     */
+    public function getNoteFileUrl(Request $request)
+    {
+        try {
+            $path = $request->query('path');
+            if (!$path) return Common::badRequest();
+
+            $url = Storage::disk('s3')->temporaryUrl($path, now()->addMinutes(15));
+            return Common::success('URL générée', ['url' => $url]);
+        } catch (\Throwable $th) {
             return Common::error($th->getMessage(), []);
         }
     }
