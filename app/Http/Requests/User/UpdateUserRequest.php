@@ -26,16 +26,16 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-         $userId = $this->route('user');
+        $routeUser = $this->route('user');
+        $userId    = is_object($routeUser) ? $routeUser->id : ($routeUser ?? $this->route('id'));
 
         return [
-             'roles' => 'array',
-            'agent_id' => 'nullable|integer|exists:agents,id',
+            'roles'           => 'array',
+            'agent_id'        => 'nullable|integer|exists:agents,id',
             'entite_admin_id' => 'nullable|integer|exists:entite_admins,id',
-            'email' => 'required|email|max:255|unique:users,email,'. $userId ,
-            'choices' => 'nullable|array',
-            'is_trade' => 'nullable|boolean',
-
+            'email'           => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'choices'         => 'nullable|array',
+            'is_trade'        => 'nullable|boolean',
         ];
     }
 
