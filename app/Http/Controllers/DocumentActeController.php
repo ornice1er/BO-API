@@ -303,9 +303,11 @@ class DocumentActeController extends Controller
             );
 
             $acte->update([
-                'file_path'  => $path,
-                'file_url'   => Storage::disk('public')->url($path),
-                'status'     => 'en_edition',
+                'file_path'    => $path,
+                'file_url'     => Storage::disk('public')->url($path),
+                'status'       => 'en_edition',
+                'generated_at' => now(),
+                'content_data' => null,
             ]);
 
             return Common::success($message, [
