@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Services\PNSService;
-use Illuminate\Support\Facades\Http;
 
 
 class DocumentActeController extends Controller
@@ -153,10 +152,21 @@ class DocumentActeController extends Controller
     // SAUVEGARDER LE CONTENU WYSIWYG
     // POST /api/document-actes/{acteId}/sauvegarder
     // Body : { html_content, title, conclusion }
+    //
+    // Flux PNS (generate_from = 'pns') :
+    //   1. On envoie le contenu HTML au PNS (decision = 'gendoc').
+    //   2. Le PNS accuse réception mais NE retourne PAS l'URL du document.
+    //   3. Le PNS génère le document en asynchrone et rappelle sur
+    //      POST /eservices-recup-doc avec { code_demande, url }.
+    //   4. EServiceRepository::recupDoc() télécharge le fichier et finalise l'acte.
+    //   → Ici on sauvegarde le contenu, on passe en 'en_attente_pns' et on rend la main.
+    //
+    // Flux local (generate_from != 'pns') :
+    //   Génération PDF immédiate via DomPDF + template Blade.
     // ─────────────────────────────────────────────────────────────────────────
     public function sauvegarder(Request $request, $acteId)
     {
-        $message = 'Sauvegarde du contenu WYSIWYG';
+        $message = "Sauvegarde du contenu WYSIWYG";
 
         try {
             $acte = DocumentActe::with(['requete', 'docProduit'])->findOrFail($acteId);
@@ -165,116 +175,67 @@ class DocumentActeController extends Controller
             $title       = $request->input('title', '');
             $conclusion  = $request->input('conclusion', '');
 
-            if ($acte->docProduit->generate_from=="pns") {
-                $pnsService = new PNSService($acte->requete->header,[
-                    "data" => $htmlContent,
-                    "message" => "Génération du document via PNS",
-                    "status" =>false,
-                    "decision" =>'gendoc',
-                    "link" => null,
+            if ($acte->docProduit->generate_from === 'pns') {
+                // ── Envoi au PNS ──────────────────────────────────────────────
+                $pnsService = new PNSService($acte->requete->header, [
+                    'data'     => $htmlContent,
+                    'message'  => 'Génération du document via PNS',
+                    'status'   => false,
+                    'decision' => 'gendoc',
+                    'link'     => null,
                 ]);
-                $pnsServiceResult = $pnsService->reply();
+                $pnsResult = $pnsService->reply();
 
-                // info($pnsServiceResult->body());
+                info($pnsResult);
 
-                // if ($pnsServiceResult?->successful()) {
-                //     info('Document généré via PNS avec succès');
-                //     $body = $pnsServiceResult->json();
+                // Sauvegarde du contenu en attente du callback PNS sur /eservices-recup-doc
+                $acte->update([
+                    'content_data' => json_encode([
+                        'title'      => $title,
+                        'content'    => $htmlContent,
+                        'conclusion' => $conclusion,
+                    ]),
+                    'status' => 'en_attente_pns',
+                ]);
 
-                //         $docFileUrl = $body['doc_file'] ?? null;
-
-                //         if (!$docFileUrl) {
-                //             return Common::error('Lien du document introuvable dans la réponse PNS');
-                //         }
-                //         $response = Http::get($docFileUrl);
-
-                //         if (!$response->successful()) {
-                //             return Common::error('Erreur lors du téléchargement du document');
-                //         }
-                //         $fileName = 'documents/' . uniqid() . '.pdf'; // adapte l’extension si besoin
-                //         $path     = 'documents/' . $acte->requete->code . '/' . $filename;
-
-                //          Storage::disk('public')->put($path, $response->body());
-
-                //         $acte->update([
-                //             'file_path'    => $path,
-                //             'file_url'     => Storage::disk('public')->url($path),
-                //             'content_data' => json_encode($data),
-                //             'status'       => 'en_edition',
-                //         ]);
-
-                // }else{
-                //     info('Document généré via système avec succès');
-
-                //             // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
-                //   $templateKey = $acte->docProduit->template_key
-                //             ?? 'pdf.documents.projet_lettre_agrement';
-
-                //         $data = [
-                //             'title'      => $title,
-                //             'content'    => $htmlContent,
-                //             'conclusion' => $conclusion,
-                //             'requete'    => $acte->requete,
-                //             'acte'       => $acte,
-                //             'numero'     => $acte->numero_identification,
-                //             'date'       => now()->format('d/m/Y'),
-                //         ];
-
-                //         $pdf = Pdf::loadView($templateKey, $data)
-                //                 ->setPaper('a4', 'portrait');
-
-                //         $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
-                //         $path     = 'documents/' . $acte->requete->code . '/' . $filename;
-
-                //         Storage::disk('public')->put($path, $pdf->output());
-
-                //         $acte->update([
-                //             'file_path'    => $path,
-                //             'file_url'     => Storage::disk('public')->url($path),
-                //             'content_data' => json_encode($data),
-                //             'status'       => 'en_edition',
-                //         ]);
-
-
-                //  //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
-                // }
-
-                return Common::success($message, []);
-            }else{
-            // Générer PDF depuis le contenu HTML WYSIWYG
-                        $templateKey = $acte->docProduit->template_key
-                            ?? 'pdf.documents.projet_lettre_agrement';
-
-                        $data = [
-                            'title'      => $title,
-                            'content'    => $htmlContent,
-                            'conclusion' => $conclusion,
-                            'requete'    => $acte->requete,
-                            'acte'       => $acte,
-                            'numero'     => $acte->numero_identification,
-                            'date'       => now()->format('d/m/Y'),
-                        ];
-
-                        $pdf = Pdf::loadView($templateKey, $data)
-                                ->setPaper('a4', 'portrait');
-
-                        $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
-                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
-
-                        Storage::disk('public')->put($path, $pdf->output());
-
-                        $acte->update([
-                            'file_path'    => $path,
-                            'file_url'     => Storage::disk('public')->url($path),
-                            'content_data' => json_encode($data),
-                            'status'       => 'en_edition',
-                        ]);
-
+                return Common::success('Document envoyé au PNS — en attente de génération', [
+                    'acte'    => $acte->fresh(['docProduit', 'currentCircuitStep']),
+                    'file_url'=> null,
+                    'pending' => true,
+                ]);
             }
-          
+
+            // ── Génération PDF locale ─────────────────────────────────────────
+            $templateKey = $acte->docProduit->template_key
+                ?? 'pdf.documents.projet_lettre_agrement';
+
+            $data = [
+                'title'      => $title,
+                'content'    => $htmlContent,
+                'conclusion' => $conclusion,
+                'requete'    => $acte->requete,
+                'acte'       => $acte,
+                'numero'     => $acte->numero_identification,
+                'date'       => now()->format('d/m/Y'),
+            ];
+
+            $pdf      = Pdf::loadView($templateKey, $data)->setPaper('a4', 'portrait');
+            $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
+            $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+
+            Storage::disk('public')->put($path, $pdf->output());
+
+            $acte->update([
+                'file_path'    => $path,
+                'file_url'     => Storage::disk('public')->url($path),
+                'content_data' => json_encode($data),
+                'status'       => 'en_edition',
+            ]);
+
             return Common::success($message, [
                 'acte'     => $acte->fresh(['docProduit', 'currentCircuitStep']),
                 'file_url' => Storage::disk('public')->url($path),
+                'pending'  => false,
             ]);
 
         } catch (\Throwable $th) {
