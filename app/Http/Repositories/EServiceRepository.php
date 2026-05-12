@@ -485,6 +485,12 @@ private function getHeaders()
             $docProduit = $query->first();
 
             if (!$docProduit) {
+                \Log::error('EServiceRepository: aucun document produit trouvé', [
+                    'requete_id'       => $requete->id,
+                    'prestation_id'    => $requete->prestation_id,
+                    'current_etape_id' => $requete->current_etape_id,
+                    'type'             => $data['type'] ?? null,
+                ]);
                 throw new JsonResponseException([
                     'message' => "Aucun document produit configuré pour l'étape courante de cette demande",
                     'success' => false,
