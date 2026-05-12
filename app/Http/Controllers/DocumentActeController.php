@@ -175,6 +175,8 @@ class DocumentActeController extends Controller
                 ]);
                 $pnsServiceResult = $pnsService->reply();
 
+                info($pnsServiceResult->body());
+
                 if ($pnsServiceResult?->successful()) {
                     $body = $pnsServiceResult->json();
 
