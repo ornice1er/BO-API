@@ -48,9 +48,11 @@ class PNSService{
                 'message' => $th->getMessage(),
                 'trace' => $th->getTraceAsString()
             ]);
-        }finally {
-            return null;
         }
+        
+        // finally {
+        //     return null;
+        // }
     }
 
 
