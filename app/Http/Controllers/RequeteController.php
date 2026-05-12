@@ -130,9 +130,46 @@ class RequeteController extends Controller
         }
     }
 
-      /**
-     * Vérifier si l'agent connecté peut agir sur une requête.
-     * GET /requetes/{id}/peut-agir
+    /**
+     * Liste des étapes précédentes disponibles pour régression.
+     * GET /requetes/{id}/etapes-precedentes
+     */
+    public function getEtapesPrecedentes($id)
+    {
+        $message = 'Étapes précédentes disponibles';
+        try {
+            $requete = $this->requeteRepository->get($id);
+            $result  = $this->requeteRepository->getEtapesPrecedentes($requete);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Régresser une requête vers une étape précédente (admin uniquement).
+     * POST /requetes/{id}/regresser
+     */
+    public function regresser(Request $request, $id)
+    {
+        $message = 'Régression de la demande';
+        try {
+            $request->validate([
+                'etape_id' => 'required|integer|exists:etapes,id',
+                'comment'  => 'nullable|string|max:500',
+            ]);
+            $requete = $this->requeteRepository->get($id);
+            $result  = $this->requeteRepository->regresser($requete, $request->etape_id, $request->comment);
+            $this->ls->trace(['action_name' => $message, 'description' => "Requête {$requete->code} → étape {$request->etape_id}"]);
+            return Common::success($message, $result);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * GET /requetes/{id}/agenda
      */
     public function getForAgenda($code)
     {

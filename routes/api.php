@@ -271,6 +271,8 @@ Route::get('requetes/suivi/{code}',              [RequeteController::class, 'get
 Route::get('requetes/one/{code}',                [RequeteController::class, 'getOne']);
 Route::get('requetes/{id}/completude',           [RequeteController::class, 'verifierCompletude']);
 Route::get('requetes/{id}/peut-agir',            [RequeteController::class, 'peutAgir']);
+Route::get('requetes/{id}/etapes-precedentes',   [RequeteController::class, 'getEtapesPrecedentes']);
+Route::post('requetes/{id}/regresser',           [RequeteController::class, 'regresser']);
 
 // Actions workflow
 Route::get('requetes/note-file-url',             [RequeteController::class, 'getNoteFileUrl']);

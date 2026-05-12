@@ -608,6 +608,85 @@ public function traiterDocument(int $acteId, string $action, array $options = []
 }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // RÉGRESSION ADMIN
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Retourne la liste des étapes précédentes disponibles pour régression,
+     * déduites de l'historique des transitions (requete_etape_logs).
+     */
+    public function getEtapesPrecedentes(Requete $requete): array
+    {
+        return RequeteEtapeLog::where('requete_id', $requete->id)
+            ->whereNotNull('etape_from_id')
+            ->with('etapeFrom')
+            ->orderByDesc('transitioned_at')
+            ->get()
+            ->unique('etape_from_id')
+            ->filter(fn($log) => $log->etape_from_id !== $requete->current_etape_id)
+            ->map(fn($log) => [
+                'id'              => $log->etapeFrom->id,
+                'name'            => $log->etapeFrom->name,
+                'transitioned_at' => $log->transitioned_at,
+                'log_id'          => $log->id,
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Régresse la requête vers une étape précédente (action admin uniquement).
+     * Restaure le statut qu'avait la requête à son arrivée à cette étape.
+     */
+    public function regresser(Requete $requete, int $etapeId, ?string $comment = null): Requete
+    {
+        DB::beginTransaction();
+
+        try {
+            $user = Auth::user();
+
+            // Retrouver le log d'arrivée à l'étape cible pour restaurer le bon statut
+            $logArrivee = RequeteEtapeLog::where('requete_id', $requete->id)
+                ->where('etape_to_id', $etapeId)
+                ->orderByDesc('transitioned_at')
+                ->first();
+
+            \App\Models\Etape::findOrFail($etapeId);
+
+            $etapeFromId = $requete->current_etape_id; // capturer avant modification
+
+            $requete->current_etape_id  = $etapeId;
+            $requete->current_status_id = $logArrivee?->status_id ?? $requete->current_status_id;
+            $requete->status            = $logArrivee?->status_id ?? $requete->status;
+            $requete->etape_started_at  = now();
+            $requete->isTreated         = false;
+            $requete->isFinished        = false;
+            $requete->isDeclined        = false;
+            $requete->closed_at         = null;
+            $requete->save();
+
+            RequeteEtapeLog::create([
+                'requete_id'             => $requete->id,
+                'workflow_transition_id' => null,
+                'etape_from_id'          => $etapeFromId,
+                'etape_to_id'            => $etapeId,
+                'status_id'              => $requete->current_status_id,
+                'triggered_by'           => $user->id,
+                'triggered_by_type'      => 'admin',
+                'comment'                => $comment ?? 'Régression administrative',
+                'transitioned_at'        => now(),
+                'created_at'             => now(),
+            ]);
+
+            DB::commit();
+            return $requete->fresh(['currentEtape', 'currentStatus']);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // MÉTHODES CONSERVÉES POUR RÉTROCOMPATIBILITÉ
     // ─────────────────────────────────────────────────────────────────────────
 

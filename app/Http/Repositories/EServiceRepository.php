@@ -163,12 +163,16 @@ class EServiceRepository
             // $req->lastname=$data['meta']['info']['lastname'];
             // $req->firstname=$data['meta']['info']['firstname'];
             if (in_array($data['meta']['prestation_code'],['PS00709','PS00710'])) {
-              $today = Carbon::today();
-            $project = Project::whereDate('date_start', '<=', $today)
-            ->whereDate('date_end', '>=', $today)
-            ->first();
-
-            $req->project_id = $project?->id;
+                $sessionId = $data['meta']['session_id'] ?? null;
+                if ($sessionId) {
+                    $project = Project::find($sessionId);
+                } else {
+                    $today = Carbon::today();
+                    $project = Project::whereDate('date_start', '<=', $today)
+                        ->whereDate('date_end', '>=', $today)
+                        ->first();
+                }
+                $req->project_id = $project?->id;
             }
             $req->status=0;
             $req->header=$this->getHeaders();
