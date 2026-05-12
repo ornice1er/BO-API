@@ -31,7 +31,7 @@ class PNSService{
                     'header' => $this->header,
                     'payload' => $this->payload
                 ]);
-                info('PNS URI', env('PNS_URI').'/api/portal/event/uxp/rest');
+                info('PNS URI:'. env('PNS_URI').'/api/portal/event/uxp/rest');
                 $response = Http::withHeaders($this->header)->post(env('PNS_URI').'/api/portal/event/uxp/rest',$this->payload);
                  if ($response?->successful()) {
                     return $response?->json();
