@@ -178,6 +178,7 @@ class DocumentActeController extends Controller
                 info($pnsServiceResult->body());
 
                 if ($pnsServiceResult?->successful()) {
+                    info('Document généré via PNS avec succès');
                     $body = $pnsServiceResult->json();
 
                         $docFileUrl = $body['doc_file'] ?? null;
@@ -203,8 +204,9 @@ class DocumentActeController extends Controller
                         ]);
 
                 }else{
+                    info('Document généré via système avec succès');
 
-                // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
+                            // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
                   $templateKey = $acte->docProduit->template_key
                             ?? 'pdf.documents.projet_lettre_agrement';
 
@@ -236,6 +238,8 @@ class DocumentActeController extends Controller
 
                  //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
                 }
+
+                return Common::success($message, []);
             }else{
             // Générer PDF depuis le contenu HTML WYSIWYG
                         $templateKey = $acte->docProduit->template_key
