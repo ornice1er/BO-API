@@ -18,6 +18,7 @@ class PNSService{
         // ],['uxp-client' =>$this->uxpClient,'uxp-service' =>$this->uxpService]);
 
          $this->header =[
+            "Accept"=>'application/json',
              'Application-id'=>$header['application-id'],
              'Token'=>$header['response-token']];
         $this->payload = $payload;
