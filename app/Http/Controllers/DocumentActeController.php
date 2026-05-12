@@ -240,7 +240,7 @@ class DocumentActeController extends Controller
 
         } catch (\Throwable $th) {
             Log::error('Sauvegarde WYSIWYG : ' . $th->getMessage());
-            return Common::error($th->getMessage(), []);
+           return Common::error($th->getMessage(), []);
         }
     }
 
