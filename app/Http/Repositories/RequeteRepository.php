@@ -655,14 +655,15 @@ public function getByPrestationAll($data): \Illuminate\Support\Collection
     $prestation = Prestation::where('code', $data['code'])->firstOrFail();
 
     return Requete::with([
-            'currentEtape',                    // étape courante
-            'currentStatus',                   // statut courant
+            'currentEtape',
+            'currentStatus',
             'prestation',
             'files',
             'parcours',
-            'lastLog.triggeredBy',     
-            'lastLog.transition.visibilites.ua.entite',   
-            'lastLog.etapeTo'     // user qui a effectué la dernière action
+            'lastLog.triggeredBy',
+            'lastLog.etapeFrom',
+            'lastLog.etapeTo',
+            'lastLog.transition.visibilites.ua.entite',
         ])
         ->where('prestation_id', $prestation->id)
         ->orderByDesc('created_at')

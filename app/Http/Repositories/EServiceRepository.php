@@ -18,6 +18,8 @@ use App\Models\RequeteFile;
 use App\Models\PlanningSlot;
 use App\Models\DocumentActe;
 use App\Models\EtapeDocumentProduit;
+use App\Models\Municipality;
+use App\Models\Department;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -233,8 +235,16 @@ class EServiceRepository
         }
        
         // ── Champs géographiques ──────────────────────────────────────────────
+        // Le frontend envoie des codes texte (Commune, Departement) — on résout les IDs
         $municipalityId = $data['meta']['municipality_id'] ?? null;
         $departmentId   = $data['meta']['department_id']   ?? null;
+
+        if (!$municipalityId && !empty($data['meta']['Commune'])) {
+            $municipalityId = Municipality::where('code', $data['meta']['Commune'])->value('id');
+        }
+        if (!$departmentId && !empty($data['meta']['Departement'])) {
+            $departmentId = Department::where('code', $data['meta']['Departement'])->value('id');
+        }
 
         if ($municipalityId) {
             $req->municipality_id = $municipalityId;
