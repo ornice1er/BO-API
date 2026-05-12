@@ -93,7 +93,7 @@ class DashboardController extends Controller
             // ── Admins : stats globales + stats par prestation sans filtre visibilité ──
             case $isAdmin && $id === 'admin':
                 $data['users']          = User::count();
-                $data['prestations']    = Prestation::where('is_active', true)->count();
+                $data['prestations']    = Prestation::count();
                 $data['ua']             = UniteAdmin::count();
                 $data['departments']    = Department::count();
                 $data['total_requests'] = Requete::count();
