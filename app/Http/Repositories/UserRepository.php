@@ -197,13 +197,12 @@ class UserRepository
      */
     public function search($term)
     {
-        $query = User::query(); // Start with an empty query
-        $attrs = ['name', 'email', 'code']; // Attributes you want to search in
-
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Return the search results
+        return User::with(['roles.permissions', 'agent.uniteAdmin', 'userPrestations'])
+            ->where(function ($query) use ($term) {
+                $query->orWhere('email', 'like', '%' . $term . '%')
+                      ->orWhere('code',  'like', '%' . $term . '%');
+            })
+            ->orderByDesc('created_at')
+            ->get();
     }
 }
