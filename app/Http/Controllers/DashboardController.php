@@ -8,6 +8,8 @@ use App\Models\Requete;
 use App\Models\User;
 use App\Models\UniteAdmin;
 use App\Models\Prestation;
+use App\Models\Agent;
+use App\Models\Department;
 use App\Models\EtapeVisibilite;
 use App\Models\WorkflowTransition;
 use Auth;
@@ -77,25 +79,60 @@ class DashboardController extends Controller
      */
     public function show($id)
     {
-        $role         = Auth::user()->roles()->first()->name;
+        $user           = Auth::user();
+        $role           = $user->roles()->first()->name;
         $stats_by_month = [];
         $months         = [];
         $data           = [];
 
-        switch ($role) {
+        $isAdmin = $user->hasPermissionTo('access:admin-global')
+                || $user->hasPermissionTo('access:admin-sectoriel');
 
-            case 'Admin national':
-                $data['users']      = User::count();
-                $data['prestations'] = Prestation::count();
+        switch (true) {
+
+            // ── Admins : stats globales + stats par prestation sans filtre visibilité ──
+            case $isAdmin && $id === 'admin':
+                $data['users']          = User::count();
+                $data['prestations']    = Prestation::where('is_active', true)->count();
+                $data['ua']             = UniteAdmin::count();
+                $data['departments']    = Department::count();
+                $data['total_requests'] = Requete::count();
+                $data['agents']         = Agent::count();
                 break;
 
-            case 'Admin Sectoriel':
-                $data['users']      = User::where('entite_admin_id', Auth::user()->entite_admin_id)->count();
-                $data['prestations'] = Prestation::where('entite_admin_id', Auth::user()->entite_admin_id)->count();
-                $data['ua']         = UniteAdmin::where('entite_admin_id', Auth::user()->entite_admin_id)->count();
+            case $isAdmin:
+                // Appel par prestation : toutes les demandes, sans filtre visibilité
+                $prestation = Prestation::where('code', $id)->firstOrFail();
+
+                $base = Requete::where('prestation_id', $prestation->id);
+
+                $nouveau  = ['en_saisie', 'en_attente'];
+                $rejet    = ['rejete', 'rejete_clos'];
+                $valide   = ['valide', 'prevalide', 'repertoire_edite'];
+                $accorde  = ['paraphe', 'en_attente_signature'];
+                $terminal = ['cloture', 'rejete_clos'];
+                $enCours  = array_merge($rejet, $valide, $accorde, $terminal, $nouveau);
+
+                $data['total']     = (clone $base)->count();
+                $data['news']      = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $nouveau))->count();
+                $data['treated']   = $data['total'] - $data['news'];
+                $data['pending']   = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereNotIn('short_name', $enCours))->count();
+                $data['rejected']  = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $rejet))->count();
+                $data['validated'] = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $valide))->count();
+                $data['signed']    = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $accorde))->count();
+                $data['finished']  = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $terminal))->count();
+                $data['leaved']    = (clone $base)->where('isDeclined', true)->count();
+
+                $current_month = (int) date('m');
+                for ($i = 1; $i <= $current_month; $i++) {
+                    $date_start       = date_create(date("Y-{$i}-01 00:00:00"));
+                    $date_end         = date_create(date("Y-{$i}-t 23:59:59"));
+                    $stats_by_month[] = (clone $base)->whereBetween('created_at', [$date_start, $date_end])->count();
+                    $months[]         = $this->getMonth($i - 1);
+                }
                 break;
 
-            case 'Directeur':
+            case $role === 'Directeur':
                 $prestation = Prestation::where('code', $id)->firstOrFail();
                 $user       = Auth::user();
                 $etapeIds   = $this->getVisibleEtapeIds($prestation->id, $user);
