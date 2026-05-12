@@ -19,8 +19,14 @@ class AdminPermissionSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $global    = Permission::firstOrCreate(['name' => 'access:admin-global',    'guard_name' => 'api']);
-        $sectoriel = Permission::firstOrCreate(['name' => 'access:admin-sectoriel', 'guard_name' => 'api']);
+        $global    = Permission::firstOrCreate(
+            ['name' => 'access:admin-global',    'guard_name' => 'api'],
+            ['feature_name' => 'admin_access']
+        );
+        $sectoriel = Permission::firstOrCreate(
+            ['name' => 'access:admin-sectoriel', 'guard_name' => 'api'],
+            ['feature_name' => 'admin_access']
+        );
 
         // Rôles qui héritent de l'accès global
         $globalRoles = ['Admin national', 'Super Admin', 'Super_Admin'];
