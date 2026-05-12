@@ -96,11 +96,19 @@ class DocumentActeController extends Controller
         try {
             $acte = DocumentActe::with(['requete', 'docProduit'])->findOrFail($acteId);
 
+            $variables = $request->input('variables', []);
+            $content   = $request->input('content', '');
+
+            // Remplacer les tokens {{clé}} par leurs valeurs réelles
+            foreach ($variables as $key => $value) {
+                $content = str_replace('{{' . $key . '}}', $value ?? '', $content);
+            }
+
             $data = [
                 'title'       => $request->input('title', ''),
-                'content'     => $request->input('content', ''),
+                'content'     => $content,
                 'conclusion'  => $request->input('conclusion', ''),
-                'variables'   => $request->input('variables', []),
+                'variables'   => $variables,
                 'requete'     => $acte->requete,
                 'acte'        => $acte,
                 'numero'      => $acte->numero_identification,
@@ -109,7 +117,7 @@ class DocumentActeController extends Controller
 
             // Générer le PDF depuis le template Blade
             $templateKey = $acte->docProduit->template_key
-                ?? 'pdf.documents.projet_lettre_agrement';
+                ?? 'documents.agrement.projet_lettre_agrement';
 
             $pdf = Pdf::loadView($templateKey, $data)
                       ->setPaper('a4', 'portrait');

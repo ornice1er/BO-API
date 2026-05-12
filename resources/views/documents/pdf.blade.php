@@ -5,7 +5,7 @@
 @endsection
 
 @section('body-content')
-    <p>{{ $content }}</p>
+    <div>{!! $content !!}</div>
 @endsection
 
 @section('body-conclusion')
