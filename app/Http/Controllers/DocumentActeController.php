@@ -175,69 +175,69 @@ class DocumentActeController extends Controller
                 ]);
                 $pnsServiceResult = $pnsService->reply();
 
-                info($pnsServiceResult->body());
+                // info($pnsServiceResult->body());
 
-                if ($pnsServiceResult?->successful()) {
-                    info('Document généré via PNS avec succès');
-                    $body = $pnsServiceResult->json();
+                // if ($pnsServiceResult?->successful()) {
+                //     info('Document généré via PNS avec succès');
+                //     $body = $pnsServiceResult->json();
 
-                        $docFileUrl = $body['doc_file'] ?? null;
+                //         $docFileUrl = $body['doc_file'] ?? null;
 
-                        if (!$docFileUrl) {
-                            return Common::error('Lien du document introuvable dans la réponse PNS');
-                        }
-                        $response = Http::get($docFileUrl);
+                //         if (!$docFileUrl) {
+                //             return Common::error('Lien du document introuvable dans la réponse PNS');
+                //         }
+                //         $response = Http::get($docFileUrl);
 
-                        if (!$response->successful()) {
-                            return Common::error('Erreur lors du téléchargement du document');
-                        }
-                        $fileName = 'documents/' . uniqid() . '.pdf'; // adapte l’extension si besoin
-                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+                //         if (!$response->successful()) {
+                //             return Common::error('Erreur lors du téléchargement du document');
+                //         }
+                //         $fileName = 'documents/' . uniqid() . '.pdf'; // adapte l’extension si besoin
+                //         $path     = 'documents/' . $acte->requete->code . '/' . $filename;
 
-                         Storage::disk('public')->put($path, $response->body());
+                //          Storage::disk('public')->put($path, $response->body());
 
-                        $acte->update([
-                            'file_path'    => $path,
-                            'file_url'     => Storage::disk('public')->url($path),
-                            'content_data' => json_encode($data),
-                            'status'       => 'en_edition',
-                        ]);
+                //         $acte->update([
+                //             'file_path'    => $path,
+                //             'file_url'     => Storage::disk('public')->url($path),
+                //             'content_data' => json_encode($data),
+                //             'status'       => 'en_edition',
+                //         ]);
 
-                }else{
-                    info('Document généré via système avec succès');
+                // }else{
+                //     info('Document généré via système avec succès');
 
-                            // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
-                  $templateKey = $acte->docProduit->template_key
-                            ?? 'pdf.documents.projet_lettre_agrement';
+                //             // A retirer une fois que l'intégration PNS est fonctionnelle, pour tester la génération PDF via le contenu HTML WYSIWYG
+                //   $templateKey = $acte->docProduit->template_key
+                //             ?? 'pdf.documents.projet_lettre_agrement';
 
-                        $data = [
-                            'title'      => $title,
-                            'content'    => $htmlContent,
-                            'conclusion' => $conclusion,
-                            'requete'    => $acte->requete,
-                            'acte'       => $acte,
-                            'numero'     => $acte->numero_identification,
-                            'date'       => now()->format('d/m/Y'),
-                        ];
+                //         $data = [
+                //             'title'      => $title,
+                //             'content'    => $htmlContent,
+                //             'conclusion' => $conclusion,
+                //             'requete'    => $acte->requete,
+                //             'acte'       => $acte,
+                //             'numero'     => $acte->numero_identification,
+                //             'date'       => now()->format('d/m/Y'),
+                //         ];
 
-                        $pdf = Pdf::loadView($templateKey, $data)
-                                ->setPaper('a4', 'portrait');
+                //         $pdf = Pdf::loadView($templateKey, $data)
+                //                 ->setPaper('a4', 'portrait');
 
-                        $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
-                        $path     = 'documents/' . $acte->requete->code . '/' . $filename;
+                //         $filename = $acte->numero_identification . '_wysiwyg_' . time() . '.pdf';
+                //         $path     = 'documents/' . $acte->requete->code . '/' . $filename;
 
-                        Storage::disk('public')->put($path, $pdf->output());
+                //         Storage::disk('public')->put($path, $pdf->output());
 
-                        $acte->update([
-                            'file_path'    => $path,
-                            'file_url'     => Storage::disk('public')->url($path),
-                            'content_data' => json_encode($data),
-                            'status'       => 'en_edition',
-                        ]);
+                //         $acte->update([
+                //             'file_path'    => $path,
+                //             'file_url'     => Storage::disk('public')->url($path),
+                //             'content_data' => json_encode($data),
+                //             'status'       => 'en_edition',
+                //         ]);
 
 
-                 //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
-                }
+                //  //   return Common::error('Erreur lors de la génération du document via PNS', $pnsServiceResult->json() ?? []);
+                // }
 
                 return Common::success($message, []);
             }else{
