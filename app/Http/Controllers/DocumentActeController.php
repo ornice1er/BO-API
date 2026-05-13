@@ -391,12 +391,25 @@ class DocumentActeController extends Controller
 
        // ─────────────────────────────────────────────────────────────────────────
     // RÉCUPÉRER LE DOC PRODUIT CONFIGURÉ POUR UNE ÉTAPE
-    // GET /api/document-actes/doc-produit/{prestation_id}/{etape_id}
+    // GET /api/document-actes/doc-produit/{prestation_id}/{etape_id}?requete_id=X
     // ─────────────────────────────────────────────────────────────────────────
-    public function getDocProduit($prestationId, $etapeId)
+    public function getDocProduit($prestationId, $etapeId, Request $request)
     {
+        $requestType = null;
+
+        if ($request->filled('requete_id')) {
+            $requestType = Requete::where('id', $request->requete_id)
+                ->value('request_type');
+        }
+
+        // Priorité au template spécifique au requestType, fallback sur null (universel)
         $docProduit = EtapeDocumentProduit::where('prestation_id', $prestationId)
             ->where('etape_edition_id', $etapeId)
+            ->where(function ($q) use ($requestType) {
+                $q->where('demandeur_type', $requestType)
+                  ->orWhereNull('demandeur_type');
+            })
+            ->orderByRaw('demandeur_type IS NULL ASC')
             ->first();
 
         return Common::success('Document produit', $docProduit);

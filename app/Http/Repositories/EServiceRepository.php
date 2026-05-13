@@ -176,7 +176,8 @@ class EServiceRepository
             }
             $req->status=0;
             $req->header=$this->getHeaders();
-                    $req->eps_id=$prestation?->eps_id;
+            $req->eps_id=$prestation?->eps_id;
+            $req->request_type = $data['meta']['requestType'] ?? null;
 
             $req->save();
         }else{
@@ -189,6 +190,7 @@ class EServiceRepository
         // $req->firstname=$data['meta']['info']['firstname'];
         $req->header=$this->getHeaders();
         $req->eps_id=$prestation?->eps_id;
+        $req->request_type = $data['meta']['requestType'] ?? null;
         $req->save();
 
 
