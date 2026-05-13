@@ -51,6 +51,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::post('eservices-set-rdv', 'EServiceController@setRDV');
     //cloture d'une requete
     Route::post('eservices-close-request', 'EServiceController@closeRequest');
+    //avancement du workflow par le PNS
+    Route::post('eservices-avancer-workflow', 'EServiceController@avancerWorkflow');
     //Charegement de données connexe
     Route::get('eservices-get-data', 'EServiceController@getData');
     Route::get('eservices-get-session', 'EServiceController@getSessionData');

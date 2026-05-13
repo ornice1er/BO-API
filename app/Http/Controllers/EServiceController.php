@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Repositories\EServiceRepository;
+use App\Http\Repositories\RequeteRepository;
 use App\Http\Requests\EService\StoreEServiceRequest;
 use App\Http\Requests\EService\UpdateEServiceRequest;
+use App\Models\Requete;
 use App\Services\LogService;
 use App\Utilities\Common;
 use Illuminate\Http\Request;
@@ -616,6 +618,44 @@ class EServiceController extends Controller
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    public function avancerWorkflow(Request $request)
+    {
+        $message = 'Avancement du workflow depuis le PNS';
+
+        try {
+            $request->validate([
+                'code_demande'   => 'required|string',
+                'condition_type' => 'nullable|string',
+                'comment'        => 'nullable|string',
+            ]);
+
+            $requete = Requete::where('code', $request->code_demande)->firstOrFail();
+
+            $conditionType = $request->input('condition_type', 'validation');
+            $options = [
+                'comment'  => $request->input('comment', 'Avancement déclenché par le PNS'),
+                'metadata' => ['source' => 'pns'],
+            ];
+
+            $result = app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, $options);
+
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode([
+                'code_demande'   => $request->code_demande,
+                'condition_type' => $conditionType,
+            ])]);
+
+            return Common::success('Workflow avancé avec succès', $result);
+
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return Common::error('Données invalides : ' . implode(' | ', \Arr::flatten($ve->errors())), []);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Common::error('Demande introuvable', []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
             return Common::error($th->getMessage(), []);
         }
     }
