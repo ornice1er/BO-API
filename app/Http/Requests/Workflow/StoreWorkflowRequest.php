@@ -28,18 +28,19 @@ class StoreWorkflowRequest extends FormRequest
             'prestation_id'      => 'required|integer|exists:prestations,id',
             'etape_from_id'      => 'required|integer|exists:etapes,id',
             'etape_to_id'        => 'nullable|integer|exists:etapes,id',
-            'condition_type'     => 'required|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie',
+            'condition_type'     => 'required|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie,correction',
             'status_result_id'   => [
                 'required', 'integer', 'exists:statuses,id',
                 \Illuminate\Validation\Rule::exists('prestation_statuses', 'status_id')
                     ->where('prestation_id', $this->prestation_id),
             ],
-            'order'              => 'nullable|integer|min:0',
+            'order'              => 'required|integer|min:1',
             'notify_requérant'   => 'nullable|boolean',
             'notify_agent'       => 'nullable|boolean',
             'is_active'          => 'nullable|boolean',
             'decision'          => 'nullable|string|max:255',
             'can_act_pns'       => 'nullable|boolean',
+            'observation'        => 'nullable|string|max:2000',
         ];
     }
 
@@ -67,7 +68,10 @@ class StoreWorkflowRequest extends FormRequest
             'description.max' => 'La description ne doit pas dépasser 1000 caractères.',
             'pc_id.required' => 'La catégorie du projet est requise.',
             'pc_id.exists' => 'La catégorie du projet  n\'existe pas.',
-            'pc_id.integer' => 'L\'id de Le département n\'est pas un entier .',
+            'pc_id.integer'    => 'L\'id de Le département n\'est pas un entier .',
+            'order.required'   => 'L\'ordre d\'affichage est obligatoire.',
+            'order.integer'    => 'L\'ordre doit être un entier.',
+            'order.min'        => 'L\'ordre doit être au minimum 1.',
         ];
     }
 

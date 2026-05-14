@@ -20,7 +20,7 @@ class StoreAgendaRequest extends FormRequest
             'date_start' => 'required|date',
             'date_end' => 'nullable|date|after_or_equal:date_start',
             'title' => 'nullable|string|max:255',
-            'status' => 'required|string',
+            'status' => 'nullable|string',
             'description' => 'nullable|string',
             'usager_response' => 'nullable|boolean',
             'has_notif' => 'nullable|boolean',

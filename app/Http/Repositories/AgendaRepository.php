@@ -47,7 +47,7 @@ class AgendaRepository
     {
         $per_page = 10;
 
-        $req = Agenda::with(['user.agent:id,user_id,lastname,firstname'])
+        $req = Agenda::with(['user.agent:id,lastname,firstname'])
             ->ignoreRequest(['per_page'])
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
@@ -85,8 +85,8 @@ class AgendaRepository
     if (Auth::check()) {
     $data['user_id'] = Auth::user()->id;
     }
+    $data['status'] = $data['status'] ?? 'Ouvert';
     $requete = Requete::findOrFail($data['requete_id']);
-    // Création de l'utilisateur
     $agenda = Agenda::create($data);
 
     // if ($requete) {
