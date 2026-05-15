@@ -108,9 +108,16 @@ function sendMail($id) {
     $agenda = Agenda::findOrFail($id);
     $requete = $agenda->requete;
     if ($requete) {
+        $decisionMap = [
+            'premier_rdv'      => '1rdv',
+            'second_rdv'       => '2rdv',
+            'suivi_traitement' => 'program',
+        ];
+        $decision = $decisionMap[$agenda->rdv_type] ?? 'program';
+
         $pnsService = new PnsService($requete->header,[
             'success' => 'true',
-            'decision' => 'program',
+            'decision' => $decision,
             'message' => 'Agenda créé avec succès',
             'data' =>  $this->getContent($agenda)
         ]);
