@@ -337,7 +337,7 @@ class RequeteRepository
             'signer'             => 'signature',
             'parapher'           => 'paraphe',
             'prevalider'         => 'prevalidation',
-            'retour_correction'  => 'correction',
+            'retour_correction'  => 'retour_correction',
             default              => throw new \InvalidArgumentException("Décision inconnue : {$decision}"),
         };
 

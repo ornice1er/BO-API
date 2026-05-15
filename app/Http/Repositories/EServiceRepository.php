@@ -6,7 +6,6 @@ use App\Models\Requete;
 use App\Traits\Repository;
 use App\Models\Parcours;
 use App\Models\Prestation;
-use App\Models\Affectation;
 use App\Models\UniteAdmin;
 use ZipArchive;
 use Carbon\Carbon;
@@ -145,181 +144,186 @@ class EServiceRepository
      */
     public function makeStore(array $data)
     {
-
         try {
+            DB::beginTransaction();
 
-                        DB::beginTransaction();
+            $req        = Requete::where('code', $data['meta']['code'])->first();
+            $prestation = Prestation::where('code', $data['meta']['prestation_code'])->first();
+            $isNew      = !$req;
 
-        $req=Requete::where("code",$data['meta']['code'])->first();
-        $prestation=Prestation::where("code",$data['meta']['prestation_code'])->first();
-     
-        if (!$req) {
-            $req= new Requete();
-            $req->prestation_id=$prestation->id;
-            $req->code=$data['meta']['code'];
-            $req->email=$data['meta']['info']['email'];
-            $req->phone=$data['meta']['info']['phone'];
-            $req->step_contents=$data['steps'];
-            // $req->lastname=$data['meta']['info']['lastname'];
-            // $req->firstname=$data['meta']['info']['firstname'];
-            if (in_array($data['meta']['prestation_code'],['PS00709','PS00710'])) {
-                $sessionId = $data['meta']['session_id'] ?? null;
-                if ($sessionId) {
-                    $project = Project::find($sessionId);
-                } else {
-                    $today = Carbon::today();
-                    $project = Project::whereDate('date_start', '<=', $today)
-                        ->whereDate('date_end', '>=', $today)
-                        ->first();
+            // ── Création ──────────────────────────────────────────────────────
+            if ($isNew) {
+                $req = new Requete();
+                $req->prestation_id    = $prestation->id;
+                $req->code             = $data['meta']['code'];
+                $req->email            = $data['meta']['info']['email'];
+                $req->phone            = $data['meta']['info']['phone'];
+                $req->step_contents    = $data['steps'];
+                $req->status           = 0;
+                $req->header           = $this->getHeaders();
+                $req->eps_id           = $prestation?->eps_id;
+                $req->request_type     = $data['meta']['requestType'] ?? null;
+                $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
+
+                if (in_array($data['meta']['prestation_code'], ['PS00709', 'PS00710'])) {
+                    $sessionId = $data['meta']['session_id'] ?? null;
+                    $project   = $sessionId
+                        ? Project::find($sessionId)
+                        : Project::whereDate('date_start', '<=', Carbon::today())
+                            ->whereDate('date_end', '>=', Carbon::today())
+                            ->first();
+                    $req->project_id = $project?->id;
                 }
-                $req->project_id = $project?->id;
+                $req->save();
+
+            // ── Modification (resoumission après correction) ──────────────────
+            } else {
+                // Supprimer les anciens fichiers physiques et leurs enregistrements
+                foreach (RequeteFile::where('requete_id', $req->id)->get() as $f) {
+                    Storage::disk('public')->delete($f->file_path);
+                }
+                RequeteFile::where('requete_id', $req->id)->delete();
+                Storage::disk('public')->deleteDirectory($req->code);
+
+                $req->step_contents    = $data['steps'];
+                $req->header           = $this->getHeaders();
+                $req->request_type     = $data['meta']['requestType'] ?? null;
+                $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
+                $req->save();
             }
-            $req->status=0;
-            $req->header=$this->getHeaders();
-            $req->eps_id=$prestation?->eps_id;
-            $req->request_type = $data['meta']['requestType'] ?? null;
-            $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
 
+            // ── Extraction zip et enregistrement des fichiers ─────────────────
+            $code        = $req->code;
+            $host        = parse_url($data['files'], PHP_URL_HOST);
+            $zipUrl      = ($host === 'localhost') ? env('APP_ZIP_URL') : $data['files'];
+            $tempZipPath = storage_path("app/tmp_{$code}.zip");
+
+            file_put_contents($tempZipPath, file_get_contents($zipUrl));
+            Storage::disk('public')->makeDirectory($code);
+
+            $zip = new ZipArchive;
+            if ($zip->open($tempZipPath) === TRUE) {
+                $zip->extractTo(storage_path("app/public/{$code}"));
+                $zip->close();
+                foreach (Storage::disk('public')->files($code) as $filePath) {
+                    $fullPath = storage_path("app/public/{$filePath}");
+                    RequeteFile::create([
+                        'file_path'  => $filePath,
+                        'file_type'  => pathinfo($fullPath, PATHINFO_EXTENSION),
+                        'name'       => pathinfo($fullPath, PATHINFO_BASENAME),
+                        'url'        => Storage::disk('public')->url($filePath),
+                        'is_valid'   => true,
+                        'requete_id' => $req->id,
+                    ]);
+                }
+                unlink($tempZipPath);
+            } else {
+                throw new JsonResponseException([
+                    'message' => "Impossible d'ouvrir le fichier zip",
+                    'success' => false,
+                    'data'    => null,
+                    'warning' => null,
+                ], 500);
+            }
+
+            // ── Champs géographiques ──────────────────────────────────────────
+            $municipalityId = $data['meta']['municipality_id'] ?? null;
+            $departmentId   = $data['meta']['department_id']   ?? null;
+
+            if (!$municipalityId && !empty($data['meta']['Commune'])) {
+                $municipalityId = Municipality::where('code', $data['meta']['Commune'])->value('id');
+            }
+            if (!$departmentId && !empty($data['meta']['Departement'])) {
+                $departmentId = Department::where('code', $data['meta']['Departement'])->value('id');
+            }
+            if ($municipalityId) {
+                $req->municipality_id = $municipalityId;
+                $req->department_id   = null;
+            } elseif ($departmentId) {
+                $req->department_id = $departmentId;
+            }
             $req->save();
-        }else{
-        $req->prestation_id=$prestation->id;
-        $req->code=$data['meta']['code'];
-        $req->email=$data['meta']['info']['email'];
-        $req->phone=$data['meta']['info']['phone'];
-        $req->step_contents=$data['steps'];
-        // $req->lastname=$data['meta']['info']['lastname'];
-        // $req->firstname=$data['meta']['info']['firstname'];
-        $req->header=$this->getHeaders();
-        $req->eps_id=$prestation?->eps_id;
-        $req->request_type = $data['meta']['requestType'] ?? null;
-        $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
-        $req->save();
 
+            // ── Workflow & routage (création uniquement) ──────────────────────
+            if ($isNew) {
+                $premiereTransition = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
+                    ->where('condition_type', 'auto')
+                    ->orderBy('order')
+                    ->first();
 
+                if ($premiereTransition) {
+                    $req->current_etape_id  = $premiereTransition->etape_to_id;
+                    $req->current_status_id = $premiereTransition->status_result_id;
+                    $req->etape_started_at  = now();
+                    $req->save();
 
-        }
+                    \App\Models\RequeteEtapeLog::create([
+                        'requete_id'             => $req->id,
+                        'workflow_transition_id' => $premiereTransition->id,
+                        'etape_from_id'          => $premiereTransition->etape_from_id,
+                        'etape_to_id'            => $premiereTransition->etape_to_id,
+                        'status_id'              => $premiereTransition->status_result_id,
+                        'triggered_by'           => null,
+                        'triggered_by_type'      => 'système',
+                        'comment'                => 'Soumission initiale de la demande',
+                        'transitioned_at'        => now(),
+                        'created_at'             => now(),
+                    ]);
+                }
 
-        $code = $req->code;
-        $host = parse_url($data['files'], PHP_URL_HOST);
+                $unite_admin_down = $this->resolveUniteAdminDown($prestation, $municipalityId, $departmentId);
+                if (!$req->municipality_id && !$req->department_id) {
+                    $req->municipality_id = $unite_admin_down->municipality_id;
+                    $req->department_id   = $unite_admin_down->department_id;
+                    $req->save();
+                }
 
-        $zipUrl = ($host === 'localhost')
-            ? env('APP_ZIP_URL')
-            : $data['files']; 
-        $tempZipPath = storage_path("app/tmp_{$code}.zip");
-        file_put_contents($tempZipPath, file_get_contents($zipUrl));
-        $extractPath = storage_path("app/public/{$code}");
-        Storage::disk('public')->makeDirectory($code);
-        $zip = new ZipArchive;
-        if ($zip->open($tempZipPath) === TRUE) {
-            $zip->extractTo($extractPath);
-            $zip->close();
+                Parcours::create([
+                    'libelle'    => "Soumission de la demande : " . $prestation->name,
+                    'requete_id' => $req->id,
+                ]);
 
-            // 3. Parcours des fichiers extraits et enregistrement
-            $files = Storage::disk('public')->files($code);
-            foreach ($files as $filePath) {
-                $fullPath = storage_path("app/public/{$filePath}");
-                $extension = pathinfo($fullPath, PATHINFO_EXTENSION);
+            // ── Workflow (resoumission correction) ────────────────────────────
+            } else {
+                $transitionRetour = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
+                    ->where('etape_from_id', $req->current_etape_id)
+                    ->where('condition_type', 'retour_correction')
+                    ->where('is_active', true)
+                    ->first();
 
-                RequeteFile::create([
-                    'file_path' => $filePath,
-                    'file_type' => $extension,
-                    'name' => pathinfo($fullPath, PATHINFO_BASENAME),
-                    'url' => Storage::disk('public')->url($filePath),
-                    'is_valid' => true,
+                if ($transitionRetour) {
+                    $req->current_etape_id  = $transitionRetour->etape_to_id;
+                    $req->current_status_id = $transitionRetour->status_result_id;
+                    $req->etape_started_at  = now();
+                    $req->save();
+
+                    \App\Models\RequeteEtapeLog::create([
+                        'requete_id'             => $req->id,
+                        'workflow_transition_id' => $transitionRetour->id,
+                        'etape_from_id'          => $transitionRetour->etape_from_id,
+                        'etape_to_id'            => $transitionRetour->etape_to_id,
+                        'status_id'              => $transitionRetour->status_result_id,
+                        'triggered_by'           => null,
+                        'triggered_by_type'      => 'système',
+                        'comment'                => 'Resoumission après correction du citoyen',
+                        'transitioned_at'        => now(),
+                        'created_at'             => now(),
+                    ]);
+                }
+
+                Parcours::create([
+                    'libelle'    => "Resoumission de la demande après correction",
                     'requete_id' => $req->id,
                 ]);
             }
-                // Supprimer le zip temporaire
-            unlink($tempZipPath);
 
-        } else {
-
-             throw new JsonResponseException([
-                'message' => "Impossible d'ouvrir le fichier zip",
-                'success' => false,
-                'data' => null,
-                'warning' => null,
-            ], 500);
-        }
-       
-        // ── Champs géographiques ──────────────────────────────────────────────
-        // Le frontend envoie des codes texte (Commune, Departement) — on résout les IDs
-        $municipalityId = $data['meta']['municipality_id'] ?? null;
-        $departmentId   = $data['meta']['department_id']   ?? null;
-
-        if (!$municipalityId && !empty($data['meta']['Commune'])) {
-            $municipalityId = Municipality::where('code', $data['meta']['Commune'])->value('id');
-        }
-        if (!$departmentId && !empty($data['meta']['Departement'])) {
-            $departmentId = Department::where('code', $data['meta']['Departement'])->value('id');
-        }
-
-        if ($municipalityId) {
-            $req->municipality_id = $municipalityId;
-            $req->department_id   = null; // la commune prime sur le département
-        } elseif ($departmentId) {
-            $req->department_id   = $departmentId;
-        }
-        $req->save();
-
-        // ── Première transition auto ──────────────────────────────────────────
-        $premiereTransition = \App\Models\WorkflowTransition::where('prestation_id', $prestation->id)
-            ->where('condition_type', 'auto')
-            ->orderBy('order')
-            ->first();
-
-        if ($premiereTransition) {
-            $req->current_etape_id  = $premiereTransition->etape_to_id;
-            $req->current_status_id = $premiereTransition->status_result_id;
-            $req->etape_started_at  = now();
-            $req->save();
-
-            \App\Models\RequeteEtapeLog::create([
-                'requete_id'             => $req->id,
-                'workflow_transition_id' => $premiereTransition->id,
-                'etape_from_id'          => $premiereTransition->etape_from_id,
-                'etape_to_id'            => $premiereTransition->etape_to_id,
-                'status_id'              => $premiereTransition->status_result_id,
-                'triggered_by'           => null,
-                'triggered_by_type'      => 'système',
-                'comment'                => 'Soumission initiale de la demande',
-                'transitioned_at'        => now(),
-                'created_at'             => now(),
-            ]);
-        }
-
-        // ── Sélection de l'unité de traitement (routage géographique) ─────────
-        $unite_admin_down = $this->resolveUniteAdminDown($prestation, $municipalityId, $departmentId);
-
-        // Fallback : si les champs géographiques ne sont pas encore remplis sur la requête,
-        // on les déduit de l'unité de traitement sélectionnée.
-        if (!$req->municipality_id && !$req->department_id) {
-            $req->municipality_id = $unite_admin_down->municipality_id;
-            $req->department_id   = $unite_admin_down->department_id;
-            $req->save();
-        }
-
-        Parcours::create(['libelle' => "Soumission de la demande : " . $prestation->name, 'requete_id' => $req->id]);
-
-        Affectation::create([
-            'unite_admin_up'   => $prestation->uniteAdmin->id,
-            'unite_admin_down' => $unite_admin_down->id,
-            'requete_id'       => $req->id,
-            'isLast'           => 1,
-            'sens'             => 1,
-        ]);
-        Parcours::create(['libelle' => "Affectation de la demande " . $req->code . " par le/la " . $prestation->uniteAdmin->libelle . " au/à la " . $unite_admin_down->libelle, 'requete_id' => $req->id]);
-         
             DB::commit();
+            return true;
 
-        return true;
         } catch (\Throwable $th) {
-            DB::rollback();
+            DB::rollBack();
             throw $th;
         }
-
-
-
     }
 
     /**
