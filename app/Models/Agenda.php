@@ -19,4 +19,9 @@ class Agenda extends Model
     function user() {
         return $this->belongsTo(\App\Models\User::class,'user_id');
     }
+
+    // Le créneau PlanningSlot qui a conduit à cet agenda (agenda_id sur planning_slots)
+    function planningSlot() {
+        return $this->hasOne(\App\Models\PlanningSlot::class, 'agenda_id');
+    }
 }

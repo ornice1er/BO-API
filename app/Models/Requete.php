@@ -78,6 +78,7 @@ public function currentStatus()   { return $this->belongsTo(Status::class, 'curr
 public function requeteEtapeLogs(){ return $this->hasMany(RequeteEtapeLog::class); }
 public function documentActes()   { return $this->hasMany(DocumentActe::class); }
 public function agendas()         { return $this->hasMany(Agenda::class, 'requete_id'); }
+public function planningSlot()    { return $this->belongsTo(\App\Models\PlanningSlot::class, 'planning_slot_id'); }
     /**
      * Les commissions auxquelles cette requête est associée
      */

@@ -32,7 +32,7 @@ class UpdateEtapeRequest extends FormRequest
             'allow_partial_save'  => 'nullable|boolean',
             'sla_days'            => 'nullable|integer|min:0',
             'can_associate'       => 'nullable|boolean',
-
+            'need_meeting'        => 'nullable|boolean',
         ];
     }
 

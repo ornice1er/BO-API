@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use eloquentFilter\QueryFilter\ModelFilters\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Str;
+use App\Models\WorkflowTransition;
 class Prestation extends Model
 {
 
@@ -37,6 +38,21 @@ class Prestation extends Model
         return $this->belongsTo(UniteAdmin::class,'start_point');
     }
 
+    public function workflowTransitions()
+    {
+        return $this->hasMany(WorkflowTransition::class);
+    }
+
+    /**
+     * Calculé dynamiquement : vrai si au moins une étape du workflow requiert un RDV.
+     * Remplace le flag manuel sur la prestation.
+     */
+    public function getNeedMeetingAttribute(): bool
+    {
+        return WorkflowTransition::where('prestation_id', $this->id)
+            ->whereHas('etapeTo', fn($q) => $q->where('need_meeting', true))
+            ->exists();
+    }
 
       public static function boot()
     {

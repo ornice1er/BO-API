@@ -8,6 +8,8 @@ use App\Http\Controllers\WorkflowStateController;
 use App\Http\Controllers\RequeteController;
 use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\DocumentActeController;
+use App\Http\Controllers\ProjectDocumentController;
+use App\Http\Controllers\DocumentTemplateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -285,6 +287,19 @@ Route::post('requetes/{id}/corriger',            [RequeteController::class, 'cor
 Route::post('requetes/documents/{acteId}/traiter',[RequeteController::class, 'traiterDocument']);
 
 Route::get('workflows-transitions', [WorkflowController::class, 'getTransitions']);
+
+// ── Modèles de documents (templates généraux, non liés à un workflow) ────────
+Route::get   ('document-templates',     [DocumentTemplateController::class, 'index']);
+Route::post  ('document-templates',     [DocumentTemplateController::class, 'store']);
+Route::get   ('document-templates/{id}',[DocumentTemplateController::class, 'show']);
+Route::patch ('document-templates/{id}',[DocumentTemplateController::class, 'update']);
+Route::delete('document-templates/{id}',[DocumentTemplateController::class, 'destroy']);
+
+// ── Documents de projet (agrément) ───────────────────────────────────────────
+Route::get('projects/{projectId}/documents',                       [ProjectDocumentController::class, 'index']);
+Route::get('projects/{projectId}/documents/init/{templateId}',     [ProjectDocumentController::class, 'init']);
+Route::post('project-documents/{id}/save',                         [ProjectDocumentController::class, 'save']);
+Route::post('project-documents/{id}/generate',                     [ProjectDocumentController::class, 'generate']);
 
 // Planning slots (créneaux RDV)
 Route::get('planning-slots', 'PlanningSlotController@index');

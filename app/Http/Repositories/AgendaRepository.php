@@ -104,8 +104,7 @@ class AgendaRepository
 
 function sendMail($id) {
 
-    
-    $agenda = Agenda::findOrFail($id);
+    $agenda = Agenda::with(['planningSlot.uniteAdmin'])->findOrFail($id);
     $requete = $agenda->requete;
     if ($requete) {
         $decisionMap = [
@@ -177,6 +176,15 @@ function getContent($agenda): string
         ['Priorité',    e($agenda->priority)],
         ['Origine',     e($agenda->from)],
     ];
+
+    // Détails du créneau PNS si disponible
+    if ($agenda->planningSlot) {
+        $slot = $agenda->planningSlot;
+        array_splice($rows, 2, 0, [
+            ['Lieu', e($slot->uniteAdmin->libelle ?? 'N/A')],
+            ['Créneau', e(\Carbon\Carbon::parse($slot->slot_date)->format('d/m/Y') . ' à ' . substr($slot->heure_debut, 0, 5))],
+        ]);
+    }
 
     $tableRows = '';
     foreach ($rows as [$label, $value]) {

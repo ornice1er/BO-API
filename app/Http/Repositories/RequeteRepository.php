@@ -148,6 +148,7 @@ class RequeteRepository
                 'parcours',
                 'project',
                 'agendas',
+                'planningSlot.uniteAdmin',
                 'documentActes.docProduit',
                 'documentActes.currentCircuitStep',
                 'documentActes.logs',
@@ -251,6 +252,11 @@ class RequeteRepository
                 'created_at'             => now(),
             ]);
 
+            // Slot PNS : créer l'agenda automatiquement si pas encore fait
+            if ($requete->planning_slot_id) {
+                $this->creerAgendaDepuisSlot($requete);
+            }
+
             if ($transition->can_act_pns) {
                 $isGroupDelivered  = (bool) ($requete->prestation->is_group_delivered ?? false);
                 $isTerminal        = (bool) ($transition->etape->is_terminal ?? false);
@@ -324,14 +330,15 @@ class RequeteRepository
         $requete = Requete::findOrFail($id);
 
         $condition = match($decision) {
-            'valider'       => 'validation',
-            'rejeter'       => 'rejet',
-            'cloturer'      => 'cloture',
-            'completer'     => 'complement',
-            'signer'        => 'signature',
-            'parapher'      => 'paraphe',
-            'prevalider'    => 'prevalidation',
-            default         => throw new \InvalidArgumentException("Décision inconnue : {$decision}"),
+            'valider'            => 'validation',
+            'rejeter'            => 'rejet',
+            'cloturer'           => 'cloture',
+            'completer'          => 'complement',
+            'signer'             => 'signature',
+            'parapher'           => 'paraphe',
+            'prevalider'         => 'prevalidation',
+            'retour_correction'  => 'correction',
+            default              => throw new \InvalidArgumentException("Décision inconnue : {$decision}"),
         };
 
         return $this->avancerWorkflow($requete, $condition, $options);
@@ -501,6 +508,47 @@ public function traiterDocument(int $acteId, string $action, array $options = []
             'invalides'  => array_values($invalides),
             'toutes'     => $pieces,
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PLANNING SLOT → AGENDA
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Crée automatiquement un Agenda depuis le créneau PNS sélectionné.
+     * Idempotent : n'agit que si le slot n'est pas encore lié à un agenda.
+     * Appelé à l'intérieur de la transaction avancerWorkflow.
+     */
+    protected function creerAgendaDepuisSlot(Requete $requete): void
+    {
+        $slot = \App\Models\PlanningSlot::lockForUpdate()->find($requete->planning_slot_id);
+
+        if (!$slot || $slot->agenda_id !== null) {
+            return; // Déjà traité ou slot introuvable
+        }
+
+        $dateStart = \Carbon\Carbon::parse($slot->slot_date . ' ' . $slot->heure_debut);
+        $dateEnd   = $dateStart->copy()->addMinutes($slot->duration_minutes ?? 20);
+
+        $agenda = \App\Models\Agenda::create([
+            'requete_id'       => $requete->id,
+            'user_id'          => Auth::id(),
+            'title'            => $requete->prestation->name ?? 'RDV',
+            'date_start'       => $dateStart,
+            'date_end'         => $dateEnd,
+            'duration_minutes' => $slot->duration_minutes ?? 20,
+            'session_type'     => $slot->session_type,
+            'rdv_type'         => 'premier_rdv',
+            'from'             => 'Usager',
+            'status'           => 'Ouvert',
+            'priority'         => 'Moyenne',
+        ]);
+
+        // Lier le slot à l'agenda et compter la réservation
+        $slot->update([
+            'agenda_id'    => $agenda->id,
+            'slots_booked' => $slot->slots_booked + 1,
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

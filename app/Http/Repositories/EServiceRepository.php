@@ -178,6 +178,7 @@ class EServiceRepository
             $req->header=$this->getHeaders();
             $req->eps_id=$prestation?->eps_id;
             $req->request_type = $data['meta']['requestType'] ?? null;
+            $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
 
             $req->save();
         }else{
@@ -191,6 +192,7 @@ class EServiceRepository
         $req->header=$this->getHeaders();
         $req->eps_id=$prestation?->eps_id;
         $req->request_type = $data['meta']['requestType'] ?? null;
+        $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
         $req->save();
 
 
@@ -288,6 +290,14 @@ class EServiceRepository
 
         // ── Sélection de l'unité de traitement (routage géographique) ─────────
         $unite_admin_down = $this->resolveUniteAdminDown($prestation, $municipalityId, $departmentId);
+
+        // Fallback : si les champs géographiques ne sont pas encore remplis sur la requête,
+        // on les déduit de l'unité de traitement sélectionnée.
+        if (!$req->municipality_id && !$req->department_id) {
+            $req->municipality_id = $unite_admin_down->municipality_id;
+            $req->department_id   = $unite_admin_down->department_id;
+            $req->save();
+        }
 
         Parcours::create(['libelle' => "Soumission de la demande : " . $prestation->name, 'requete_id' => $req->id]);
 
