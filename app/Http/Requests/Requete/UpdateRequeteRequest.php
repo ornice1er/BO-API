@@ -22,6 +22,7 @@ class UpdateRequeteRequest extends FormRequest
             'phone' => 'nullable|string',
             'filename' => 'nullable|string',
             'prestation_id' => 'nullable|exists:prestations,id',
+            'project_id'    => 'nullable|exists:projects,id',
             'header' => 'nullable|json',
             'attach' => 'nullable|string',
             'comment' => 'nullable|string',

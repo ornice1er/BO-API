@@ -165,14 +165,9 @@ class EServiceRepository
                 $req->request_type     = $data['meta']['requestType'] ?? null;
                 $req->planning_slot_id = $data['meta']['planning_slot_id'] ?? null;
 
-                if (in_array($data['meta']['prestation_code'], ['PS00709', 'PS00710'])) {
-                    $sessionId = $data['meta']['session_id'] ?? null;
-                    $project   = $sessionId
-                        ? Project::find($sessionId)
-                        : Project::whereDate('date_start', '<=', Carbon::today())
-                            ->whereDate('date_end', '>=', Carbon::today())
-                            ->first();
-                    $req->project_id = $project?->id;
+                $sessionId = $data['meta']['session_id'] ?? null;
+                if ($sessionId) {
+                    $req->project_id = Project::find($sessionId)?->id;
                 }
                 $req->save();
 
