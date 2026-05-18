@@ -256,6 +256,30 @@ class RequeteController extends Controller
     }
 
     /**
+     * Proxy téléchargement fichier — force Content-Disposition: attachment.
+     * GET /requetes/download-file?path=...&name=...
+     */
+    public function downloadFile(Request $request)
+    {
+        $path = $request->query('path');
+        if (!$path) return Common::badRequest();
+
+        $disk = Storage::disk('public');
+        if (!$disk->exists($path)) {
+            return response()->json(['message' => 'Fichier introuvable'], 404);
+        }
+
+        $filename = $request->query('name') ?: basename($path);
+        $mime     = $disk->mimeType($path) ?: 'application/octet-stream';
+
+        return response()->streamDownload(
+            fn () => print($disk->get($path)),
+            $filename,
+            ['Content-Type' => $mime]
+        );
+    }
+
+    /**
      * Génère une URL signée temporaire (15 min) pour visualiser une note de traitement.
      * GET /requetes/note-file-url?path=...
      */

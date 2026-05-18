@@ -283,6 +283,7 @@ Route::post('requetes/{id}/regresser',           [RequeteController::class, 'reg
 
 // Actions workflow
 Route::get('requetes/note-file-url',             [RequeteController::class, 'getNoteFileUrl']);
+Route::get('requetes/download-file',             [RequeteController::class, 'downloadFile']);
 Route::post('requetes/{id}/prendre-en-charge',   [RequeteController::class, 'prendreEnCharge']);
 Route::post('requetes/{id}/traiter',             [RequeteController::class, 'traiter']);
 Route::post('requetes/{id}/upload-note-file',    [RequeteController::class, 'uploadNoteFile']);
