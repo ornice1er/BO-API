@@ -265,7 +265,7 @@ class RequeteController extends Controller
             $path = $request->query('path');
             if (!$path) return Common::badRequest();
 
-            $url = Storage::disk('s3')->temporaryUrl($path, now()->addMinutes(15));
+            $url = Storage::disk('public')->url($path);
             return Common::success('URL générée', ['url' => $url]);
         } catch (\Throwable $th) {
             return Common::error($th->getMessage(), []);
@@ -290,9 +290,9 @@ class RequeteController extends Controller
                        . '_' . Str::random(16) . '_' . time() . '.' . $extension;
             $path      = 'requetes/' . $id . '/notes/' . $fileName;
 
-            Storage::disk('s3')->put($path, file_get_contents($file), 'private');
+            Storage::disk('public')->put($path, file_get_contents($file));
 
-            $signedUrl = Storage::disk('s3')->temporaryUrl($path, now()->addDays(30));
+            $signedUrl = Storage::disk('public')->url($path);
 
             return Common::success($message, [
                 'signed_url' => $signedUrl,
