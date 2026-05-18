@@ -24,7 +24,7 @@ class Project extends Model
      */
     public function requetes()
     {
-        return $this->belongsToMany(Requete::class, 'project_requete', 'project_id', 'requete_id')->withTimestamps();
+        return $this->hasMany(Requete::class,'project_id');
     }
 
     /**
@@ -48,6 +48,6 @@ class Project extends Model
      */
     public function getRequestCountAttribute()
     {
-        return $this->requetes()->count();
+        return $this->requests()->count();
     }
 }

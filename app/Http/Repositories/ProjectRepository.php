@@ -232,7 +232,7 @@ return $model;
     public function addRequests($projectId, $requestIds)
     {
         $project = Project::findOrFail($projectId);
-        $project->requetes()->syncWithoutDetaching($requestIds);
+        Requete::whereIn('id', $requestIds)->update(['project_id' => $projectId]);
         return $project->load('requetes');
     }
 
