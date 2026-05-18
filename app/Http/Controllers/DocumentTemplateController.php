@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Helpers\Common;
+use App\Utilities\Common;
 use App\Models\DocumentTemplate;
 use Illuminate\Http\Request;
 
