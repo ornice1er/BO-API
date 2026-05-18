@@ -635,6 +635,11 @@ class EServiceController extends Controller
 
             $requete = Requete::where('code', $request->code_demande)->firstOrFail();
 
+            if ($request->filled('planning_slot_id')) {
+                $requete->planning_slot_id = $request->input('planning_slot_id');
+                $requete->save();
+            }
+
             $conditionType = $request->input('condition_type', 'validation');
             $options = [
                 'comment'  => $request->input('comment', 'Avancement déclenché par le PNS'),
