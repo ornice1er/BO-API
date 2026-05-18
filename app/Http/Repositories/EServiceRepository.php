@@ -117,7 +117,7 @@ class EServiceRepository
         ->first();
 
     if ($check) {
-        return $check;
+        return $check->id;
     } else {
           throw new JsonResponseException([
                 'message' => 'Aucune session active trouvée',
@@ -154,7 +154,7 @@ class EServiceRepository
             $prestation = Prestation::where('code', $data['meta']['prestation_code'])->first();
             $isNew      = !$req;
             info($data['meta']);
-            
+
             // ── Création ──────────────────────────────────────────────────────
             if ($isNew) {
                 $req = new Requete();
