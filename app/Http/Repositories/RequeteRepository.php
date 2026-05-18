@@ -88,13 +88,21 @@ class RequeteRepository
         ->where('isTreated', false)
         ->where('isDeclined', false)
         // ── Filtre géographique ──────────────────────────────────────────────
-        // CS (unité communale) : ne voit que les demandes de sa commune
+        // CS (unité communale avec municipality_id configuré) : commune exacte
         ->when($userUA?->municipality_id, function ($q) use ($userUA) {
             $q->where('municipality_id', $userUA->municipality_id);
         })
-        // DDEMP (unité départementale sans commune) : demandes de son département
+        // Unité à périmètre départemental (DDEMP ou CS ancien sans municipality_id) :
+        // - requêtes directement au niveau département
+        // - OU requêtes communales dont la commune appartient à ce département
+        // (les requêtes communales ont department_id=null car exclusif avec municipality_id)
         ->when(!$userUA?->municipality_id && $userUA?->department_id, function ($q) use ($userUA) {
-            $q->where('department_id', $userUA->department_id);
+            $munIds = \App\Models\Municipality::where('department_id', $userUA->department_id)
+                ->pluck('id');
+            $q->where(function ($sub) use ($userUA, $munIds) {
+                $sub->where('department_id', $userUA->department_id)
+                    ->orWhereIn('municipality_id', $munIds);
+            });
         })
         // ────────────────────────────────────────────────────────────────────
         ->orderByDesc('created_at')
