@@ -31,8 +31,10 @@ class StoreEserviceRequest extends FormRequest
             'meta.code' => ['required', 'string'],
             'meta.prestation_code' => ['required', 'string'],
             'meta.info' => ['required'],
-            'meta.municipality_id' => ['nullable', 'integer', 'exists:municipalities,id'],
-            'meta.department_id'   => ['nullable', 'integer', 'exists:departments,id'],
+            'meta.municipality_id'   => ['nullable', 'integer', 'exists:municipalities,id'],
+            'meta.department_id'     => ['nullable', 'integer', 'exists:departments,id'],
+            'meta.commune_code'      => ['nullable', 'string'],
+            'meta.departement_code'  => ['nullable', 'string'],
         ];
     }
 

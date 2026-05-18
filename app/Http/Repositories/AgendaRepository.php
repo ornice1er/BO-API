@@ -152,87 +152,53 @@ function getContent($agenda): string
         'suivi_traitement' => 'Suivi traitement',
     ];
 
-    $session    = $sessionLabels[$agenda->session_type] ?? $agenda->session_type;
-    $rdvType    = $rdvLabels[$agenda->rdv_type]         ?? $agenda->rdv_type;
+    $session    = $sessionLabels[$agenda->session_type]  ?? $agenda->session_type;
+    $rdvType    = $rdvLabels[$agenda->rdv_type]          ?? $agenda->rdv_type;
     $dateStart  = \Carbon\Carbon::parse($agenda->date_start)->format('d/m/Y à H:i');
     $dateEnd    = $agenda->date_end
         ? \Carbon\Carbon::parse($agenda->date_end)->format('d/m/Y à H:i')
         : 'Non définie';
-    $duree      = $agenda->duration_minutes ? $agenda->duration_minutes . ' minutes' : 'Non précisée';
-    $prestation = e($agenda->requete->prestation->name ?? 'N/A');
-    $auteur     = e($agenda->user?->name ?? 'Un agent du service');
-    $note       = $agenda->description
-        ? '<p style="margin:16px 0;color:#374151;"><strong>📝 Note :</strong> ' . e($agenda->description) . '</p>'
-        : '';
+    $duree      = $agenda->duration_minutes ? $agenda->duration_minutes . ' min' : 'Non précisée';
+    $prestation = $agenda->requete->prestation->name ?? 'N/A';
+    $auteur     = $agenda->user?->name ?? 'Un agent du service';
 
-    $rows = [
-        ['Titre',       e($agenda->title)],
-        ['Prestation',  $prestation],
-        ['Type de RDV', e($rdvType)],
-        ['Session',     e($session)],
-        ['Date début',  e($dateStart)],
-        ['Date fin',    e($dateEnd)],
-        ['Durée',       e($duree)],
-        ['Priorité',    e($agenda->priority)],
-        ['Origine',     e($agenda->from)],
+    $lines = [
+        "Bonjour,",
+        "",
+        "Vous avez un programme planifié concernant votre dossier.",
+        "",
+        "--- DÉTAILS DU PROGRAMME ---",
+        "",
+        "Titre       : {$agenda->title}",
+        "Prestation  : {$prestation}",
+        "Type de RDV : {$rdvType}",
+        "Session     : {$session}",
+        "Date début  : {$dateStart}",
+        "Date fin    : {$dateEnd}",
+        "Durée       : {$duree}",
     ];
 
-    // Détails du créneau PNS si disponible
     if ($agenda->planningSlot) {
         $slot = $agenda->planningSlot;
-        array_splice($rows, 2, 0, [
-            ['Lieu', e($slot->uniteAdmin->libelle ?? 'N/A')],
-            ['Créneau', e(\Carbon\Carbon::parse($slot->slot_date)->format('d/m/Y') . ' à ' . substr($slot->heure_debut, 0, 5))],
-        ]);
+        $lines[] = "Lieu        : " . ($slot->uniteAdmin->libelle ?? 'N/A');
+        $lines[] = "Créneau     : " . \Carbon\Carbon::parse($slot->slot_date)->format('d/m/Y')
+                   . ' à ' . substr($slot->heure_debut, 0, 5);
     }
 
-    $tableRows = '';
-    foreach ($rows as [$label, $value]) {
-        $tableRows .= "
-            <tr>
-                <td style=\"padding:10px 14px;font-weight:600;color:#6b7280;background:#f9fafb;white-space:nowrap;border-bottom:1px solid #e5e7eb;\">{$label}</td>
-                <td style=\"padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb;\">{$value}</td>
-            </tr>";
+    if ($agenda->description) {
+        $lines[] = "";
+        $lines[] = "Note : {$agenda->description}";
     }
 
-    return "<!DOCTYPE html>
-<html lang=\"fr\">
-<head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>
-<body style=\"margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;\">
-  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f3f4f6;padding:32px 0;\">
-    <tr><td align=\"center\">
-      <table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);\">
+    $lines = array_merge($lines, [
+        "",
+        "Merci de confirmer votre disponibilité en répondant à ce message.",
+        "",
+        "Cordialement,",
+        $auteur,
+    ]);
 
-        <!-- En-tête -->
-        <tr><td style=\"background:#1d4ed8;padding:28px 32px;\">
-          <h1 style=\"margin:0;color:#ffffff;font-size:20px;\">Confirmation de programme</h1>
-        </td></tr>
-
-        <!-- Corps -->
-        <tr><td style=\"padding:28px 32px;\">
-          <p style=\"margin:0 0 20px;color:#374151;\">Bonjour,</p>
-          <p style=\"margin:0 0 24px;color:#374151;\">Vous avez un programme planifié concernant votre dossier. Veuillez trouver ci-dessous les détails :</p>
-
-          <h2 style=\"margin:0 0 12px;font-size:15px;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;\">📋 Détails du programme</h2>
-          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;border-collapse:collapse;\">
-            {$tableRows}
-          </table>
-
-          {$note}
-
-          <p style=\"margin:24px 0 0;color:#374151;\">Merci de confirmer votre disponibilité en répondant à ce message.</p>
-        </td></tr>
-
-        <!-- Pied de page -->
-        <tr><td style=\"background:#f9fafb;padding:18px 32px;border-top:1px solid #e5e7eb;\">
-          <p style=\"margin:0;color:#6b7280;font-size:13px;\">Cordialement,<br><strong>{$auteur}</strong></p>
-        </td></tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>";
+    return implode("\n", $lines);
 }
     /**
      * Update an existing agenda

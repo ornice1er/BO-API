@@ -233,8 +233,14 @@ class EServiceRepository
             if (!$municipalityId && !empty($data['meta']['Commune'])) {
                 $municipalityId = Municipality::where('code', $data['meta']['Commune'])->value('id');
             }
+            if (!$municipalityId && !empty($data['meta']['commune_code'])) {
+                $municipalityId = Municipality::where('code', $data['meta']['commune_code'])->value('id');
+            }
             if (!$departmentId && !empty($data['meta']['Departement'])) {
                 $departmentId = Department::where('code', $data['meta']['Departement'])->value('id');
+            }
+            if (!$departmentId && !empty($data['meta']['departement_code'])) {
+                $departmentId = Department::where('code', $data['meta']['departement_code'])->value('id');
             }
             if ($municipalityId) {
                 $req->municipality_id = $municipalityId;
