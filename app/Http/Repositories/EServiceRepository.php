@@ -110,12 +110,15 @@ class EServiceRepository
             });
         }
 
-   $check = $query->first();
-    
+    $check = $query
+        ->whereDate('date_start', '<=', Carbon::today())
+        ->whereDate('date_end',   '>=', Carbon::today())
+        ->orderByDesc('date_start')
+        ->first();
 
     if ($check) {
         return $check;
-    }else{
+    } else {
           throw new JsonResponseException([
                 'message' => 'Aucune session active trouvée',
                 'success' => false,
