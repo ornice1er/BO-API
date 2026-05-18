@@ -66,7 +66,7 @@ class RequeteRepository
         if (request()->nature=='validation') {
              $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
              ->where('prestation_id', $prestation->id)
-            ->whereIn('condition_type', ["validation","prevalidation","paraphe","choix_sortie"])
+            ->whereIn('condition_type', ["validation","prevalidation","paraphe","choix_sortie","visite"])
             ->pluck('etape_to_id');
         } else {
         $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
