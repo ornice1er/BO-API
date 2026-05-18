@@ -59,6 +59,44 @@ class EtapeVisibiliteRepository
         return EtapeVisibilite::findOrFail($id)->delete();
     }
 
+    public function destroyByPrestation(int $prestationId): int
+    {
+        $transitionIds = \App\Models\WorkflowTransition::where('prestation_id', $prestationId)
+            ->pluck('id');
+
+        return EtapeVisibilite::whereIn('workflow_transition_id', $transitionIds)->delete();
+    }
+
+    public function copyFromPrestation(int $fromId, int $toId): int
+    {
+        // Supprimer les règles existantes de la destination
+        $this->destroyByPrestation($toId);
+
+        $sourceTransitions = \App\Models\WorkflowTransition::where('prestation_id', $fromId)->get();
+        $targetTransitions = \App\Models\WorkflowTransition::where('prestation_id', $toId)->get();
+
+        $count = 0;
+        foreach ($sourceTransitions as $src) {
+            // Trouver la transition cible structurellement équivalente
+            $target = $targetTransitions->first(fn($t) =>
+                $t->etape_from_id  === $src->etape_from_id  &&
+                $t->etape_to_id    === $src->etape_to_id    &&
+                $t->condition_type === $src->condition_type  &&
+                $t->order          == $src->order
+            );
+            if (!$target) continue;
+
+            $rules = EtapeVisibilite::where('workflow_transition_id', $src->id)->get();
+            foreach ($rules as $rule) {
+                $copy = $rule->replicate();
+                $copy->workflow_transition_id = $target->id;
+                $copy->save();
+                $count++;
+            }
+        }
+        return $count;
+    }
+
     public function search($term)
     {
         return EtapeVisibilite::with([

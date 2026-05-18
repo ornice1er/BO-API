@@ -139,6 +139,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::post('etape-documents-search', 'EtapeDocumentController@search');
         Route::post('motifs-rejet-search', 'MotifRejetController@search');
         Route::post('etape-visibilites-search', 'EtapeVisibiliteController@search');
+        Route::delete('etape-visibilites/by-prestation/{prestationId}', 'EtapeVisibiliteController@destroyByPrestation');
+        Route::post('etape-visibilites/copy-from-prestation', 'EtapeVisibiliteController@copyFromPrestation');
         Route::get('current-officer-posts/{id}/state/{state}', 'CurrentOfficerPostController@changeState');
 
         Route::get('/logs', 'LogController@index');
@@ -203,6 +205,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::post('status-search', 'StatusController@search');
         Route::post('workflows-search', 'WorkflowController@search');
         Route::delete('workflows/by-prestation/{prestationId}', 'WorkflowController@destroyByPrestation');
+        Route::post('workflows/copy-from-prestation', 'WorkflowController@copyFromPrestation');
         Route::post('agenda-search', 'AgendaController@search');
         Route::post('requetes-search', 'RequeteController@search');
         Route::post('type-entity-search', 'TypeEntiteController@search');

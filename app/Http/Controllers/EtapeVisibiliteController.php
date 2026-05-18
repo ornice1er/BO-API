@@ -116,4 +116,42 @@ class EtapeVisibiliteController extends Controller
             return Common::error($th->getMessage(), []);
         }
     }
+
+    public function destroyByPrestation(int $prestationId)
+    {
+        $message = 'Suppression des règles de visibilité d\'une prestation';
+        try {
+            $count = $this->repository->destroyByPrestation($prestationId);
+            $this->ls->trace(['action_name' => $message, 'description' => "prestation_id=$prestationId, deleted=$count"]);
+
+            return Common::success("$count règle(s) supprimée(s) avec succès", []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    public function copyFromPrestation(Request $request)
+    {
+        $request->validate([
+            'from_prestation_id' => 'required|integer|exists:prestations,id',
+            'to_prestation_id'   => 'required|integer|exists:prestations,id|different:from_prestation_id',
+        ]);
+
+        $message = 'Copie des règles de visibilité';
+        try {
+            $count = $this->repository->copyFromPrestation(
+                $request->from_prestation_id,
+                $request->to_prestation_id
+            );
+            $this->ls->trace(['action_name' => $message, 'description' => "from={$request->from_prestation_id} to={$request->to_prestation_id}, copied=$count"]);
+
+            return Common::success("$count règle(s) copiée(s) avec succès", []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
 }

@@ -630,6 +630,35 @@ class WorkflowController extends Controller
     }
 
     /**
+     * Copier toutes les transitions d'une prestation source vers une prestation cible.
+     * Les transitions existantes de la cible sont supprimées avant la copie.
+     * POST /workflows/copy-from-prestation  { from_prestation_id, to_prestation_id }
+     */
+    public function copyFromPrestation(Request $request)
+    {
+        $request->validate([
+            'from_prestation_id' => 'required|integer|exists:prestations,id',
+            'to_prestation_id'   => 'required|integer|exists:prestations,id|different:from_prestation_id',
+        ]);
+
+        $fromId = $request->from_prestation_id;
+        $toId   = $request->to_prestation_id;
+
+        $message = "Copie du workflow de la prestation $fromId vers $toId";
+
+        try {
+            $count = $this->statusRepository->copyFromPrestation($fromId, $toId);
+            $this->ls->trace(['action_name' => $message, 'description' => "$count transition(s) copiée(s)"]);
+
+            return Common::success("$count transition(s) copiée(s) avec succès", []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
  * Transitions disponibles depuis une étape pour une prestation donnée.
  * Utilisé par le menu de décision dans l'espace de traitement.
  * GET /api/workflows/transitions?prestation_id=X&etape_from_id=Y

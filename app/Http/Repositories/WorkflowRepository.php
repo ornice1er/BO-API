@@ -103,6 +103,22 @@ class WorkflowRepository
         return WorkflowTransition::where('prestation_id', $prestationId)->delete();
     }
 
+    public function copyFromPrestation(int $fromId, int $toId): int
+    {
+        // Supprimer les transitions existantes de la cible (logs et visibilités compris)
+        $this->destroyByPrestation($toId);
+
+        $transitions = WorkflowTransition::where('prestation_id', $fromId)->get();
+
+        foreach ($transitions as $t) {
+            $copy = $t->replicate();
+            $copy->prestation_id = $toId;
+            $copy->save();
+        }
+
+        return $transitions->count();
+    }
+
     /**
      * To get all latest
      */
