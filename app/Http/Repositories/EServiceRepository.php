@@ -153,7 +153,8 @@ class EServiceRepository
             $req        = Requete::where('code', $data['meta']['code'])->first();
             $prestation = Prestation::where('code', $data['meta']['prestation_code'])->first();
             $isNew      = !$req;
-
+            info($data['meta']);
+            
             // ── Création ──────────────────────────────────────────────────────
             if ($isNew) {
                 $req = new Requete();
