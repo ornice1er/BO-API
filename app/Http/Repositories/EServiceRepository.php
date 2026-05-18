@@ -117,7 +117,7 @@ class EServiceRepository
         ->first();
 
     if ($check) {
-        return $check->id;
+        return $check;
     } else {
           throw new JsonResponseException([
                 'message' => 'Aucune session active trouvée',
