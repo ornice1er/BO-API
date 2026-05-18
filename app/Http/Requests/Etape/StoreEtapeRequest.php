@@ -6,6 +6,7 @@ use App\Utilities\Common;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class StoreEtapeRequest extends FormRequest
 {
@@ -25,7 +26,7 @@ class StoreEtapeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'                => 'required|string|max:255',
+            'name'                => ['required', 'string', 'max:255', Rule::unique('etapes', 'name')],
             'type'                => 'nullable|in:depot,traitement,visite,commission,delivrance',
             'unite_admin_id'      => 'nullable|integer|exists:unite_admins,id',
             'is_terminal'         => 'nullable|boolean',
@@ -52,7 +53,8 @@ class StoreEtapeRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required' => 'Le nom du projet est requis.',
+            'name.required' => 'Le libellé de l\'étape est requis.',
+            'name.unique'   => 'Une étape avec ce libellé existe déjà.',
             'name.string' => 'Le nom du projet doit être une chaîne de caractères.',
             'name.max' => 'Le nom du projet ne doit pas dépasser 255 caractères.',
             'description.required' => 'La description du projet est requise.',

@@ -28,7 +28,7 @@ class UpdateWorkflowRequest extends FormRequest
             'prestation_id'      => 'sometimes|integer|exists:prestations,id',
             'etape_from_id'      => 'sometimes|integer|exists:etapes,id',
             'etape_to_id'        => 'nullable|integer|exists:etapes,id',
-            'condition_type'     => 'sometimes|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie,correction',
+            'condition_type'     => 'sometimes|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie,correction,retour_correction',
             'status_result_id'   => [
                 'sometimes', 'integer', 'exists:statuses,id',
                 \Illuminate\Validation\Rule::exists('prestation_statuses', 'status_id')

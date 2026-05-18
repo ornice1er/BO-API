@@ -261,18 +261,22 @@ class EServiceRepository
                     $req->etape_started_at  = now();
                     $req->save();
 
-                    \App\Models\RequeteEtapeLog::create([
-                        'requete_id'             => $req->id,
-                        'workflow_transition_id' => $premiereTransition->id,
-                        'etape_from_id'          => $premiereTransition->etape_from_id,
-                        'etape_to_id'            => $premiereTransition->etape_to_id,
-                        'status_id'              => $premiereTransition->status_result_id,
-                        'triggered_by'           => null,
-                        'triggered_by_type'      => 'système',
-                        'comment'                => 'Soumission initiale de la demande',
-                        'transitioned_at'        => now(),
-                        'created_at'             => now(),
-                    ]);
+                    \App\Models\RequeteEtapeLog::firstOrCreate(
+                        [
+                            'requete_id'             => $req->id,
+                            'workflow_transition_id' => $premiereTransition->id,
+                        ],
+                        [
+                            'etape_from_id'     => $premiereTransition->etape_from_id,
+                            'etape_to_id'       => $premiereTransition->etape_to_id,
+                            'status_id'         => $premiereTransition->status_result_id,
+                            'triggered_by'      => null,
+                            'triggered_by_type' => 'système',
+                            'comment'           => 'Soumission initiale de la demande',
+                            'transitioned_at'   => now(),
+                            'created_at'        => now(),
+                        ]
+                    );
                 }
 
                 $unite_admin_down = $this->resolveUniteAdminDown($prestation, $municipalityId, $departmentId);
@@ -301,18 +305,25 @@ class EServiceRepository
                     $req->etape_started_at  = now();
                     $req->save();
 
-                    \App\Models\RequeteEtapeLog::create([
-                        'requete_id'             => $req->id,
-                        'workflow_transition_id' => $transitionRetour->id,
-                        'etape_from_id'          => $transitionRetour->etape_from_id,
-                        'etape_to_id'            => $transitionRetour->etape_to_id,
-                        'status_id'              => $transitionRetour->status_result_id,
-                        'triggered_by'           => null,
-                        'triggered_by_type'      => 'système',
-                        'comment'                => 'Resoumission après correction du citoyen',
-                        'transitioned_at'        => now(),
-                        'created_at'             => now(),
-                    ]);
+                    $alreadyLogged = \App\Models\RequeteEtapeLog::where('requete_id', $req->id)
+                        ->where('workflow_transition_id', $transitionRetour->id)
+                        ->where('transitioned_at', '>=', now()->subMinutes(5))
+                        ->exists();
+
+                    if (!$alreadyLogged) {
+                        \App\Models\RequeteEtapeLog::create([
+                            'requete_id'             => $req->id,
+                            'workflow_transition_id' => $transitionRetour->id,
+                            'etape_from_id'          => $transitionRetour->etape_from_id,
+                            'etape_to_id'            => $transitionRetour->etape_to_id,
+                            'status_id'              => $transitionRetour->status_result_id,
+                            'triggered_by'           => null,
+                            'triggered_by_type'      => 'système',
+                            'comment'                => 'Resoumission après correction du citoyen',
+                            'transitioned_at'        => now(),
+                            'created_at'             => now(),
+                        ]);
+                    }
                 }
 
                 Parcours::create([

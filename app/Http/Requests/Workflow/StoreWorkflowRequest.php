@@ -28,7 +28,7 @@ class StoreWorkflowRequest extends FormRequest
             'prestation_id'      => 'required|integer|exists:prestations,id',
             'etape_from_id'      => 'required|integer|exists:etapes,id',
             'etape_to_id'        => 'nullable|integer|exists:etapes,id',
-            'condition_type'     => 'required|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie,correction',
+            'condition_type'     => 'required|in:auto,validation,rejet,complement,signature,cloture,paraphe,prevalidation,choix_sortie,correction,retour_correction',
             'status_result_id'   => [
                 'required', 'integer', 'exists:statuses,id',
                 \Illuminate\Validation\Rule::exists('prestation_statuses', 'status_id')
