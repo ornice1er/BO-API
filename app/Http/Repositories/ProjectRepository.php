@@ -232,8 +232,8 @@ return $model;
     public function addRequests($projectId, $requestIds)
     {
         $project = Project::findOrFail($projectId);
-        $project->requests()->syncWithoutDetaching($requestIds);
-        return $project->load('requests');
+        $project->requetes()->syncWithoutDetaching($requestIds);
+        return $project->load('requetes');
     }
 
     /**
