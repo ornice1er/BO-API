@@ -223,7 +223,11 @@ return $model;
      */
     public function getWithRequests($id)
     {
-        return Project::with(['requetes.prestation','requetes.project','requetes.currentStatus'])->findOrFail($id);
+        return Project::with([
+            'requetes.prestation',
+            'requetes.currentStatus',
+            'requetes.currentEtape',
+        ])->findOrFail($id);
     }
 
     /**

@@ -7,6 +7,8 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Requests\Project\AddRequestsToProjectRequest;
 use App\Jobs\CloseProjectRequests;
+use App\Models\Prestation;
+use App\Services\PNSService;
 use App\Models\Project;
 use App\Models\Requete;
 use App\Services\LogService;
@@ -599,20 +601,30 @@ class ProjectController extends Controller
         $message = 'Clôture d\'un projet';
 
         try {
-            $project = $this->projectRepository->get($id);
+            $project = Project::findOrFail($id);
 
             if ($project->isClosed()) {
                 return Common::error('Le projet est déjà clôturé', []);
             }
 
-            CloseProjectRequests::dispatch($id);
+            if (!$project->closing_filename) {
+                return Common::error('Fichier de clôture manquant', []);
+            }
 
-            $this->ls->trace(['action_name' => $message, 'description' => 'Clôture du projet ' . $id . ' initiée']);
+            if (env('PROJECT_CLOSE_ASYNC', false)) {
+                CloseProjectRequests::dispatch($id);
 
-            return Common::success(
-                'Clôture du projet initiée. Les requêtes seront clôturées aussi',
-                ['project_id' => $id, 'status' => 'closing']
-            );
+                $this->ls->trace(['action_name' => $message, 'description' => 'Clôture async initiée — projet ' . $id]);
+
+                return Common::success('Clôture initiée en arrière-plan', ['project_id' => $id, 'status' => 'closing']);
+            }
+
+            $this->executeClose($project);
+
+            $this->ls->trace(['action_name' => $message, 'description' => 'Projet ' . $id . ' clôturé']);
+
+            return Common::success('Projet clôturé avec succès', $project->fresh());
+
         } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
 
@@ -620,24 +632,73 @@ class ProjectController extends Controller
         }
     }
 
+    private function executeClose(Project $project): void
+    {
+        $closingFileUrl = Storage::disk('public')->url($project->closing_filename);
+
+        $prestationCodes = is_array($project->prestations)
+            ? $project->prestations
+            : json_decode($project->prestations, true) ?? [];
+
+        $prestations = Prestation::whereIn('code', $prestationCodes)
+            ->where('is_group_delivered', true)
+            ->get();
+
+        foreach ($prestations as $prestation) {
+            $requetes = Requete::where('project_id', $project->id)
+                ->where('prestation_id', $prestation->id)
+                ->get();
+
+            $uniqueToken = encrypt([
+                'project_id'    => $project->id,
+                'prestation_id' => $prestation->id,
+                'expires_at'    => now()->addDays(30)->toDateTimeString(),
+            ]);
+
+            $uniqueLink = route('project.closing.file', ['token' => $uniqueToken]);
+
+            foreach ($requetes as $requete) {
+                try {
+                    $pnsService = new PNSService($requete->header, [
+                        'data'     => null,
+                        'message'  => "Publication d'arrêté de clôture demande : " . $requete->code,
+                        'status'   => true,
+                        'link'     => $uniqueLink,
+                        'decision' => $prestation->decision,
+                    ]);
+
+                    $requete->filename = $uniqueLink;
+                    $requete->save();
+
+                    $pnsService->reply();
+
+                } catch (\Exception $e) {
+                    \Log::error("Clôture projet {$project->id} — erreur PNS requête {$requete->code} : " . $e->getMessage());
+                }
+            }
+        }
+
+        $project->update(['status' => 'closed']);
+    }
+
     function exportList(Request $request) {
            try {
 
 
 // Récupérer les données
-$requetes = Requete::with('prestation')
+$requetes = Requete::with(['prestation', 'currentStatus', 'currentEtape'])
     ->whereIn('id', $request->ids)
-    ->get(['id', 'code', 'email', 'phone', 'prestation_id']);
+    ->get(['id', 'code', 'email', 'phone', 'prestation_id', 'created_at']);
 
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
-$sheet->setTitle('Liste des demandes validées');
+$sheet->setTitle('Liste des demandes');
 
 // ──────────────────────────────────────────
 // LIGNE 1 : Titre principal
 // ──────────────────────────────────────────
-$sheet->mergeCells('A1:D1');
-$sheet->setCellValue('A1', 'Liste des demandes validées');
+$sheet->mergeCells('A1:G1');
+$sheet->setCellValue('A1', 'Liste des demandes');
 $sheet->getStyle('A1')->applyFromArray([
     'font' => [
         'bold'  => true,
@@ -647,7 +708,7 @@ $sheet->getStyle('A1')->applyFromArray([
     ],
     'fill' => [
         'fillType'   => Fill::FILL_SOLID,
-        'startColor' => ['argb' => 'FF1F3864'], // bleu foncé
+        'startColor' => ['argb' => 'FF1F3864'],
     ],
     'alignment' => [
         'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -659,7 +720,7 @@ $sheet->getRowDimension(1)->setRowHeight(40);
 // ──────────────────────────────────────────
 // LIGNE 2 : Sous-titre avec date de génération
 // ──────────────────────────────────────────
-$sheet->mergeCells('A2:D2');
+$sheet->mergeCells('A2:G2');
 $sheet->setCellValue('A2', 'Généré le ' . now()->format('d/m/Y à H:i'));
 $sheet->getStyle('A2')->applyFromArray([
     'font' => [
@@ -673,7 +734,7 @@ $sheet->getStyle('A2')->applyFromArray([
     ],
     'fill' => [
         'fillType'   => Fill::FILL_SOLID,
-        'startColor' => ['argb' => 'FFD9E1F2'], // bleu clair
+        'startColor' => ['argb' => 'FFD9E1F2'],
     ],
 ]);
 $sheet->getRowDimension(2)->setRowHeight(20);
@@ -686,15 +747,15 @@ $sheet->getRowDimension(3)->setRowHeight(8);
 // ──────────────────────────────────────────
 // LIGNE 4 : En-têtes des colonnes
 // ──────────────────────────────────────────
-$headers = ['Code Prestation', 'Code Demande', 'Email', 'Téléphone'];
-$headerColumns = ['A', 'B', 'C', 'D'];
+$headers = ['Code Prestation', 'Prestation', 'Code Demande', 'Email', 'Téléphone', 'Étape', 'Statut', 'Date dépôt'];
+$headerColumns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
 foreach ($headers as $i => $header) {
     $cell = $headerColumns[$i] . '4';
     $sheet->setCellValue($cell, $header);
 }
 
-$sheet->getStyle('A4:D4')->applyFromArray([
+$sheet->getStyle('A4:H4')->applyFromArray([
     'font' => [
         'bold'  => true,
         'size'  => 11,
@@ -724,14 +785,18 @@ $sheet->getRowDimension(4)->setRowHeight(25);
 $rowIndex = 5;
 foreach ($requetes as $req) {
     $sheet->setCellValue("A{$rowIndex}", $req->prestation?->code ?? '');
-    $sheet->setCellValue("B{$rowIndex}", $req->code);
-    $sheet->setCellValue("C{$rowIndex}", $req->email);
-    $sheet->setCellValue("D{$rowIndex}", $req->phone);
+    $sheet->setCellValue("B{$rowIndex}", $req->prestation?->name ?? '');
+    $sheet->setCellValue("C{$rowIndex}", $req->code);
+    $sheet->setCellValue("D{$rowIndex}", $req->email);
+    $sheet->setCellValue("E{$rowIndex}", $req->phone);
+    $sheet->setCellValue("F{$rowIndex}", $req->currentEtape?->name ?? '—');
+    $sheet->setCellValue("G{$rowIndex}", $req->currentStatus?->name ?? '—');
+    $sheet->setCellValue("H{$rowIndex}", $req->created_at?->format('d/m/Y') ?? '');
 
     // Alternance blanc / bleu très clair
     $bgColor = ($rowIndex % 2 === 0) ? 'FFDCE6F1' : 'FFFFFFFF';
 
-    $sheet->getStyle("A{$rowIndex}:D{$rowIndex}")->applyFromArray([
+    $sheet->getStyle("A{$rowIndex}:H{$rowIndex}")->applyFromArray([
         'font' => ['name' => 'Arial', 'size' => 10],
         'fill' => [
             'fillType'   => Fill::FILL_SOLID,
@@ -755,10 +820,14 @@ foreach ($requetes as $req) {
 // ──────────────────────────────────────────
 // LARGEUR DES COLONNES
 // ──────────────────────────────────────────
-$sheet->getColumnDimension('A')->setWidth(20);
-$sheet->getColumnDimension('B')->setWidth(20);
-$sheet->getColumnDimension('C')->setWidth(35);
-$sheet->getColumnDimension('D')->setWidth(20);
+$sheet->getColumnDimension('A')->setWidth(18);
+$sheet->getColumnDimension('B')->setWidth(35);
+$sheet->getColumnDimension('C')->setWidth(25);
+$sheet->getColumnDimension('D')->setWidth(35);
+$sheet->getColumnDimension('E')->setWidth(18);
+$sheet->getColumnDimension('F')->setWidth(25);
+$sheet->getColumnDimension('G')->setWidth(20);
+$sheet->getColumnDimension('H')->setWidth(15);
 
 // ──────────────────────────────────────────
 // SAUVEGARDE
