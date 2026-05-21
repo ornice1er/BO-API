@@ -38,6 +38,11 @@ class Prestation extends Model
         return $this->belongsTo(UniteAdmin::class,'start_point');
     }
 
+    public function paymentAccount()
+    {
+        return $this->belongsTo(PaymentAccount::class);
+    }
+
     public function workflowTransitions()
     {
         return $this->hasMany(WorkflowTransition::class);

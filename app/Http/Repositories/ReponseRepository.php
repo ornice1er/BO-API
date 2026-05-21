@@ -92,19 +92,10 @@ class ReponseRepository
     }
 
     // Mise à jour des autres champs
-    $reponse->eps_id         = $data['eps_id'];
-    $reponse->observation    = $data['observation']?? null;
-    $reponse->preview_file   = null; 
+    $reponse->observation    = $data['observation'] ?? null;
+    $reponse->preview_file   = null;
 
     $reponse->save();
-
-    // Mise à jour du statut de la requête
-    $requete = Requete::find($data['requete_id']);
-    if ($requete) {
-        $requete->eps_id = $data['eps_id'];
-        $requete->filename = null;
-        $requete->save();
-    }
 
     // Retour de la réponse enregistrée
     return Reponse::where('requete_id',$data['requete_id'])
@@ -130,19 +121,10 @@ class ReponseRepository
     }
 
     // Mise à jour des autres champs
-    $reponse->eps_id         = $data['eps_id'];
-    $reponse->observation    = $data['observation']?? null;
-    $reponse->preview_file   = null; 
+    $reponse->observation    = $data['observation'] ?? null;
+    $reponse->preview_file   = null;
 
     $reponse->save();
-
-    // Mise à jour du statut de la requête
-    $requete = Requete::find($data['requete_id']);
-    if ($requete) {
-        $requete->eps_id = $data['eps_id'];
-        $requete->filename = null;
-        $requete->save();
-    }
 
     // Retour de la réponse enregistrée
     return Reponse::where('requete_id',$data['requete_id'])
@@ -203,7 +185,7 @@ class ReponseRepository
  
 
         if ($response->status()>=200 && $response->status()<300) {
-            $req->update(["needCorrection"=>true,"comment"=>$request->commentaire]);
+            $req->update(["comment"=>$request->commentaire]);
             return true;
         }else {
             return false;
@@ -218,7 +200,6 @@ class ReponseRepository
         $response=$ps->reply();
 
         if ($response->status()>=200 && $response->status()<300) {
-            $req->update(["hasReachedAgreement"=>true]);
             return true;
         }else {
             return false;
@@ -315,18 +296,7 @@ class ReponseRepository
         // }
 
     } else {
-        // Selon currentDescId, maj content, content2, content3
-        switch ($data['currentDescId'] ?? '0') {
-            case '1':
-                $req->update(['content2' => $content]);
-                break;
-            case '2':
-                $req->update(['content3' => $content]);
-                break;
-            default:
-                $req->update(['content' => $content]);
-                break;
-        }
+        $req->update(['content' => $content]);
 
         Parcours::create([
             'libelle' => "Enregistrement de contenu du livrable",
@@ -355,7 +325,6 @@ function authorized($data) {
     if (Hash::check($data['password'], Auth::user()->doc_pass)) {
     $req = Requete::find($data['requete_id']);
     $req?->update([
-        'isAutorized' => true,
         'status' => 6,
     ]);
 

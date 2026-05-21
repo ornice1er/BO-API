@@ -165,7 +165,6 @@ class EServiceRepository
                 $req->step_contents    = $data['steps'];
                 $req->status           = 0;
                 $req->header           = $this->getHeaders();
-                $req->eps_id           = $prestation?->eps_id;
                 $req->request_type      = $data['meta']['requestType'] ?? null;
                 $req->planning_slot_id  = $data['meta']['planning_slot_id'] ?? null;
                 $req->methode_paiement  = $data['meta']['methode_paiement'] ?? null;

@@ -188,9 +188,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         
         Route::apiResources([
-            'projects' => 'ProjectController',
+            'projects'         => 'ProjectController',
+            'payment-accounts' => 'PaymentAccountController',
         ]);
 
+        Route::get('payment-accounts/{id}/state/{state}', 'PaymentAccountController@changeState');
 
         Route::get('users/{id}/state/{state}', 'UserController@changeState');
         Route::post('users-search', 'UserController@search');

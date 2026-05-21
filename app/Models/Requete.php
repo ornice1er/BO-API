@@ -25,12 +25,6 @@ class Requete extends Model
         return $this->belongsTo(Prestation::class,'prestation_id');
     }
 
-    public function eps()
-    {
-        return $this->belongsTo(EtapePrestationStatus::class, 'eps_id');
-    }
-
-
     public function project()
     {
         return $this->belongsTo(Project::class,'project_id');
