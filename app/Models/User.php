@@ -24,7 +24,9 @@ class User extends Authenticatable implements JWTSubject
     // Les attributs qui sont mass-assignable
     protected $guarded = [];
 
-    protected $casts = [];
+    protected $casts = [
+        'first_signin' => 'boolean',
+    ];
 
     protected $appends = [];
 

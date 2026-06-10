@@ -180,7 +180,7 @@ class UserAuthRepository
 
         $user->update([
             'password' => Hash::make($data['password']),
-            'is_first_connexion' => 0,
+            'first_signin' => false,
         ]);
 
         return $user;

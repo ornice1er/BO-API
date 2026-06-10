@@ -224,9 +224,9 @@ class RequeteRepository
             $requete->current_status_id = $transition->status_result_id;
             $requete->etape_started_at  = now();
 
-            // Rétrocompatibilité ancien système
+            // Rétrocompatibilité ancien système (colonne `status` conservée)
+            // NB : `pris_en_charge` supprimée (cleanup 2026_05_21) — l'info est portée par RequeteEtapeLog
             $requete->status       = $transition->status_result_id;
-            $requete->pris_en_charge = $conditionType === 'validation' ? true : $requete->pris_en_charge;
 
             if ($transition->etape->is_terminal ?? false) {
                 $requete->isTreated  = true;

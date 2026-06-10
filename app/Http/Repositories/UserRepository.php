@@ -106,6 +106,8 @@ class UserRepository
         $password = Str::random(8);
         $data['password'] = Hash::make($password);
         $model = new User($data);
+        // Première connexion : l'utilisateur devra changer ce mot de passe généré
+        $model->first_signin = true;
         $model->save();
 
         $role = Role::firstOrCreate(['name' => $roles[0]]);

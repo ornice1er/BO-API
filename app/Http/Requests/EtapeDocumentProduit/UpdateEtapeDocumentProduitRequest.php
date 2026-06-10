@@ -21,7 +21,7 @@ class UpdateEtapeDocumentProduitRequest extends FormRequest
             'name'                => 'sometimes|string|max:255',
             'slug'                => 'sometimes|string|max:255',
             'type'                => 'sometimes|in:lettre,decision,attestation,pv',
-            'numero_prefix'       => 'nullable|string|max:10',
+            'numero_prefix'       => 'sometimes|required|string|max:10',
             'template_key'        => 'sometimes|string|max:255',
             'etape_edition_id'    => 'sometimes|integer|exists:etapes,id',
             'etape_delivrance_id' => 'nullable|integer|exists:etapes,id',
