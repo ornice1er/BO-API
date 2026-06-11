@@ -125,13 +125,15 @@ class PrestationStatusRepository
 
     public function search($term)
     {
-        $query = PrestationStatus::query(); // Commencer avec une requête vide
-        $attrs = ['title', 'description'];
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Retourner les résultats
+        // Table pivot (status_id, prestation_id) : recherche via les relations
+        return PrestationStatus::with(['status', 'prestation'])
+            ->whereHas('status', fn($q) =>
+                $q->where('name', 'like', '%'.$term.'%')
+                  ->orWhere('short_name', 'like', '%'.$term.'%'))
+            ->orWhereHas('prestation', fn($q) =>
+                $q->where('name', 'like', '%'.$term.'%')
+                  ->orWhere('code', 'like', '%'.$term.'%'))
+            ->get();
     }
 
     /**

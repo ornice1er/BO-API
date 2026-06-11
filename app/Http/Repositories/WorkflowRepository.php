@@ -137,13 +137,14 @@ class WorkflowRepository
 
     public function search($term)
     {
-        $query = Workflow::query(); // Commencer avec une requête vide
-        $attrs = ['title', 'description'];
-        foreach ($attrs as $value) {
-            $query->orWhere($value, 'like', '%'.$term.'%');
-        }
-
-        return $query->get(); // Retourner les résultats
+        // Table relationnelle (prestation_id, etape_id) : recherche via les relations
+        return Workflow::with(['prestation', 'etape'])
+            ->whereHas('prestation', fn($q) =>
+                $q->where('name', 'like', '%'.$term.'%')
+                  ->orWhere('code', 'like', '%'.$term.'%'))
+            ->orWhereHas('etape', fn($q) =>
+                $q->where('name', 'like', '%'.$term.'%'))
+            ->get();
     }
 
     /**

@@ -324,7 +324,7 @@ return true;
     public function search($term)
     {
         $query = Affectation::query(); // Start with an empty query
-        $attrs = ['name', 'email', 'code']; // Attributes you want to search in
+        $attrs = ['instruction', 'sens']; // Attributes you want to search in
 
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');

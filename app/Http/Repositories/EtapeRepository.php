@@ -130,7 +130,7 @@ class EtapeRepository
     public function search($term)
     {
         $query = Etape::query(); // Commencer avec une requête vide
-        $attrs = ['title', 'description'];
+        $attrs = ['name', 'type'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }

@@ -114,7 +114,7 @@ class NotificationRepository
     public function search($term)
     {
         $query = Notification::query(); // Commencer avec une requête vide
-        $attrs = ['content', 'title'];
+        $attrs = ['data', 'type'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
