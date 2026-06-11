@@ -130,7 +130,7 @@ class StatusRepository
     public function search($term)
     {
         $query = Status::query(); // Commencer avec une requête vide
-        $attrs = ['title', 'description'];
+        $attrs = ['name', 'short_name'];
         foreach ($attrs as $value) {
             $query->orWhere($value, 'like', '%'.$term.'%');
         }
