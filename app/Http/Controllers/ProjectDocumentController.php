@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Helpers\Common;
+use App\Utilities\Common;
 use App\Models\DocumentTemplate;
 use App\Models\Project;
 use App\Models\ProjectDocument;
