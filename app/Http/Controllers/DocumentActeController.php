@@ -364,7 +364,7 @@ class DocumentActeController extends Controller
         return sprintf('%s-%d-%04d', $prefix, $annee, $dernier + 1);
     }
 
- private function extraireVariables(Requete $requete, array $stepData, string $templateKey): array
+ private function extraireVariables(Requete $requete, array $stepData, ?string $templateKey = null): array
 {
     $base = [
         'code'  => $requete->code,
