@@ -180,8 +180,6 @@ function getContent($agenda): string
         "Note : {$note}",
         "Merci de confirmer votre disponibilité en répondant à ce message.",
         "{$auteur}",
-        "",
-        "Cordialement,",
     ];
 
     // Saut de ligne HTML : l'email est rendu en HTML (sinon tout s'affiche en bloc)
