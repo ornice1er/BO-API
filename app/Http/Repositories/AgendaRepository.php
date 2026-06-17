@@ -147,9 +147,9 @@ function getContent($agenda): string
     ];
 
     $rdvLabels = [
-        'premier_rdv'      => 'Premier RDV',
-        'second_rdv'       => 'Second RDV',
-        'suivi_traitement' => 'Suivi traitement',
+        'premier_rdv'      => 'Premier',
+        'second_rdv'       => 'Second',
+        'suivi_traitement' => 'Suivi de traitement',
     ];
 
     $session    = $sessionLabels[$agenda->session_type]  ?? $agenda->session_type;
@@ -159,46 +159,33 @@ function getContent($agenda): string
         ? \Carbon\Carbon::parse($agenda->date_end)->format('d/m/Y à H:i')
         : 'Non définie';
     $duree      = $agenda->duration_minutes ? $agenda->duration_minutes . ' min' : 'Non précisée';
-    $prestation = $agenda->requete->prestation->name ?? 'N/A';
-    $auteur     = $agenda->user?->name ?? 'Un agent du service';
+    $prestation = $agenda->requete->prestation->name ?? 'votre demande';
+    $auteur     = $agenda->user?->name ?? 'Le Chef Service';
+
+    // Nom du requérant
+    $requerant = $agenda->requete->identity
+        ?: trim(($agenda->requete->firstname ?? '') . ' ' . ($agenda->requete->lastname ?? ''));
+    $requerant = $requerant !== '' ? $requerant : 'Madame, Monsieur';
+
+    $note = $agenda->description ?: '—';
 
     $lines = [
-        "Bonjour,",
-        "",
-        "Vous avez un programme planifié concernant votre dossier.",
-        "",
-        "--- DÉTAILS DU PROGRAMME ---",
-        "",
-        "Titre       : {$agenda->title}",
-        "Prestation  : {$prestation}",
+        "Cher {$requerant},",
+        "Un rendez-vous a été planifié pour vous dans le cadre de votre demande « {$prestation} » :",
         "Type de RDV : {$rdvType}",
-        "Session     : {$session}",
-        "Date début  : {$dateStart}",
-        "Date fin    : {$dateEnd}",
-        "Durée       : {$duree}",
-    ];
-
-    if ($agenda->planningSlot) {
-        $slot = $agenda->planningSlot;
-        $lines[] = "Lieu        : " . ($slot->uniteAdmin->libelle ?? 'N/A');
-        $lines[] = "Créneau     : " . \Carbon\Carbon::parse($slot->slot_date)->format('d/m/Y')
-                   . ' à ' . substr($slot->heure_debut, 0, 5);
-    }
-
-    if ($agenda->description) {
-        $lines[] = "";
-        $lines[] = "Note : {$agenda->description}";
-    }
-
-    $lines = array_merge($lines, [
-        "",
+        "RDV Session : {$session}",
+        "Date début : {$dateStart}",
+        "Date fin : {$dateEnd}",
+        "Durée : {$duree}",
+        "Note : {$note}",
         "Merci de confirmer votre disponibilité en répondant à ce message.",
+        "{$auteur}",
         "",
         "Cordialement,",
-        $auteur,
-    ]);
+    ];
 
-    return implode("\n", $lines);
+    // Saut de ligne HTML : l'email est rendu en HTML (sinon tout s'affiche en bloc)
+    return implode("<br>", $lines);
 }
     /**
      * Update an existing agenda
