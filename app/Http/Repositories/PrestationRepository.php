@@ -45,7 +45,7 @@ class PrestationRepository
             ->filter(array_filter($request->all(), function ($k) {
                 return $k != 'page';
             }, ARRAY_FILTER_USE_KEY))
-            ->with(['signer2','startPoints','startPoint2'])
+            ->with(['uniteAdmin','signer2','startPoints','startPoint2'])
             ->orderByDesc('created_at');
 
 
@@ -126,7 +126,8 @@ class PrestationRepository
      */
     public function search($term)
     {
-        return Prestation::where(function ($q) use ($term) {
+        return Prestation::with(['uniteAdmin','signer2','startPoints','startPoint2'])
+            ->where(function ($q) use ($term) {
                 $q->where('name', 'like', '%'.$term.'%')
                   ->orWhere('code', 'like', '%'.$term.'%')
                   ->orWhere('slug', 'like', '%'.$term.'%');

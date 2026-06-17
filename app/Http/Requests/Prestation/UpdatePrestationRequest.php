@@ -19,19 +19,16 @@ class UpdatePrestationRequest extends FormRequest
         return [
             'code'                  => 'required|string|unique:prestations,code,' . $this->route('prestation'),
             'name'                  => 'required|string|max:255',
-            'needOut'               => 'nullable|boolean',
-            'has_document_circuit'  => 'nullable|boolean',
             'unite_admin_id'        => 'nullable|integer|exists:unite_admins,id',
             'entite_admin_id'       => 'nullable|integer|exists:entite_admins,id',
             'desc'                  => 'nullable|string',
             'content_type'          => 'required|integer',
-            'need_validation'       => 'nullable|boolean',
-            'signer'                => 'required',
+            // Champs dépréciés (logique portée par étapes/transitions/circuit) — rendus optionnels
+            'signer'                => 'nullable',
             'start_point'           => 'required|integer|min:0',
-            'delay'                 => 'required|integer|min:0',
-            'is_automatic_delivered'=> 'nullable|boolean',
-            'is_group_delivered'=> 'nullable|boolean',
-            'decision'                  => 'nullable|string|max:255',
+            'delay'                 => 'nullable|integer|min:0',
+            'is_group_delivered'    => 'nullable|boolean',
+            'decision'              => 'nullable|string|max:255',
             'from_pns'              => 'nullable|boolean',
         ];
     }
