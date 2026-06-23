@@ -45,7 +45,7 @@ class ProjectRepository
     {
 $per_page = 10;
 
-$req = Project::ignoreRequest(['per_page', 'prestation_codes']) // ✅
+$req = Project::ignoreRequest(['per_page', 'prestation_codes', 'exclude_closed']) // ✅
     ->orderByDesc('created_at');
 
 if ($request->has('prestation_codes')) {
@@ -55,6 +55,13 @@ if ($request->has('prestation_codes')) {
         foreach ($codes as $code) {
             $q->orWhereJsonContains('prestations', $code);
         }
+    });
+}
+
+// Association de demande : exclure les projets clos (cohérence back ↔ front)
+if ($request->boolean('exclude_closed')) {
+    $req->where(function ($q) {
+        $q->whereNull('status')->orWhere('status', '!=', 'closed');
     });
 }
 

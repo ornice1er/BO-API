@@ -650,18 +650,24 @@ class EServiceController extends Controller
 
             // Retour RDV de l'usager : met à jour le DERNIER RDV encore en attente
             // de confirmation (need_confirmation = true et pas encore de réponse).
+            // Encapsulé : un souci ici ne doit jamais casser l'avancement du workflow.
             if ($request->filled('retour_rdv')) {
-                $confirme = filter_var($request->input('retour_rdv'), FILTER_VALIDATE_BOOLEAN);
-                $agenda = \App\Models\Agenda::where('requete_id', $requete->id)
-                    ->where('need_confirmation', true)
-                    ->whereNull('usager_response')
-                    ->latest()
-                    ->first();
-                if ($agenda) {
-                    $agenda->update([
-                        'usager_response' => $confirme,
-                        'status'          => $confirme ? "Confirmé par l'usager" : "Décliné par l'usager",
-                    ]);
+                try {
+                    $confirme = filter_var($request->input('retour_rdv'), FILTER_VALIDATE_BOOLEAN);
+                    $agenda = \App\Models\Agenda::where('requete_id', $requete->id)
+                        ->where('need_confirmation', true)
+                        ->whereNull('usager_response')
+                        ->latest()
+                        ->first();
+                    if ($agenda) {
+                        $agenda->update([
+                            'usager_response' => $confirme,
+                            'usager_comment'  => $request->input('comment'),
+                            'status'          => $confirme ? "Confirmé par l'usager" : "Décliné par l'usager",
+                        ]);
+                    }
+                } catch (\Throwable $eRdv) {
+                    \Log::warning('retour_rdv : maj agenda impossible — ' . $eRdv->getMessage());
                 }
             }
 

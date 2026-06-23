@@ -17,14 +17,20 @@ return new class extends Migration
             if (!Schema::hasColumn('agendas', 'need_confirmation')) {
                 $table->boolean('need_confirmation')->default(false)->after('usager_response');
             }
+            // Commentaire renvoyé par l'usager avec sa réponse (retour_rdv)
+            if (!Schema::hasColumn('agendas', 'usager_comment')) {
+                $table->text('usager_comment')->nullable()->after('need_confirmation');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('agendas', function (Blueprint $table) {
-            if (Schema::hasColumn('agendas', 'need_confirmation')) {
-                $table->dropColumn('need_confirmation');
+            foreach (['need_confirmation', 'usager_comment'] as $col) {
+                if (Schema::hasColumn('agendas', $col)) {
+                    $table->dropColumn($col);
+                }
             }
         });
     }
