@@ -244,6 +244,7 @@ class RequeteController extends Controller
                 'metadata'       => $request->input('metadata', []),
                 'link'           => $request->input('link'),
                 'note_file_path' => $request->input('note_file_path'),
+                'transition_id'  => $request->input('transition_id'),
             ];
 
             $result = $this->requeteRepository->traiterDemande($id, $decision, $options);

@@ -209,13 +209,25 @@ class RequeteRepository
         DB::beginTransaction();
 
         try {
-            // 1. Trouver la transition applicable
-            $transition = WorkflowTransition::where('prestation_id',  $requete->prestation_id)
-                ->where('etape_from_id',  $requete->current_etape_id)
-                ->where('condition_type', $conditionType)
-                ->where('is_active',      true)
-                ->orderBy('order')
-                ->firstOrFail();
+            // 1. Trouver la transition applicable.
+            //    Si l'UI a fourni la transition EXACTE choisie (cas de plusieurs
+            //    transitions de même condition_type depuis l'étape courante), on
+            //    l'utilise — après contrôle qu'elle part bien de l'étape courante.
+            //    Sinon, fallback : 1ʳᵉ transition (par `order`) du condition_type.
+            if (!empty($options['transition_id'])) {
+                $transition = WorkflowTransition::where('id', $options['transition_id'])
+                    ->where('prestation_id', $requete->prestation_id)
+                    ->where('etape_from_id', $requete->current_etape_id)
+                    ->where('is_active',     true)
+                    ->firstOrFail();
+            } else {
+                $transition = WorkflowTransition::where('prestation_id',  $requete->prestation_id)
+                    ->where('etape_from_id',  $requete->current_etape_id)
+                    ->where('condition_type', $conditionType)
+                    ->where('is_active',      true)
+                    ->orderBy('order')
+                    ->firstOrFail();
+            }
 
             $user = Auth::user();
 
