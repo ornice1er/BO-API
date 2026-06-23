@@ -23,6 +23,7 @@ class UpdateAgendaRequest extends FormRequest
             'status' => 'required|string',
             'description' => 'nullable|string',
             'usager_response' => 'nullable|boolean',
+            'need_confirmation' => 'nullable|boolean',
             'has_notif' => 'nullable|boolean',
             'user_id' => 'nullable|exists:users,id',
             'requete_id' => 'nullable|exists:requetes,id',

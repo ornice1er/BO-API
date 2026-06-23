@@ -498,6 +498,34 @@ private function getHeaders()
         return $query->orderBy('slot_date')->orderBy('heure_debut')->get();
     }
 
+    /**
+     * Garde-fou contre un BASE_URL dupliqué dans une URL de fichier
+     * (config APP_URL/ASSET_URL erronée côté serveur).
+     *   - URL absolue imbriquée  : on ne garde que la dernière (…/https://…  → https://…)
+     *   - segment de base répété  : …/pprod-boapi/pprod-boapi/…  → …/pprod-boapi/…
+     */
+    private function dedupeBaseUrl(?string $url): ?string
+    {
+        if (!$url) return $url;
+
+        // 1) Ne garder qu'à partir du dernier schéma http(s)://
+        $lastHttps = strrpos($url, 'https://');
+        $lastHttp  = strrpos($url, 'http://');
+        $last = max($lastHttps === false ? -1 : $lastHttps, $lastHttp === false ? -1 : $lastHttp);
+        if ($last > 0) {
+            $url = substr($url, $last);
+        }
+
+        // 2) Collapse d'un segment de sous-chemin (base path) dupliqué
+        $basePath = trim((string) parse_url(config('app.url'), PHP_URL_PATH), '/');
+        if ($basePath !== '') {
+            $q = preg_quote($basePath, '#');
+            $url = preg_replace("#/($q)(/$q)+/#", "/{$basePath}/", $url);
+        }
+
+        return $url;
+    }
+
     public function recupDoc(array $data): array
     {
         DB::beginTransaction();
@@ -581,7 +609,7 @@ private function getHeaders()
             Storage::disk('public')->put($path, $response->body());
 
             $acte->file_path    = $path;
-            $acte->file_url     = Storage::disk('public')->url($path);
+            $acte->file_url     = $this->dedupeBaseUrl(Storage::disk('public')->url($path));
             $acte->status       = 'en_edition';
             $acte->save();
 

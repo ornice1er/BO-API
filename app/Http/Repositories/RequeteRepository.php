@@ -63,16 +63,18 @@ class RequeteRepository
         })
         ->pluck('workflow_transition_id');
 
+        // Bannette = dossiers dont l'étape courante est le POINT DE DÉPART
+        // (etape_from) d'une transition que l'agent a le droit d'exécuter.
         if (request()->nature=='validation') {
              $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
              ->where('prestation_id', $prestation->id)
             ->whereIn('condition_type', ["validation","prevalidation","paraphe","choix_sortie","visite"])
-            ->pluck('etape_to_id');
+            ->pluck('etape_from_id');
         } else {
         $etapeIds = WorkflowTransition::whereIn('id', $transitionIds)
         ->where('prestation_id', $prestation->id)
         ->where('condition_type', request()->nature)
-        ->pluck('etape_to_id');
+        ->pluck('etape_from_id');
         }
 
     return Requete::with([
@@ -253,7 +255,7 @@ class RequeteRepository
                 'etape_to_id'            => $transition->etape_to_id,
                 'status_id'              => $transition->status_result_id,
                 'triggered_by'           => $user?->id,
-                'triggered_by_type'      => $user ? 'agent' : 'système',
+                'triggered_by_type'      => $user ? 'agent' : ((($logMetadata['source'] ?? null) === 'pns') ? 'usager' : 'système'),
                 'comment'                => $options['comment'] ?? null,
                 'metadata'               => !empty($logMetadata) ? $logMetadata : null,
                 'transitioned_at'        => now(),
@@ -657,8 +659,12 @@ public function traiterDocument(int $acteId, string $action, array $options = []
               });
         })
         ->whereHas('workflowTransition', function ($q) use ($requete) {
+            // La visibilité doit porter sur la transition qui PART de l'étape
+            // courante (l'action que l'agent s'apprête à exécuter), pas sur
+            // celle qui y a mené (etape_to). Sinon un acteur garderait le droit
+            // d'agir juste parce qu'il a effectué la transition entrante.
             $q->where('prestation_id', $requete->prestation_id)
-              ->where('etape_to_id',   $requete->current_etape_id);
+              ->where('etape_from_id', $requete->current_etape_id);
         })
         ->exists();
 }
