@@ -648,11 +648,13 @@ class EServiceController extends Controller
 
             $result = app(RequeteRepository::class)->avancerWorkflow($requete, $conditionType, $options);
 
-            // Retour RDV de l'usager : met à jour le statut du RDV en attente de confirmation
+            // Retour RDV de l'usager : met à jour le DERNIER RDV encore en attente
+            // de confirmation (need_confirmation = true et pas encore de réponse).
             if ($request->filled('retour_rdv')) {
                 $confirme = filter_var($request->input('retour_rdv'), FILTER_VALIDATE_BOOLEAN);
                 $agenda = \App\Models\Agenda::where('requete_id', $requete->id)
                     ->where('need_confirmation', true)
+                    ->whereNull('usager_response')
                     ->latest()
                     ->first();
                 if ($agenda) {

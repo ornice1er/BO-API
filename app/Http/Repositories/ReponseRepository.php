@@ -243,7 +243,6 @@ class ReponseRepository
 
         if ($response->status()>="200" &&  $response->status()<"300") {
             $req->update([
-                'isFinished' => true,
                 'isTreated'=>true
             ]);
             return true;
@@ -269,7 +268,6 @@ class ReponseRepository
 
            $req->update([
                 'content' => $content,
-                'isFinished' => true,
                 'isTreated' => true,
                 'status' => 7
             ]);

@@ -122,6 +122,11 @@ class DashboardController extends Controller
                 $data['signed']    = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $accorde))->count();
                 $data['finished']  = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $terminal))->count();
                 $data['leaved']    = (clone $base)->where('isDeclined', true)->count();
+                // Délai moyen de traitement (jours entre dépôt et clôture) — exploite closed_at
+                $data['avg_processing_days'] = round((float) (clone $base)
+                    ->whereNotNull('closed_at')
+                    ->selectRaw('AVG(DATEDIFF(closed_at, created_at)) as avg_days')
+                    ->value('avg_days'), 1);
 
                 $current_month = (int) date('m');
                 for ($i = 1; $i <= $current_month; $i++) {
@@ -171,6 +176,11 @@ class DashboardController extends Controller
                 $data['signed']    = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $accorde))->count();
                 $data['finished']  = (clone $base)->whereHas('currentStatus', fn($q) => $q->whereIn('short_name', $terminal))->count();
                 $data['leaved']    = (clone $base)->where('isDeclined', true)->count();
+                // Délai moyen de traitement (jours entre dépôt et clôture) — exploite closed_at
+                $data['avg_processing_days'] = round((float) (clone $base)
+                    ->whereNotNull('closed_at')
+                    ->selectRaw('AVG(DATEDIFF(closed_at, created_at)) as avg_days')
+                    ->value('avg_days'), 1);
 
                 $current_month = (int) date('m');
                 for ($i = 1; $i <= $current_month; $i++) {

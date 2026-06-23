@@ -230,7 +230,6 @@ class RequeteRepository
 
             if ($transition->etape->is_terminal ?? false) {
                 $requete->isTreated  = true;
-                $requete->isFinished = true;
                 $requete->closed_at  = now();
             }
 
@@ -716,7 +715,6 @@ public function traiterDocument(int $acteId, string $action, array $options = []
             $requete->status            = $logArrivee?->status_id ?? $requete->status;
             $requete->etape_started_at  = now();
             $requete->isTreated         = false;
-            $requete->isFinished        = false;
             $requete->isDeclined        = false;
             $requete->closed_at         = null;
             $requete->save();
