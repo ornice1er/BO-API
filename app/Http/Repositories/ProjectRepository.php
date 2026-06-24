@@ -49,11 +49,14 @@ $req = Project::ignoreRequest(['per_page', 'prestation_codes', 'exclude_closed']
     ->orderByDesc('created_at');
 
 if ($request->has('prestation_codes')) {
-    $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
+    $codes = array_filter(array_map('trim', explode(',', $request->get('prestation_codes'))));
 
+    // `prestations` est stocké en chaîne (string|max:255) — parfois JSON array,
+    // parfois codes séparés par des virgules. Un LIKE matche les deux formats
+    // (whereJsonContains plantait sur une chaîne non-JSON → liste vide).
     $req->where(function($q) use ($codes) {
         foreach ($codes as $code) {
-            $q->orWhereJsonContains('prestations', $code);
+            $q->orWhere('prestations', 'like', '%'.$code.'%');
         }
     });
 }

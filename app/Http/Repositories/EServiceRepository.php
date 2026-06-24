@@ -103,9 +103,10 @@ class EServiceRepository
         if ($request->has('prestation_codes')) {
             $codes = array_map('trim', explode(',', $request->get('prestation_codes')));
 
+            // `prestations` stocké en chaîne → LIKE (whereJsonContains plante sur du non-JSON)
             $query->where(function($q) use ($codes) {
                 foreach ($codes as $code) {
-                    $q->orWhereJsonContains('prestations', $code);
+                    $q->orWhere('prestations', 'like', '%'.$code.'%');
                 }
             });
         }
