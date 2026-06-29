@@ -18,11 +18,28 @@ class CloseProjectRequests implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /** Nombre de tentatives avant échec définitif. */
+    public int $tries = 3;
+
+    /** Délai (s) entre tentatives : 10s, 30s, 60s. */
+    public array $backoff = [10, 30, 60];
+
+    /** Temps max d'exécution (s) — la boucle peut être longue. */
+    public int $timeout = 300;
+
     protected $projectId;
 
     public function __construct($projectId)
     {
         $this->projectId = $projectId;
+    }
+
+    /**
+     * Appelé quand le job échoue définitivement (après $tries).
+     */
+    public function failed(\Throwable $e): void
+    {
+        Log::error("CloseProjectRequests: échec définitif projet {$this->projectId} — " . $e->getMessage());
     }
 
     public function handle(): void
@@ -59,7 +76,7 @@ class CloseProjectRequests implements ShouldQueue
                 'expires_at'    => now()->addDays(30)->toDateTimeString(),
             ]);
 
-            $uniqueLink = route('project.closing.file', ['token' => $uniqueToken]);
+            $uniqueLink = \App\Utilities\Common::dedupeBaseUrl(route('project.closing.file', ['token' => $uniqueToken]));
 
             foreach ($requetes as $requete) {
                 try {

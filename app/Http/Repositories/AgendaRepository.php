@@ -158,7 +158,16 @@ function getContent($agenda): string
     $dateEnd    = $agenda->date_end
         ? \Carbon\Carbon::parse($agenda->date_end)->format('d/m/Y à H:i')
         : 'Non définie';
-    $duree      = $agenda->duration_minutes ? $agenda->duration_minutes . ' min' : 'Non précisée';
+    // Durée réelle = fenêtre date_start → date_end (duration_minutes vaut souvent
+    // 20 par défaut du créneau et ne reflète pas le RDV choisi).
+    if ($agenda->date_start && $agenda->date_end) {
+        $duree = \Carbon\Carbon::parse($agenda->date_start)
+                    ->diffInMinutes(\Carbon\Carbon::parse($agenda->date_end)) . ' min';
+    } elseif ($agenda->duration_minutes) {
+        $duree = $agenda->duration_minutes . ' min';
+    } else {
+        $duree = 'Non précisée';
+    }
     $prestation = $agenda->requete->prestation->name ?? 'votre demande';
     $auteur     = $agenda->user?->name ?? 'Le Chef Service';
 

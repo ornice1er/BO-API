@@ -6,6 +6,36 @@ use Illuminate\Http\JsonResponse;
 
 final class Common
 {
+    /**
+     * Garde-fou contre un BASE_URL dupliqué dans une URL (config APP_URL/ASSET_URL
+     * erronée côté serveur). Gère :
+     *   - URL absolue imbriquée  : …/https://… → on ne garde que la dernière
+     *   - segment de base répété  : …/pprod-boapi/pprod-boapi/… → …/pprod-boapi/…
+     */
+    public static function dedupeBaseUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return $url;
+        }
+
+        // 1) Ne garder qu'à partir du dernier schéma http(s)://
+        $lastHttps = strrpos($url, 'https://');
+        $lastHttp  = strrpos($url, 'http://');
+        $last = max($lastHttps === false ? -1 : $lastHttps, $lastHttp === false ? -1 : $lastHttp);
+        if ($last > 0) {
+            $url = substr($url, $last);
+        }
+
+        // 2) Collapse d'un segment de sous-chemin (base path) dupliqué
+        $basePath = trim((string) parse_url(config('app.url'), PHP_URL_PATH), '/');
+        if ($basePath !== '') {
+            $q = preg_quote($basePath, '#');
+            $url = preg_replace("#/($q)(/$q)+/#", "/{$basePath}/", $url);
+        }
+
+        return $url;
+    }
+
     public static function success($message, $data, $status = true, $warning = null): JsonResponse
     {
         return response()->json([
