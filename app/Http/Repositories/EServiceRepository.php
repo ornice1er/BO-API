@@ -198,7 +198,7 @@ class EServiceRepository
             $host        = parse_url($data['files'], PHP_URL_HOST);
             $zipUrl      = ($host === 'localhost') ? env('APP_ZIP_URL') : $data['files'];
             $tempZipPath = storage_path("app/tmp_{$code}.zip");
-
+                info("Téléchargement du zip depuis : {$zipUrl} vers {$tempZipPath}");
             file_put_contents($tempZipPath, file_get_contents($zipUrl));
             Storage::disk('public')->makeDirectory($code);
 
