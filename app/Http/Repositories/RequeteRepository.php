@@ -290,12 +290,13 @@ class RequeteRepository
 
                 if (!$skipPns) {
                     $pnsService = new PNSService($requete->header, [
-                        "data"     => null,
+                        // Observations dans `data` (champ lu par le PNS, cf. flux gendoc)
+                        "data"     => $options['comment'] ?? null,
                         "message"  => "Mise à jour de votre demande : " . $requete->code,
                         "status"   => true,
                         "decision" => $transition->decision,
-                        "link"     => $options['link'] ?? null,
-                        "comment"  => $options['comment'] ?? null,
+                        "link"     => \App\Utilities\Common::dedupeBaseUrl($options['link'] ?? null), // URL PJ partagée
+                        "comment"  => $options['comment'] ?? null,    // rétro-compat
                     ]);
                     $result = $pnsService->reply();
                 }

@@ -832,12 +832,20 @@ $sheet->getColumnDimension('H')->setWidth(15);
 // ──────────────────────────────────────────
 // SAUVEGARDE
 // ──────────────────────────────────────────
-$filename = uniqid() . '.xlsx';
+// Numéro incrémenté (séquence basée sur les exports déjà générés)
+$exportDir = 'exports/sessions';
+Storage::disk('public')->makeDirectory($exportDir);
+$sequence  = collect(Storage::disk('public')->files($exportDir))
+    ->filter(fn ($f) => str_ends_with($f, '.xlsx'))
+    ->count() + 1;
+$numero    = str_pad((string) $sequence, 5, '0', STR_PAD_LEFT);
+
+$filename = $exportDir . '/session_' . $numero . '_' . date('Ymd_His') . '.xlsx';
 $path = Storage::disk('public')->path($filename);
 
 $writer = new Xlsx($spreadsheet);
 $writer->save($path);
-            return Common::success("Fichier excel",Storage::disk('public')->url($filename));
+            return Common::success("Fichier excel", Storage::disk('public')->url($filename));
 
                } catch (\Throwable $th) {
             $this->ls->trace(['action_name' => "Erreur", 'description' => $th->getMessage()]);
