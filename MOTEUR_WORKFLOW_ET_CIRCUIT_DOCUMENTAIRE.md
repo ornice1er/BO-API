@@ -98,6 +98,72 @@ graphe de la prestation sont proposées ; chaque ligne indique si elle est **hé
 > (prestation, étape) du graphe : le comportement au moment du déploiement est reproduit à
 > l'identique.
 
+#### Mise en ligne sur un existant en production
+
+**Aucune étape n'est dupliquée, aucun `etape_id` n'est réaffecté.** `etape_prestations` est une
+table de *surcharge*, pas de remplacement : les 11 colonnes qui référencent une étape
+(`requetes.current_etape_id`, `requete_etape_logs`, `workflow_transitions`,
+`etape_document_produits`, `etape_documents`, `motifs_rejet`, `requete_files`, `workflows`)
+continuent de pointer sur les mêmes lignes. **Les demandes déjà en circulation ne changent ni
+d'étape, ni de statut, ni de parcours.** C'est la raison même pour laquelle le pivot a été préféré
+à un dédoublement des étapes par e-service, qui aurait exigé de remapper tout l'existant.
+
+Le backfill de la migration ne lit toutefois que `workflow_transitions`. Or un couple
+(prestation, étape) peut exister ailleurs — et notamment **sur une demande en cours posée sur une
+étape retirée du graphe depuis son dépôt**. D'où l'étape de recomposition :
+
+```bash
+php artisan etapes:recomposer              # simulation : liste les couples manquants
+php artisan etapes:recomposer --appliquer  # crée les lignes, valeurs recopiées à l'identique
+```
+
+La commande recense les couples depuis **toutes** les sources — transitions, documents produits,
+pièces justificatives, motifs de rejet, workflows (legacy), **demandes en cours** et leur
+historique — puis crée les lignes manquantes en recopiant les valeurs portées aujourd'hui par
+l'étape. Elle se termine par un **garde-fou** : pour chaque demande en cours, elle compare la
+valeur résolue à celle que l'ancien code lisait, et échoue si un seul écart apparaît.
+
+Les étapes encore référencées mais absentes du graphe actuel restent configurables : l'écran les
+affiche avec un badge **« Hors graphe »**.
+
+Ordre de déploiement :
+
+1. `php artisan migrate` (dont `2026_06_30_004`)
+2. `php artisan etapes:recomposer` puis `--appliquer`
+3. `php artisan etapes:audit-partage` → arbitrage métier (ci-dessous)
+
+#### Recalibrer les configurations existantes
+
+Le backfill **préserve** l'existant, il ne le corrige pas — c'est voulu : un déploiement qui change
+silencieusement des délais en production serait pire que le défaut qu'il répare. La recalibration
+est donc un geste **volontaire**, à faire après coup, et elle ne concerne qu'une partie des étapes.
+
+**Une étape utilisée par un seul e-service n'a rien à recalibrer** : sa valeur ne pouvait être
+écrasée par personne, le backfill est exact par construction. Seules les **étapes partagées** par
+plusieurs e-services demandent un arbitrage : elles portent aujourd'hui la même valeur partout,
+parce que c'est tout ce que l'ancien modèle savait exprimer.
+
+Procédure :
+
+1. **Auditer** — sur le serveur, après migration :
+   ```bash
+   php artisan etapes:audit-partage        # --tout pour inclure les étapes exclusives
+   ```
+   La commande sépare les étapes exclusives (rien à faire) des étapes partagées, et affiche pour
+   chacune ses valeurs effectives, e-service par e-service.
+
+2. **Arbitrer** — pour chaque étape partagée, la question est métier, pas technique :
+   *ce délai / cette unité / ce RDV doit-il vraiment être le même pour ces deux e-services ?*
+   Si oui, il n'y a rien à faire : l'héritage exprime déjà l'intention.
+
+3. **Surcharger** — là où la réponse est non : *Configurations → Étapes par prestation*, choisir
+   l'e-service, cliquer sur l'étape, saisir la valeur propre à cet e-service. Les autres e-services
+   qui partagent l'étape ne bougent pas.
+
+L'écran signale lui-même les étapes concernées par un bandeau et un badge
+**« Partagée (n) »** — l'administrateur voit donc immédiatement les seules lignes qui méritent son
+attention, sans avoir à relancer l'audit.
+
 ### 2.3 Transition — `workflow_transitions`
 
 C'est **l'objet central** : c'est lui qui décrit le parcours d'un e-service.

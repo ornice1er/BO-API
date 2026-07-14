@@ -71,24 +71,51 @@ class EtapePrestationRepository
      */
     public function etapesDuGraphe(int $prestationId)
     {
-        $etapeIds = WorkflowTransition::where('prestation_id', $prestationId)
+        $duGraphe = WorkflowTransition::where('prestation_id', $prestationId)
             ->get(['etape_from_id', 'etape_to_id'])
             ->flatMap(fn($t) => [$t->etape_from_id, $t->etape_to_id])
             ->filter()
+            ->unique();
+
+        // Une demande peut stationner sur une étape absente du graphe (parcours modifié
+        // après son dépôt). Elle doit rester configurable, sinon on ne peut plus la piloter.
+        $horsGraphe = \App\Models\Requete::where('prestation_id', $prestationId)
+            ->whereNotNull('current_etape_id')
+            ->pluck('current_etape_id')
+            ->merge(
+                EtapePrestation::where('prestation_id', $prestationId)->pluck('etape_id')
+            )
+            ->filter()
             ->unique()
-            ->values();
+            ->diff($duGraphe);
+
+        $etapeIds = $duGraphe->merge($horsGraphe)->values();
 
         $overrides = EtapePrestation::with($this->relations)
             ->where('prestation_id', $prestationId)
             ->get()
             ->keyBy('etape_id');
 
+        // Nombre d'e-services qui utilisent chaque étape : une étape partagée est
+        // celle où une valeur mal calibrée déborde sur les autres e-services.
+        $partage = WorkflowTransition::whereIn('etape_from_id', $etapeIds)
+            ->orWhereIn('etape_to_id', $etapeIds)
+            ->get(['prestation_id', 'etape_from_id', 'etape_to_id'])
+            ->flatMap(fn($t) => array_filter([
+                $t->etape_from_id ? [$t->etape_from_id, $t->prestation_id] : null,
+                $t->etape_to_id   ? [$t->etape_to_id,   $t->prestation_id] : null,
+            ]))
+            ->groupBy(fn($paire) => $paire[0])
+            ->map(fn($paires) => $paires->pluck(1)->unique()->count());
+
         return \App\Models\Etape::whereIn('id', $etapeIds)
             ->orderBy('name')
             ->get()
-            ->map(function ($etape) use ($prestationId, $overrides) {
+            ->map(function ($etape) use ($prestationId, $overrides, $partage, $horsGraphe) {
                 $etape->contextualisation = $overrides->get($etape->id);
                 $etape->effectif          = EtapePrestation::resoudre($prestationId, $etape->id);
+                $etape->nb_eservices      = $partage->get($etape->id, 1);
+                $etape->hors_graphe       = $horsGraphe->contains($etape->id);
 
                 return $etape;
             });
