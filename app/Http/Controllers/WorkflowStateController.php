@@ -78,13 +78,18 @@ class WorkflowStateController extends Controller
                     ->get();
             }
 
-            // SLA : calcul des jours restants si etape_started_at est défini
+            // SLA : le délai est contextualisé par prestation (les étapes sont globales).
+            $slaDays = \App\Models\EtapePrestation::resoudre(
+                $requete->prestation_id,
+                $requete->current_etape_id
+            )['sla_days'];
+
             $slaInfo = null;
-            if ($currentEtape && $currentEtape->sla_days && $requete->etape_started_at) {
-                $deadline     = \Carbon\Carbon::parse($requete->etape_started_at)->addDays($currentEtape->sla_days);
+            if ($currentEtape && $slaDays && $requete->etape_started_at) {
+                $deadline     = \Carbon\Carbon::parse($requete->etape_started_at)->addDays($slaDays);
                 $daysLeft     = now()->diffInDays($deadline, false);
                 $slaInfo = [
-                    'sla_days'    => $currentEtape->sla_days,
+                    'sla_days'    => $slaDays,
                     'deadline'    => $deadline->toDateString(),
                     'days_left'   => (int) $daysLeft,
                     'is_overdue'  => $daysLeft < 0,

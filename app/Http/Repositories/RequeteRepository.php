@@ -177,6 +177,15 @@ class RequeteRepository
             $requete->current_etape_id
         );
 
+        // Les champs comportementaux de l'étape (SLA, unité, RDV, session) sont
+        // contextualisés par prestation : on écrase les valeurs par défaut portées
+        // par l'étape globale, afin que le front lise toujours la valeur effective.
+        if ($requete->currentEtape) {
+            foreach ($this->etapeEffective($requete) as $champ => $valeur) {
+                $requete->currentEtape->{$champ} = $valeur;
+            }
+        }
+
         return $requete;
     }
 
@@ -622,7 +631,7 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                     'requérant'  => $requete->email,
                     'agent'      => $this->getAgentEmail($requete, $transition),
                     'ministre'   => config('mail.ministre_email'),
-                    'unite_admin'=> $this->getUniteAdminEmail($transition),
+                    'unite_admin'=> $this->getUniteAdminEmail($requete, $transition),
                     default      => null,
                 };
 
@@ -659,26 +668,60 @@ public function traiterDocument(int $acteId, string $action, array $options = []
     // UTILITAIRES
     // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Valeurs effectives d'une étape pour la prestation de la requête :
+     * contextualisation par prestation d'abord, valeurs de l'étape ensuite.
+     *
+     * @see \App\Models\EtapePrestation::resoudre()
+     */
+    public function etapeEffective(Requete $requete, ?int $etapeId = null): array
+    {
+        return \App\Models\EtapePrestation::resoudre(
+            $requete->prestation_id,
+            $etapeId ?? $requete->current_etape_id
+        );
+    }
+
     protected function calculerSlaRestant(Requete $requete): ?int
     {
-        if (!$requete->etape_started_at || !$requete->currentEtape?->sla_days) {
+        $sla = $this->etapeEffective($requete)['sla_days'];
+
+        if (!$requete->etape_started_at || !$sla) {
             return null;
         }
         $joursEcoules = Carbon::parse($requete->etape_started_at)->diffInDays(now());
-        return max(0, $requete->currentEtape->sla_days - $joursEcoules);
+        return max(0, $sla - $joursEcoules);
     }
 
     protected function getAgentEmail(Requete $requete, WorkflowTransition $transition): ?string
     {
-        // Trouver l'agent de l'unité admin associée à l'étape cible
-        return \App\Models\User::whereHas('agent.uniteAdmin', function ($q) use ($transition) {
-            $q->where('id', $transition->etape->unite_admin_id);
+        // Unité responsable de l'étape cible, contextualisée par la prestation.
+        $uniteId = \App\Models\EtapePrestation::resoudre(
+            $requete->prestation_id,
+            $transition->etape_to_id
+        )['unite_admin_id'];
+
+        if (!$uniteId) {
+            return null;
+        }
+
+        return \App\Models\User::whereHas('agent.uniteAdmin', function ($q) use ($uniteId) {
+            $q->where('id', $uniteId);
         })->value('email');
     }
 
-    protected function getUniteAdminEmail(WorkflowTransition $transition): ?string
+    /**
+     * Unité responsable de l'étape de DÉPART, contextualisée par la prestation
+     * (les étapes étant globales, `etapeFrom->unite_admin_id` n'est qu'un défaut).
+     */
+    protected function getUniteAdminEmail(Requete $requete, WorkflowTransition $transition): ?string
     {
-        return UniteAdmin::find($transition->etapeFrom->unite_admin_id)?->email;
+        $uniteId = \App\Models\EtapePrestation::resoudre(
+            $requete->prestation_id,
+            $transition->etape_from_id
+        )['unite_admin_id'];
+
+        return $uniteId ? UniteAdmin::find($uniteId)?->email : null;
     }
 
     /**

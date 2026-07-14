@@ -99,6 +99,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
 
 
+        // Déclarée avant la resource : sinon `show` capturerait « graphe » comme un id.
+        Route::get('etape-prestations/graphe/{prestationId}', 'EtapePrestationController@graphe');
+
         Route::apiResources([
             'countries' => 'CountryController',
             'departments' => 'DepartmentController',
@@ -132,8 +135,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             "etape-documents"=>"EtapeDocumentController",
             "motifs-rejet"=>"MotifRejetController",
             "etape-visibilites"=>"EtapeVisibiliteController",
+            "etape-prestations"=>"EtapePrestationController",
 
         ]);
+        Route::post('etape-prestations-search', 'EtapePrestationController@search');
         Route::post('etape-documents-produits-search', 'EtapeDocumentProduitController@search');
         Route::post('document-circuit-etapes-search', 'DocumentCircuitEtapeController@search');
         Route::post('etape-documents-search', 'EtapeDocumentController@search');

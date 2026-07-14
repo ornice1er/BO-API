@@ -54,9 +54,20 @@ class Prestation extends Model
      */
     public function getNeedMeetingAttribute(): bool
     {
-        return WorkflowTransition::where('prestation_id', $this->id)
-            ->whereHas('etapeTo', fn($q) => $q->where('need_meeting', true))
-            ->exists();
+        // Les étapes sont globales : la valeur qui fait foi est celle résolue pour
+        // CETTE prestation (contextualisation `etape_prestations`, à défaut l'étape).
+        $etapeIds = WorkflowTransition::where('prestation_id', $this->id)
+            ->pluck('etape_to_id')
+            ->filter()
+            ->unique();
+
+        foreach ($etapeIds as $etapeId) {
+            if (EtapePrestation::resoudre($this->id, $etapeId)['need_meeting']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
       public static function boot()

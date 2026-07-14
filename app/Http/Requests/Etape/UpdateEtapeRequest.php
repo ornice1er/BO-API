@@ -29,8 +29,6 @@ class UpdateEtapeRequest extends FormRequest
             'name'                => ['required', 'string', 'max:255', Rule::unique('etapes', 'name')->ignore($this->route('etape'))],
             'type'                => 'nullable|in:depot,traitement,visite,commission,delivrance',
             'unite_admin_id'      => 'nullable|integer|exists:unite_admins,id',
-            'is_terminal'         => 'nullable|boolean',
-            'allow_partial_save'  => 'nullable|boolean',
             'sla_days'            => 'nullable|integer|min:0',
             'can_associate'       => 'nullable|boolean',
             'need_meeting'        => 'nullable|boolean',
