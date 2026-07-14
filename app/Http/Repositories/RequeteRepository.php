@@ -148,7 +148,7 @@ class RequeteRepository
      */
     public function getOne(array $data): Requete
     {
-        return Requete::with([
+        $requete = Requete::with([
                 'currentEtape',
                 'currentStatus',
                 'prestation',
@@ -169,6 +169,15 @@ class RequeteRepository
             ])
             ->where('code', $data['code'])
             ->firstOrFail();
+
+        // Terminalité calculée POUR CETTE PRESTATION (les étapes étant globales,
+        // `current_etape.is_terminal` n'est pas fiable par e-service).
+        $requete->etape_terminale = $this->estEtapeTerminale(
+            $requete->prestation_id,
+            $requete->current_etape_id
+        );
+
+        return $requete;
     }
 
     /**
@@ -240,7 +249,11 @@ class RequeteRepository
             // NB : `pris_en_charge` supprimée (cleanup 2026_05_21) — l'info est portée par RequeteEtapeLog
             $requete->status       = $transition->status_result_id;
 
-            if ($transition->etape->is_terminal ?? false) {
+            // Terminalité déduite du graphe DE CETTE PRESTATION (les étapes sont
+            // globales : `etapes.is_terminal` n'est pas fiable par e-service).
+            $estTerminale = $this->estEtapeTerminale($requete->prestation_id, $transition->etape_to_id);
+
+            if ($estTerminale) {
                 $requete->isTreated  = true;
                 $requete->closed_at  = now();
             }
@@ -278,7 +291,7 @@ class RequeteRepository
 
             if ($transition->can_act_pns) {
                 $isGroupDelivered  = (bool) ($requete->prestation->is_group_delivered ?? false);
-                $isTerminal        = (bool) ($transition->etape->is_terminal ?? false);
+                $isTerminal        = $estTerminale;
                 $isFavorable       = !in_array(
                     $transition->statusResult->short_name ?? '',
                     ['rejete', 'rejete_clos', 'cloture', 'annule']
@@ -457,6 +470,25 @@ public function traiterDocument(int $acteId, string $action, array $options = []
                 $acte->status                  = 'complet';
                 $acte->completed_at            = now();
                 $acte->current_circuit_step_id = null; // ← ajouter
+            }
+        }
+
+        // ── Déclenchement PNS depuis le CIRCUIT DOCUMENTAIRE ────────────────────
+        // Ex. : sur une action `signature`, demander au PNS de générer / récupérer
+        // le document signé. Encapsulé : un échec PNS ne casse pas le circuit.
+        if ($step->can_act_pns ?? false) {
+            try {
+                $pnsService = new PNSService($acte->requete->header, [
+                    'data'     => null,
+                    'message'  => "Document ({$step->action_type}) — demande " . $acte->requete->code,
+                    'status'   => true,
+                    'decision' => $step->decision,
+                    'link'     => \App\Utilities\Common::dedupeBaseUrl($acte->file_url),
+                    'comment'  => $options['comment'] ?? null,
+                ]);
+                $pnsService->reply();
+            } catch (\Throwable $ePns) {
+                \Log::warning('traiterDocument : notification PNS échouée — ' . $ePns->getMessage());
             }
         }
 
@@ -653,6 +685,27 @@ public function traiterDocument(int $acteId, string $action, array $options = []
      * Vérifier si l'utilisateur courant peut agir sur cette requête
      * selon les visibilités configurées.
      */
+    /**
+     * Une étape est TERMINALE POUR UNE PRESTATION si elle n'a aucune transition
+     * sortante active dans le workflow de cette prestation.
+     *
+     * ⚠️ Les étapes sont GLOBALES (table `etapes` sans prestation_id) et partagées
+     * entre e-services : le flag `etapes.is_terminal` ne peut donc pas être fiable
+     * par prestation (une étape terminale pour l'e-service A clôturerait à tort
+     * les demandes de l'e-service B). On déduit donc la terminalité du graphe.
+     */
+    public function estEtapeTerminale(?int $prestationId, ?int $etapeId): bool
+    {
+        if (!$prestationId || !$etapeId) {
+            return false;
+        }
+
+        return ! WorkflowTransition::where('prestation_id', $prestationId)
+            ->where('etape_from_id', $etapeId)
+            ->where('is_active', true)
+            ->exists();
+    }
+
    public function peutAgir(Requete $requete): bool
 {
     $user             = Auth::user();

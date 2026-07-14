@@ -21,6 +21,8 @@ class UpdateDocumentCircuitEtapeRequest extends FormRequest
             'unite_admin_id'       => 'nullable|integer|exists:unite_admins,id',
             'role_name'            => 'sometimes|string|max:100',
             'action_type'          => 'sometimes|in:edition,paraphe,prevalidation,signature,correction',
+            'can_act_pns'          => 'nullable|boolean',
+            'decision'             => 'nullable|string|max:255',
             'status_after'         => 'sometimes|string|max:100',
             'requete_status_after' => 'nullable|string|max:100',
             'is_blocking'          => 'nullable|boolean',

@@ -255,7 +255,10 @@ class DocumentActeController extends Controller
 
         try {
             $request->validate([
-                'file' => 'required|file|mimes:pdf|max:10240',
+                'file'         => 'required|file|mimes:pdf|max:10240',
+                'share_to_pns' => 'nullable|boolean',
+                'decision'     => 'nullable|string|max:255',
+                'comment'      => 'nullable|string',
             ]);
 
             $acte = DocumentActe::with(['requete', 'docProduit'])->findOrFail($acteId);
@@ -277,9 +280,29 @@ class DocumentActeController extends Controller
                 'content_data' => null,
             ]);
 
+            // Partage optionnel du fichier uploadé au Portail national.
+            $partagePns = false;
+            if ($request->boolean('share_to_pns')) {
+                try {
+                    (new PNSService($acte->requete->header, [
+                        'data'     => $request->input('comment'),
+                        'message'  => 'Document mis à disposition — demande ' . $acte->requete->code,
+                        'status'   => true,
+                        'decision' => $request->input('decision'),
+                        'link'     => Common::dedupeBaseUrl(Storage::disk('public')->url($path)),
+                        'comment'  => $request->input('comment'),
+                    ]))->reply();
+
+                    $partagePns = true;
+                } catch (\Throwable $ePns) {
+                    Log::warning('Upload PDF : partage PNS échoué — ' . $ePns->getMessage());
+                }
+            }
+
             return Common::success($message, [
-                'acte'     => $acte->fresh(['docProduit', 'currentCircuitStep']),
-                'file_url' => Storage::disk('public')->url($path),
+                'acte'        => $acte->fresh(['docProduit', 'currentCircuitStep']),
+                'file_url'    => Storage::disk('public')->url($path),
+                'partage_pns' => $partagePns,
             ]);
 
         } catch (\Throwable $th) {
