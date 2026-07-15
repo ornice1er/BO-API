@@ -122,6 +122,35 @@ class EtapePrestationController extends Controller
     }
 
     /**
+     * Copie la contextualisation des étapes d'une prestation vers d'autres.
+     * POST /api/etape-prestations/copy-from-prestation
+     */
+    public function copyFromPrestation(Request $request)
+    {
+        $message = 'Copie des étapes d\'une prestation';
+
+        $request->validate([
+            'from_prestation_id' => 'required|integer|exists:prestations,id',
+            'to_prestation_ids'  => 'required|array|min:1',
+            'to_prestation_ids.*' => 'integer|exists:prestations,id',
+        ]);
+
+        try {
+            $count = $this->repository->copyFromPrestation(
+                (int) $request->input('from_prestation_id'),
+                $request->input('to_prestation_ids')
+            );
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode($request->all())]);
+
+            return Common::success("$count configuration(s) copiée(s) avec succès", ['count' => $count]);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
      * Étapes du graphe d'une prestation, avec leurs valeurs effectives.
      * GET /api/etape-prestations/graphe/{prestationId}
      */

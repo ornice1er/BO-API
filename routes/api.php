@@ -139,6 +139,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         ]);
         Route::post('etape-prestations-search', 'EtapePrestationController@search');
+        Route::post('etape-prestations/copy-from-prestation', 'EtapePrestationController@copyFromPrestation');
         Route::post('etape-documents-produits-search', 'EtapeDocumentProduitController@search');
         Route::post('document-circuit-etapes-search', 'DocumentCircuitEtapeController@search');
         Route::post('etape-documents-search', 'EtapeDocumentController@search');

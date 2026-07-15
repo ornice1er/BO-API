@@ -46,8 +46,13 @@ EtapeDocumentProduit ──< DocumentCircuitEtape (ordre de visa) ──> Docume
 | `need_meeting`   | bool   | Non | Création d'un rendez-vous requise | **Valeur par défaut**, surchargeable par prestation |
 
 Une étape ne connaît ni son e-service, ni ce qui la précède ou la suit : c'est la **transition**
-qui porte cette information. Les quatre champs comportementaux ci-dessus ne sont que des
-**valeurs par défaut** — la valeur qui fait foi est résolue par prestation (§ 2.2).
+qui porte cette information.
+
+> ✏️ **Les quatre champs comportementaux ne se saisissent plus sur l'étape globale.** Le formulaire
+> de l'étape ne collecte plus que `name` et `type` ; le délai, l'unité, le RDV et l'association à
+> une session se définissent **par prestation** (§ 2.2), pour être précis à chaque e-service. Les
+> colonnes restent en base comme **valeur de repli** (résolution), et portent les valeurs de
+> l'existant reprises par la recomposition — mais elles ne sont plus éditées globalement.
 
 > 🗑️ **Champs supprimés.** `is_terminal` (migration `2026_06_30_002`) : les étapes étant globales,
 > une même étape peut être finale pour un e-service et intermédiaire pour un autre ; le drapeau
@@ -117,11 +122,23 @@ php artisan etapes:recomposer              # simulation : liste les couples manq
 php artisan etapes:recomposer --appliquer  # crée les lignes, valeurs recopiées à l'identique
 ```
 
-La commande recense les couples depuis **toutes** les sources — transitions, documents produits,
-pièces justificatives, motifs de rejet, workflows (legacy), **demandes en cours** et leur
-historique — puis crée les lignes manquantes en recopiant les valeurs portées aujourd'hui par
-l'étape. Elle se termine par un **garde-fou** : pour chaque demande en cours, elle compare la
-valeur résolue à celle que l'ancien code lisait, et échoue si un seul écart apparaît.
+La commande recense les couples appartenant au **parcours réel** de chaque prestation —
+transitions, workflow legacy, documents produits, pièces justificatives, motifs de rejet et
+**demandes en cours**. L'**historique** (`requete_etape_logs`) est volontairement **exclu** : une
+étape seulement franchie par de vieilles demandes n'est pas forcément une étape du parcours actuel,
+et créait des couples parasites.
+
+Pour chaque couple retenu, elle **lie l'étape à la prestation et (re)synchronise les quatre champs
+comportementaux** depuis l'étape globale — qu'il s'agisse d'une ligne manquante (création) ou d'une
+ligne déjà présente mais désalignée (resynchronisation). Les lignes **orphelines** (présentes en
+base mais hors parcours) sont **signalées, jamais supprimées automatiquement**.
+
+> ⚠️ La resynchronisation **écrase** toute valeur par prestation avec la valeur globale de l'étape.
+> C'est l'effet voulu **au moment de la recomposition** (avant toute calibration manuelle). Ne pas
+> relancer après avoir surchargé des étapes à la main, sous peine de perdre ces surcharges.
+
+Elle se termine par un **garde-fou** : pour chaque demande en cours, elle compare la valeur résolue
+à celle que l'ancien code lisait, et échoue si un seul écart apparaît.
 
 Les étapes encore référencées mais absentes du graphe actuel restent configurables : l'écran les
 affiche avec un badge **« Hors graphe »**.

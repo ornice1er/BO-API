@@ -65,6 +65,51 @@ class EtapePrestationRepository
     }
 
     /**
+     * Copie la contextualisation des étapes d'une prestation source vers une ou
+     * plusieurs prestations cibles. Les couples (prestation, étape) déjà présents
+     * sur une cible ne sont pas dupliqués (contrainte d'unicité respectée).
+     *
+     * @param  int[]  $targetIds
+     * @return int    Nombre de lignes créées
+     */
+    public function copyFromPrestation(int $fromId, array $targetIds): int
+    {
+        $sources = EtapePrestation::where('prestation_id', $fromId)->get();
+        if ($sources->isEmpty()) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach ($targetIds as $targetId) {
+            $targetId = (int) $targetId;
+            if ($targetId === $fromId) {
+                continue;
+            }
+
+            foreach ($sources as $src) {
+                $existe = EtapePrestation::where('prestation_id', $targetId)
+                    ->where('etape_id', $src->etape_id)
+                    ->exists();
+                if ($existe) {
+                    continue;
+                }
+
+                EtapePrestation::create([
+                    'prestation_id'  => $targetId,
+                    'etape_id'       => $src->etape_id,
+                    'sla_days'       => $src->sla_days,
+                    'unite_admin_id' => $src->unite_admin_id,
+                    'can_associate'  => $src->can_associate,
+                    'need_meeting'   => $src->need_meeting,
+                ]);
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * Étapes réellement présentes dans le graphe d'une prestation, avec leur
      * contextualisation si elle existe. Alimente l'écran de configuration :
      * l'administrateur ne se voit proposer que des étapes qui ont un sens ici.
