@@ -389,10 +389,73 @@ est piloté par les **transitions** et le **circuit documentaire**.
 | `2026_06_30_002_drop_is_terminal_from_etapes` | Suppression du drapeau `is_terminal` (terminalité déduite du graphe) |
 | `2026_06_30_003_drop_allow_partial_save_from_etapes` | Suppression d'un champ saisi mais jamais lu |
 | `2026_06_30_004_create_etape_prestations_table` | Contextualisation des étapes par prestation + backfill |
+| `2026_07_15_001_add_stage_structure_and_document_destinataire` | `requetes.structure_id` + `etape_document_produits.destinataire` |
+| `2026_07_15_002_add_rapport_stage_and_auto_delivery_link` | Rapport de stage + liaison de délivrance automatique |
 
 ---
 
-## 8. Documents liés
+## 8. Stage : structure d'accueil, documents à un tiers & délivrance automatique
+
+Cas d'usage : **PS00928** (demande de stage) et **PS00926** (attestation, délivrée à la suite).
+
+### 8.1 Structure d'affectation
+
+Une demande peut être rattachée à une **structure d'accueil** — une unité administrative
+existante (`requetes.structure_id → unite_admins`). L'agent la renseigne au traitement
+(section « Structure d'affectation » du détail, `PUT /requetes/{id}/structure`).
+
+Les variables `{{structure_nom}}`, `{{structure_sigle}}`, `{{structure_email}}` deviennent
+disponibles dans les documents produits (`extraireVariables`), pour qu'un document s'adresse à
+la structure.
+
+### 8.2 Destinataire d'un document produit
+
+`etape_document_produits.destinataire` ∈ { `usager`, `structure` } :
+
+- `usager` *(défaut)* — délivrance au demandeur via le PNS (comportement historique) ;
+- `structure` — le PDF est **envoyé par e-mail** à `structure.email` **quand la demande atteint
+  son étape terminale FAVORABLE** (`RequeteRepository::envoyerDocumentsStructure`, via
+  `Mailer::sendSimpleWithFile`, template `emails/document_structure`). Non bloquant : e-mail
+  manquant ou envoi en échec → journalisé, le workflow n'est pas interrompu.
+
+Ex. : l'**autorisation de stage** = `destinataire = structure` ; la **lettre d'acceptation** =
+`destinataire = usager`.
+
+### 8.3 Rapport de stage
+
+Un **rapport de stage** peut être déposé par un **agent** sur une demande de stage (même
+clôturée) : section « Rapport de stage » du détail, `POST/DELETE /requetes/{id}/rapport-stage`,
+stocké dans `requetes.rapport_stage_path`. La section n'apparaît que si la prestation est
+**source** d'une prestation à délivrance automatique (`getOne` → `manages_rapport_stage`).
+
+### 8.4 Délivrance automatique (PS00926 à la suite de PS00928)
+
+Configuration sur la prestation dépendante (PS00926) :
+
+| Champ | Rôle |
+|-------|------|
+| `is_automatic_delivered` | Active la délivrance automatique |
+| `source_prestation_id` | Prestation prérequise (PS00928) |
+| `reference_field_key` | Clé du champ de `step_contents` où le demandeur fournit la référence de la demande source |
+
+À la **soumission** d'une demande d'une prestation `is_automatic_delivered`,
+`RequeteRepository::tenterDelivranceAutomatique` s'exécute (après commit, non bloquant) et
+applique une **validation stricte** :
+
+1. la référence de la demande source est présente dans le formulaire ;
+2. cette demande source existe, appartient à `source_prestation_id`, au **même demandeur**, et est
+   **aboutie favorablement** (`isTreated` && !`isDeclined` && `closed_at`) ;
+3. cette demande source porte un **rapport de stage** (`rapport_stage_path`).
+
+Si tout est réuni, le workflow est **auto-avancé** le long des transitions favorables
+(`auto`, `validation`, `prevalidation`, `paraphe`, `signature`, plafonné à 15 étapes) jusqu'à
+l'étape terminale — ce qui déclenche la **délivrance PNS** existante (configurer `can_act_pns` +
+`decision` sur la transition terminale du 926). Sinon, la demande reste en **traitement manuel**,
+la raison étant journalisée. Le BO ne génère pas l'attestation : sa production reste au PNS.
+
+---
+
+## 9. Documents liés
 
 - [`API_ESERVICES_AVANCER_WORKFLOW.md`](./API_ESERVICES_AVANCER_WORKFLOW.md) — sens PNS → Back-Office.
 - [`API_COMMISSION_DOCUMENTATION.md`](./API_COMMISSION_DOCUMENTATION.md) — API commission.

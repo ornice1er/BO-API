@@ -257,6 +257,100 @@ class RequeteController extends Controller
     }
 
     /**
+     * Dépose le rapport de stage sur une demande (ex. PS00928), même clôturée.
+     * POST /requetes/{id}/rapport-stage  (multipart: file)
+     */
+    public function uploadRapportStage(Request $request, $id)
+    {
+        $message = 'Dépôt du rapport de stage';
+        try {
+            if (!$request->hasFile('file')) {
+                return Common::badRequest();
+            }
+
+            $requete   = \App\Models\Requete::findOrFail($id);
+            $file      = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+            $fileName  = 'rapport_stage_' . \Str::random(12) . '_' . time() . '.' . $extension;
+            $path      = 'requetes/' . $id . '/rapport-stage/' . $fileName;
+
+            \Storage::disk('public')->put($path, file_get_contents($file));
+
+            // Remplacer un éventuel rapport précédent
+            if ($requete->rapport_stage_path && \Storage::disk('public')->exists($requete->rapport_stage_path)) {
+                \Storage::disk('public')->delete($requete->rapport_stage_path);
+            }
+
+            $requete->rapport_stage_path        = $path;
+            $requete->rapport_stage_uploaded_at = now();
+            $requete->save();
+
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode(['requete_id' => $id, 'path' => $path])]);
+
+            return Common::success('Rapport de stage déposé', [
+                'rapport_stage_path'        => $path,
+                'rapport_stage_url'         => \App\Utilities\Common::dedupeBaseUrl(\Storage::disk('public')->url($path)),
+                'rapport_stage_uploaded_at' => $requete->rapport_stage_uploaded_at,
+            ]);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Retire le rapport de stage d'une demande.
+     * DELETE /requetes/{id}/rapport-stage
+     */
+    public function supprimerRapportStage($id)
+    {
+        $message = 'Suppression du rapport de stage';
+        try {
+            $requete = \App\Models\Requete::findOrFail($id);
+            if ($requete->rapport_stage_path && \Storage::disk('public')->exists($requete->rapport_stage_path)) {
+                \Storage::disk('public')->delete($requete->rapport_stage_path);
+            }
+            $requete->rapport_stage_path        = null;
+            $requete->rapport_stage_uploaded_at = null;
+            $requete->save();
+
+            return Common::success('Rapport de stage retiré', []);
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
+     * Affecte (ou retire) la structure d'accueil de stage sur une demande.
+     * PUT /requetes/{id}/structure  { structure_id: <unite_admin_id|null> }
+     */
+    public function affecterStructure(Request $request, $id)
+    {
+        $message = 'Affectation de la structure de stage';
+
+        try {
+            $request->validate([
+                'structure_id' => 'nullable|integer|exists:unite_admins,id',
+            ]);
+
+            $requete = \App\Models\Requete::findOrFail($id);
+            $requete->structure_id = $request->input('structure_id');
+            $requete->save();
+
+            $this->ls->trace(['action_name' => $message, 'description' => json_encode([
+                'requete_id'   => $id,
+                'structure_id' => $requete->structure_id,
+            ])]);
+
+            return Common::success('Structure d\'accueil enregistrée', $requete->load('structure'));
+        } catch (\Throwable $th) {
+            $this->ls->trace(['action_name' => $message, 'description' => $th->getMessage()]);
+            return Common::error($th->getMessage(), []);
+        }
+    }
+
+    /**
      * Proxy téléchargement fichier — force Content-Disposition: attachment.
      * GET /requetes/download-file?path=...&name=...
      */

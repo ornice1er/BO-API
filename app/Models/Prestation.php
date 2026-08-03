@@ -48,6 +48,12 @@ class Prestation extends Model
         return $this->hasMany(WorkflowTransition::class);
     }
 
+    /** Prestation prérequise (ex. PS00928 pour la délivrance auto de PS00926). */
+    public function sourcePrestation()
+    {
+        return $this->belongsTo(Prestation::class, 'source_prestation_id');
+    }
+
     /**
      * Calculé dynamiquement : vrai si au moins une étape du workflow requiert un RDV.
      * Remplace le flag manuel sur la prestation.

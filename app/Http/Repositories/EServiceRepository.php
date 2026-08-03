@@ -336,6 +336,21 @@ class EServiceRepository
             }
 
             DB::commit();
+
+            // Délivrance automatique (ex. PS00926 à la suite de PS00928) : après commit
+            // et non bloquant — une nouvelle demande d'une prestation « délivrance auto »
+            // est délivrée sans agent si ses prérequis sont réunis.
+            if ($isNew && ($prestation->is_automatic_delivered ?? false)) {
+                try {
+                    app(\App\Http\Repositories\RequeteRepository::class)
+                        ->tenterDelivranceAutomatique($req->fresh());
+                } catch (\Throwable $eAuto) {
+                    \Log::warning('Délivrance automatique échouée — ' . $eAuto->getMessage(), [
+                        'requete_id' => $req->id,
+                    ]);
+                }
+            }
+
             return true;
 
         } catch (\Throwable $th) {

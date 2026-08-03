@@ -155,6 +155,7 @@ class RequeteRepository
                 'files',
                 'parcours',
                 'project',
+                'structure',
                 'agendas',
                 'planningSlot.uniteAdmin',
                 'documentActes.docProduit',
@@ -176,6 +177,13 @@ class RequeteRepository
             $requete->prestation_id,
             $requete->current_etape_id
         );
+
+        // Cette prestation sert-elle de source à une prestation à délivrance auto ?
+        // Si oui, l'agent peut y déposer un rapport de stage (ex. PS00928 pour PS00926).
+        $requete->manages_rapport_stage = \App\Models\Prestation::where('source_prestation_id', $requete->prestation_id)->exists();
+        $requete->rapport_stage_url = $requete->rapport_stage_path
+            ? \App\Utilities\Common::dedupeBaseUrl(\Storage::disk('public')->url($requete->rapport_stage_path))
+            : null;
 
         // Les champs comportementaux de l'étape (SLA, unité, RDV, session) sont
         // contextualisés par prestation : on écrase les valeurs par défaut portées
@@ -337,6 +345,19 @@ class RequeteRepository
 
             DB::commit();
 
+            // Étape terminale FAVORABLE : les documents « destinataire = structure »
+            // (ex. autorisation de stage) sont envoyés par mail à la structure d'accueil.
+            // Après commit et non bloquant : un souci d'envoi ne casse jamais le workflow.
+            if ($estTerminale) {
+                $favorable = !in_array(
+                    $transition->statusResult->short_name ?? '',
+                    ['rejete', 'rejete_clos', 'cloture', 'annule']
+                );
+                if ($favorable) {
+                    $this->envoyerDocumentsStructure($requete);
+                }
+            }
+
             return $requete->fresh(['currentEtape', 'currentStatus']);
 
         } catch (\Throwable $e) {
@@ -346,6 +367,69 @@ class RequeteRepository
                 'condition_type' => $conditionType,
             ]);
             throw $e;
+        }
+    }
+
+    /**
+     * Envoie par e-mail, à la structure d'accueil, les documents produits de la
+     * demande dont le destinataire est « structure » (PDF en pièce jointe).
+     *
+     * Non bloquant : chaque échec est journalisé sans interrompre le reste.
+     */
+    protected function envoyerDocumentsStructure(Requete $requete): void
+    {
+        $structure = $requete->structure;
+
+        $actes = \App\Models\DocumentActe::with('docProduit')
+            ->where('requete_id', $requete->id)
+            ->whereNotNull('file_path')
+            ->whereHas('docProduit', fn($q) => $q->where('destinataire', 'structure'))
+            ->get();
+
+        if ($actes->isEmpty()) {
+            return;
+        }
+
+        if (!$structure || empty($structure->email)) {
+            Log::warning('Documents structure non envoyés : structure ou e-mail manquant', [
+                'requete_id'   => $requete->id,
+                'structure_id' => $requete->structure_id,
+                'documents'    => $actes->count(),
+            ]);
+            return;
+        }
+
+        foreach ($actes as $acte) {
+            try {
+                $chemin = \Storage::disk('public')->path($acte->file_path);
+                if (!is_file($chemin)) {
+                    Log::warning('Document structure introuvable sur le disque', [
+                        'acte_id'   => $acte->id,
+                        'file_path' => $acte->file_path,
+                    ]);
+                    continue;
+                }
+
+                $docNom = $acte->docProduit->name ?? 'Document';
+
+                \App\Utilities\Mailer::sendSimpleWithFile(
+                    'emails.document_structure',
+                    [
+                        'intro'        => "Dans le cadre de la demande {$requete->code}, veuillez trouver ci-joint le document destiné à votre structure.",
+                        'document_nom' => $docNom,
+                        'code'         => $requete->code,
+                        'comment'      => null,
+                    ],
+                    "{$docNom} — demande {$requete->code}",
+                    $structure->libelle,
+                    $structure->email,
+                    [$chemin]
+                );
+            } catch (\Throwable $eMail) {
+                Log::warning('Envoi document structure échoué — ' . $eMail->getMessage(), [
+                    'acte_id' => $acte->id,
+                ]);
+            }
         }
     }
 
@@ -747,6 +831,118 @@ public function traiterDocument(int $acteId, string $action, array $options = []
             ->where('etape_from_id', $etapeId)
             ->where('is_active', true)
             ->exists();
+    }
+
+    /**
+     * Aplatit `step_contents` en un dictionnaire clé => valeur.
+     */
+    protected function flattenStepContents(Requete $requete): array
+    {
+        $contents = is_array($requete->step_contents)
+            ? $requete->step_contents
+            : json_decode($requete->step_contents ?? '[]', true);
+
+        $flat = [];
+        foreach (($contents ?? []) as $step) {
+            foreach ($step['content'] ?? [] as $key => $value) {
+                $flat[$key] = $value;
+            }
+        }
+        return $flat;
+    }
+
+    /**
+     * Tente la délivrance automatique d'une demande (ex. PS00926 à la suite de PS00928).
+     *
+     * Conditions (validation STRICTE) :
+     *   1. La prestation référence une prestation source (source_prestation_id) et
+     *      la clé du champ de référence (reference_field_key).
+     *   2. Le demandeur a fourni, dans son formulaire, la référence d'une demande source.
+     *   3. Cette demande source existe, appartient à la prestation source, au MÊME
+     *      demandeur, et est ABOUTIE FAVORABLEMENT (traitée, non déclinée, clôturée).
+     *   4. Cette demande source porte un rapport de stage déposé.
+     *
+     * Si tout est réuni, le workflow est auto-avancé jusqu'à l'étape terminale
+     * favorable (ce qui déclenche la délivrance PNS existante). Sinon, la demande
+     * reste en traitement manuel. Rien n'est bloquant.
+     *
+     * @return array{delivered: bool, reason: string}
+     */
+    public function tenterDelivranceAutomatique(Requete $requete): array
+    {
+        $prestation = $requete->prestation ?? Prestation::find($requete->prestation_id);
+
+        if (!$prestation || !$prestation->source_prestation_id || !$prestation->reference_field_key) {
+            return $this->journaliserAuto($requete, false, 'Configuration incomplète (source/clé de référence).');
+        }
+
+        // 2. Référence fournie par le demandeur
+        $champs    = $this->flattenStepContents($requete);
+        $reference = trim((string) ($champs[$prestation->reference_field_key] ?? ''));
+        if ($reference === '') {
+            return $this->journaliserAuto($requete, false, 'Référence de la demande source absente du formulaire.');
+        }
+
+        // 3. Demande source : même prestation source, même demandeur, aboutie favorablement
+        $source = Requete::where('code', $reference)
+            ->where('prestation_id', $prestation->source_prestation_id)
+            ->first();
+
+        if (!$source) {
+            return $this->journaliserAuto($requete, false, "Aucune demande source « {$reference} » pour la prestation prérequise.");
+        }
+
+        if (!empty($requete->email) && !empty($source->email)
+            && strcasecmp($requete->email, $source->email) !== 0) {
+            return $this->journaliserAuto($requete, false, 'La demande source appartient à un autre demandeur.');
+        }
+
+        $favorable = $source->isTreated && !$source->isDeclined && !is_null($source->closed_at);
+        if (!$favorable) {
+            return $this->journaliserAuto($requete, false, "La demande source « {$reference} » n'est pas aboutie favorablement.");
+        }
+
+        // 4. Rapport de stage déposé sur la demande source
+        if (empty($source->rapport_stage_path)) {
+            return $this->journaliserAuto($requete, false, "Aucun rapport de stage déposé sur la demande source « {$reference} ».");
+        }
+
+        // Tout est réuni → auto-avancer jusqu'au terminal favorable
+        $etapes = 0;
+        while ($etapes++ < 15
+            && !$this->estEtapeTerminale($requete->prestation_id, $requete->current_etape_id)) {
+
+            $next = WorkflowTransition::where('prestation_id', $requete->prestation_id)
+                ->where('etape_from_id', $requete->current_etape_id)
+                ->where('is_active', true)
+                ->whereIn('condition_type', ['auto', 'validation', 'prevalidation', 'paraphe', 'signature'])
+                ->orderByRaw("FIELD(condition_type,'auto','validation','prevalidation','paraphe','signature')")
+                ->orderBy('order')
+                ->first();
+
+            if (!$next) {
+                return $this->journaliserAuto($requete, false, 'Aucune transition favorable disponible pour avancer automatiquement.');
+            }
+
+            $this->avancerWorkflow($requete, $next->condition_type, [
+                'transition_id' => $next->id,
+                'comment'       => 'Délivrance automatique (référence source validée + rapport de stage présent)',
+                'metadata'      => ['source' => 'auto_delivery', 'reference' => $reference],
+            ]);
+
+            $requete = $requete->fresh();
+        }
+
+        return $this->journaliserAuto($requete, true, "Délivrance automatique effectuée (source « {$reference} »).");
+    }
+
+    protected function journaliserAuto(Requete $requete, bool $delivered, string $reason): array
+    {
+        Log::info('Délivrance automatique : ' . ($delivered ? 'OK' : 'non') . ' — ' . $reason, [
+            'requete_id' => $requete->id,
+            'code'       => $requete->code,
+        ]);
+        return ['delivered' => $delivered, 'reason' => $reason];
     }
 
    public function peutAgir(Requete $requete): bool

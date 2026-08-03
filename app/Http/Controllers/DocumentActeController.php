@@ -409,6 +409,13 @@ class DocumentActeController extends Controller
         }
     }
 
+    // Structure d'accueil (renseignée par l'agent au traitement) — permet à un
+    // document type « autorisation de stage » de s'adresser à la structure.
+    $structure = $requete->structure;
+    $base['structure_nom']    = $structure?->libelle ?? '';
+    $base['structure_sigle']  = $structure?->sigle ?? '';
+    $base['structure_email']  = $structure?->email ?? '';
+
     return $base;
 }
 

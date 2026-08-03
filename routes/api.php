@@ -216,6 +216,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::post('workflows/copy-from-prestation', 'WorkflowController@copyFromPrestation');
         Route::post('agenda-search', 'AgendaController@search');
         Route::post('requetes-search', 'RequeteController@search');
+        Route::put('requetes/{id}/structure', 'RequeteController@affecterStructure');
+        Route::post('requetes/{id}/rapport-stage', 'RequeteController@uploadRapportStage');
+        Route::delete('requetes/{id}/rapport-stage', 'RequeteController@supprimerRapportStage');
         Route::post('type-entity-search', 'TypeEntiteController@search');
         Route::post('entity-search', 'EntiteAdminController@search');
         Route::post('files-search', 'FilesController@search');
