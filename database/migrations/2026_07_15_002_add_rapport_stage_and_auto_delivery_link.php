@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Schema;
  *   agent sur une demande de stage (ex. PS00928), même clôturée.
  *
  * - prestations.source_prestation_id : prestation prérequise dont la demande
- *   doit être aboutie (ex. PS00926 dépend de PS00928).
+ *   doit être aboutie (ex. PS00926 dépend de PS00928). Sa PRÉSENCE active la
+ *   délivrance automatique (le drapeau `is_automatic_delivered` a été retiré du
+ *   schéma par 2026_06_10_003 ; on ne s'appuie donc PAS dessus).
  * - prestations.reference_field_key : clé du champ de `step_contents` où le
  *   demandeur fournit la référence de la demande source.
- *
- * (Le drapeau `is_automatic_delivered` existe déjà : il active la délivrance auto.)
  */
 return new class extends Migration
 {
@@ -31,11 +31,13 @@ return new class extends Migration
         });
 
         Schema::table('prestations', function (Blueprint $table) {
+            // Pas de `after('is_automatic_delivered')` : cette colonne a été supprimée
+            // du schéma (2026_06_10_003) et n'existe pas sur tous les environnements.
             if (!Schema::hasColumn('prestations', 'source_prestation_id')) {
-                $table->foreignId('source_prestation_id')->nullable()->after('is_automatic_delivered');
+                $table->foreignId('source_prestation_id')->nullable();
             }
             if (!Schema::hasColumn('prestations', 'reference_field_key')) {
-                $table->string('reference_field_key')->nullable()->after('source_prestation_id');
+                $table->string('reference_field_key')->nullable();
             }
         });
     }

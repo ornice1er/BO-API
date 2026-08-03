@@ -338,9 +338,9 @@ class EServiceRepository
             DB::commit();
 
             // Délivrance automatique (ex. PS00926 à la suite de PS00928) : après commit
-            // et non bloquant — une nouvelle demande d'une prestation « délivrance auto »
-            // est délivrée sans agent si ses prérequis sont réunis.
-            if ($isNew && ($prestation->is_automatic_delivered ?? false)) {
+            // et non bloquant. Activée par la PRÉSENCE d'une prestation source configurée
+            // (source_prestation_id) — le drapeau is_automatic_delivered a été retiré du schéma.
+            if ($isNew && !empty($prestation->source_prestation_id)) {
                 try {
                     app(\App\Http\Repositories\RequeteRepository::class)
                         ->tenterDelivranceAutomatique($req->fresh());

@@ -434,11 +434,13 @@ Configuration sur la prestation dépendante (PS00926) :
 
 | Champ | Rôle |
 |-------|------|
-| `is_automatic_delivered` | Active la délivrance automatique |
-| `source_prestation_id` | Prestation prérequise (PS00928) |
+| `source_prestation_id` | Prestation prérequise (PS00928). **Sa présence active la délivrance automatique.** |
 | `reference_field_key` | Clé du champ de `step_contents` où le demandeur fournit la référence de la demande source |
 
-À la **soumission** d'une demande d'une prestation `is_automatic_delivered`,
+> Le drapeau `is_automatic_delivered` a été **retiré du schéma** (migration `2026_06_10_003`) :
+> on ne s'appuie pas dessus. C'est la présence de `source_prestation_id` qui déclenche.
+
+À la **soumission** d'une demande dont la prestation a un `source_prestation_id`,
 `RequeteRepository::tenterDelivranceAutomatique` s'exécute (après commit, non bloquant) et
 applique une **validation stricte** :
 
